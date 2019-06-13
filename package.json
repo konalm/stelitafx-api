@@ -1,0 +1,14 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "Stelita FX API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "connor lloyd moore",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

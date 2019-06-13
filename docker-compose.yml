@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+  api:
+    build: .
+    command: nodemon index.js
+    working_dir: $PWD
+    volumes:
+      - $PWD:$PWD
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
