@@ -1,7 +1,9 @@
 const express = require('express')
 const app = express()
 const port = 8000
+const insertCurrencyRates = require('./updateCurrencyRates/insertCurrencyRates');
 
+insertCurrencyRates();
 
 app.get('/hello', (req, res) => res.send('Hello from Stelita FX api inside docker container LIVE!!'))
 

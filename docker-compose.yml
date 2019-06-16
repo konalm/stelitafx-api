@@ -1,4 +1,5 @@
 version: '3.3'
+
 services:
   api:
     build: .
@@ -10,3 +11,13 @@ services:
       - "8000:8000"
     expose:
       - "8000"
+    networks:
+      default:
+        aliases:
+          - stelitafx-api
+      stelitafx-network:
+
+networks:
+  default:
+  stelitafx-network:
+    external: true
