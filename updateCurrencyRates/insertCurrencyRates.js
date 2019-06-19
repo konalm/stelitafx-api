@@ -1,9 +1,7 @@
 const conn = require('../db');
 const retrieveCurrencyRates = require('./retrieveCurrencyRates');
 
-/**
- *
- */
+
 module.exports = async () => {
   let currentRates;
 
@@ -16,6 +14,7 @@ module.exports = async () => {
   const query = "INSERT INTO currency_rate (abbrev, exchange_rate) VALUES ?";
   const queryValues = [];
 
+  /* build row of data in sql query */
   for (let [key, value] of Object.entries(currencyRates)) {
     const abbrev = `${key}/USD`;
     queryValues.push([abbrev, value]);
