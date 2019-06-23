@@ -2,7 +2,7 @@ const conn = require('../db');
 const retrieveCurrencyRates = require('./retrieveCurrencyRates');
 
 
-module.exports = async () => {
+module.exports = new Promise(async (resolve, reject) => {
   let currentRates;
 
   try {
@@ -21,6 +21,10 @@ module.exports = async () => {
   }
 
   conn.query(query, [queryValues], (err, result) => {
-    if (err) throw new Error('Unable to insert currency rates');
+    if (err) {
+      return reject(err);
+    }
+
+    resolve();
   });
-}
+})
