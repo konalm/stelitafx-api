@@ -14,8 +14,7 @@ const tradeRepo = require('./trade/repository');
 const groupWMADataPoints = require('./services/groupWMADataPoints');
 const routes = require('./routes');
 
-console.log('ENV variable >>>')
-console.log(process.env.STAGE);
+console.log('DOCKER DOCKER');
 
 
 /**
@@ -149,6 +148,7 @@ app.get('/currency/:currency/weighted_moving_average/:movingAverageLength',
  *
  */
 cron.schedule('* * * * *', () => {
+  console.log('RAN CRON');
   insertCurrencyRates()
     .then(() => {
       prototype();
