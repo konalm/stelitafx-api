@@ -6,10 +6,3 @@ exports.MAJOR_CURRENCIES = [
   'JPY',
   'AUD',
 ];
-
-exports.DB = {
-  host: 'stelitafx-mysql',
-  user: 'stel',
-  password: 'stel',
-  database: 'stelitafx'
-};

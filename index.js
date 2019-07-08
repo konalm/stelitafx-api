@@ -11,21 +11,34 @@ const calculateWMAs = require('./services/calculateWMAs');
 const prototype = require('./algorithms/prototype');
 const prototypeRepo = require('./proto/repository');
 const tradeRepo = require('./trade/repository');
+const groupWMADataPoints = require('./services/groupWMADataPoints');
+const routes = require('./routes');
 
-prototype();
+console.log('ENV variable >>>')
+console.log(process.env.STAGE);
+
+
+/**
+ *
+ */
+routes(app);
+
 
 
 /**
  *
  */
 app.get('/algo/:algo_id/currency/:currency', async (req, res) => {
+  console.log('get currency trades !!');
+
   const algoId = req.params.algo_id;
   const baseCurrency = req.params.currency;
   const currencyPairAbbrev = `${baseCurrency}/USD`;
+  const dateTimeFilter = req.query.date || '';
 
   let trades;
   try {
-    trades = await tradeRepo.getCurrencyTrades(algoId, currencyPairAbbrev);
+    trades = await tradeRepo.getCurrencyTrades(algoId, currencyPairAbbrev, dateTimeFilter);
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);
@@ -63,6 +76,28 @@ app.get('/currency/:abbrev/rate', async (req, res) => {
 
   return res.send(rate);
 });
+
+/**
+ * Get currencies rates
+ */
+app.get('/currency/:abbrev/rates/:count', async (req, res) => {
+  console.log('get currencies rates !!');
+
+  const currencyPairAbbrev = `${req.params.abbrev}/USD`
+  const ratesAmount = parseInt(req.params.count);
+
+  let rates;
+  try {
+    rates = await currencyRatesRepo.getCurrenciesRates(currencyPairAbbrev, ratesAmount);
+  } catch (err) {
+    console.log('ERROR !!!!')
+    console.log(err)
+    return res.status(500).send(err);
+  }
+
+  return res.send(rates);
+})
+
 
 /**
  *
@@ -109,10 +144,15 @@ app.get('/currency/:currency/weighted_moving_average/:movingAverageLength',
   });
 });
 
-cron.schedule('0 * * * *', () => {
-  insertCurrencyRates
+
+/**
+ *
+ */
+cron.schedule('* * * * *', () => {
+  insertCurrencyRates()
     .then(() => {
       prototype();
+      connor();
     })
     .catch((err) => {
       throw new Error(err);

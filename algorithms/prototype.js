@@ -9,12 +9,11 @@ const majorCurrencies = config.MAJOR_CURRENCIES;
 const quoteCurrency = config.QUOTE_CURRENCY;
 
 module.exports = () => {
-  console.log('prototype #1 !!!');
-
   majorCurrencies.forEach((currency) => {
     const currencyPairAbbrev = `${currency}/${quoteCurrency}`;
     prototype(currencyPairAbbrev)
       .catch(err => {
+        console.log(err)
         throw new Error('Prototype failed for currency ' + err)
       })
   });
@@ -24,12 +23,13 @@ module.exports = () => {
  *
  */
 const prototype = async (abbrev) => {
-  console.log(`prototype observing >>> ${abbrev}`)
+  console.log(`prototype for >>> ${abbrev}`)
 
   let shortWMADataPoints;
   try {
     shortWMADataPoints = await getShortWMADataPoints(abbrev);
   } catch (err) {
+    console.log(err);
     throw new Error('getting short WMA data points');
   }
 
@@ -51,19 +51,23 @@ const prototype = async (abbrev) => {
   if (prevShortWMA === shortWMA) prevShortWMA = getLastWMADiffer(shortWMA, shortWMADataPoints);
   if (prevLongWMA === longWMA) prevLongWMA = getLastWMADiffer(longWMA, longWMADataPoints);
 
+  if (shortWMA > longWMA) console.log('SHORT WMA IS HIGHER');
+  if (shortWMA < longWMA) console.log('SHORT WMA IS LOWER');
+
+  if (prevShortWMA > prevLongWMA) console.log('PREV SHORT WMA IS HIGHER')
+  if (prevShortWMA < prevLongWMA) console.log('PREV SHORT WMA IS LOWER')
+
   /* short WMA has moved above long WMA */
   if (shortWMA > longWMA && prevShortWMA < prevLongWMA) {
-    tradeRepo.insertBuyTrade(abbrev, shortWMADataPoint.exchange_rate, 1);
+    console.log('>> BUY TRADE <<')
+    tradeRepo.insertBuyTrade(abbrev, shortWMADataPoint.rate, 1);
     return;
-  } else {
-    console.log(`${abbrev} --> short WMA not moved above`);
   }
 
   /* short WMA has moved below long WMA */
   if (shortWMA < longWMA && prevShortWMA > prevLongWMA) {
-    tradeRepo.insertSellTrade(abbrev, longWMADataPoint.exchange_rate, 1);
-  } else {
-    console.log(`${abbrev} -->long WMA not moved below`);
+    console.log('>> SELL TRADE <<')
+    tradeRepo.insertSellTrade(abbrev, longWMADataPoint.rate, 1);
   }
 }
 

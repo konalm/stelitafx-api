@@ -16,7 +16,12 @@ exports.GetCurrencyPairsAndLatestRate = new Promise(function(resolve, reject) {
     )`;
 
   conn.query(query, (err, results) => {
+    console.log('ERROR ?????')
+    console.log(err)
     if (err) return reject('Error Getting currency pair and latest rate');
+
+    console.log('results >>>')
+    console.log(results);
 
     resolve(results);
   });
@@ -38,6 +43,7 @@ exports.GetCurrencyLatestRates = (currencyAbbrev, ratesAmount, historicalCount) 
   const limit = ratesAmount + historicalCount
 
   conn.query(query, [currencyAbbrev, limit], (err, results) => {
+    console.log(err)
     if (err) return reject('Error Getting currency latest rates');
 
     resolve(results);
@@ -66,3 +72,24 @@ exports.getCurrencyRate = (abbrev) => new Promise((resolve, reject) => {
     resolve(mappedResult);
   });
 });
+
+
+/**
+ * get rates for a currency (currenct and previous)
+ */
+exports.getCurrenciesRates = (abbrev, count = 100) =>
+  new Promise((resolve, reject) =>
+{
+  const query = `
+    SELECT abbrev, exchange_rate, date
+    FROM currency_rate
+    WHERE abbrev = ?
+    ORDER BY date DESC
+    LIMIT ?`;
+
+  conn.query(query, [abbrev, count], (err, results) => {
+    if (err) return reject(err);
+
+    resolve(results);
+  })
+})

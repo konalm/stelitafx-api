@@ -7,16 +7,18 @@ const currencyRatesService = require('../currencyRates/service');
 
 module.exports = (currencyRates, movingAverageLength, historical) => {
   let wmaDataPoints = [];
-  for (let i=0;  i< historical+1; i++) {
-    const startIndex = currencyRates.length - movingAverageLength - i;
-    const endIndex = currencyRates.length - 1 - i;
+  for (let i=0;  i<historical+1; i++) {
+    const startIndex = i;
+    const endIndex = startIndex + movingAverageLength;
     const wmaCurrencyRates = currencyRates.slice(startIndex, endIndex);
-    const wma = currencyRatesService.calcWeightedMovingAverage(currencyRates);
+    const wma = currencyRatesService.calcWeightedMovingAverage(wmaCurrencyRates);
+
     const WMADataPoint = {
-      date: currencyRates[endIndex].date,
-      rate: currencyRates[endIndex].exchange_rate,
+      date: currencyRates[startIndex].date,
+      rate: currencyRates[startIndex].exchange_rate,
       weightedMovingAverage: wma
     }
+
     wmaDataPoints.push(WMADataPoint);
   }
 
