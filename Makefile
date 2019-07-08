@@ -1,4 +1,4 @@
 deploy:
 	git pull \
-	&& docker build -f Dockerfile.prod -t stelitafx-app-prod . \
-		&& docker run --rm -p 8080:8080 stelitafx-app-prod;
+	&& docker build -f Dockerfile.prod -t stelitafx-api-prod . \
+	&& docker run --rm -p 8000:8000 stelitafx-api-prod;
