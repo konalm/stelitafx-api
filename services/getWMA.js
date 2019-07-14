@@ -5,11 +5,7 @@ const calculateWMAs = require('./calculateWMAs');
 /**
  *
  */
-module.exports = async (currencyPairAbbrev, wmaLength, historical) => {
-  console.log('get WMA >>>>>>>>>>>>>>>>>>>');
-  console.log('wma length >>> ' + wmaLength);
-  console.log('historical >>> ' + historical);
-
+exports.getLatestWMAs = async (currencyPairAbbrev, wmaLength, historical) => {
   /* get rates */
   let currencyRates;
   try {
@@ -24,5 +20,26 @@ module.exports = async (currencyPairAbbrev, wmaLength, historical) => {
   }
 
   return calculateWMAs(currencyRates, wmaLength, historical);
-
 }
+
+
+/**
+ *
+ */
+exports.getWMAsAtDate = async (abbrev, wmaLength, historical, date) => {
+  const amount = wmaLength + historical;
+
+  let currencyRates;
+  try {
+    currencyRates = await currencyRatesRepo.getCurrencyRatesAtDate(
+                            abbrev,
+                            date,
+                            amount
+                          );
+  } catch (err) {
+    console.log(err);
+    throw new Error('Getting currency rates at date');
+  }
+
+  return calculateWMAs(currencyRates, wmaLength, historical);
+};

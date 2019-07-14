@@ -1,6 +1,30 @@
 const conn = require('../db');
 
 /**
+ * get currencies between (start date - buffer)  and (end date + buffer)
+ * (Used for getting currencies between trades with addition rates before
+ * and after that trade)
+ */
+exports.getCurrencyRatesBetweenDateRange = (abbrev, startDate, endDate, buffer) =>
+  new Promise((resolve, reject) =>
+{
+  const query = `
+    SELECT date, exchange_rate
+    FROM currency_rate
+    WHERE abbrev = ?
+      AND date >= (? - INTERVAL ? MINUTE)
+      AND date <= (? + INTERVAL ? MINUTE)
+    ORDER BY date DESC`;
+  const queryValues = [abbrev, startDate, buffer, endDate, buffer];
+
+  conn.query(query, queryValues, (err, results) => {
+    if (err) return reject('Error getting currency rates between dates');
+
+    resolve(results);
+  });
+});
+
+/**
  *
  */
 exports.GetCurrencyPairsAndLatestRate = new Promise(function(resolve, reject) {
@@ -16,12 +40,7 @@ exports.GetCurrencyPairsAndLatestRate = new Promise(function(resolve, reject) {
     )`;
 
   conn.query(query, (err, results) => {
-    console.log('ERROR ?????')
-    console.log(err)
     if (err) return reject('Error Getting currency pair and latest rate');
-
-    console.log('results >>>')
-    console.log(results);
 
     resolve(results);
   });
@@ -43,8 +62,35 @@ exports.GetCurrencyLatestRates = (currencyAbbrev, ratesAmount, historicalCount) 
   const limit = ratesAmount + historicalCount
 
   conn.query(query, [currencyAbbrev, limit], (err, results) => {
-    console.log(err)
     if (err) return reject('Error Getting currency latest rates');
+
+    resolve(results);
+  });
+});
+
+/**
+ *
+ */
+exports.getCurrencyRatesAtDate = (abbrev, date, historic) =>
+  new Promise((resolve, reject) =>
+{
+  console.log('get currency rates at date >>')
+  console.log('abbrev ' + abbrev)
+  console.log('date' + date)
+  console.log('historic ' + historic)
+
+  const query = `
+    SELECT date, exchange_rate
+    FROM currency_rate
+    WHERE abbrev = ?
+      AND date <= ?
+      ORDER BY date DESC
+    LIMIT ?`;
+  const queryValues = [abbrev, date, historic];
+
+  conn.query(query, queryValues, (err, results) => {
+    console.log(err);
+    if (err) return reject('Error getting currency rates by date');
 
     resolve(results);
   });
@@ -75,7 +121,7 @@ exports.getCurrencyRate = (abbrev) => new Promise((resolve, reject) => {
 
 
 /**
- * get rates for a currency (currenct and previous)
+ * get rates for a currency (current and previous)
  */
 exports.getCurrenciesRates = (abbrev, count = 100) =>
   new Promise((resolve, reject) =>

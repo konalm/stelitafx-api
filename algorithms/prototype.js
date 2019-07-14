@@ -2,6 +2,8 @@ const config = require('../config');
 const tradeRepo = require('../trade/repository.js');
 const currencyRatesRepo = require('../currencyRates/repository');
 const calculateWMAs = require('../services/calculateWMAs');
+const oandaService = require('../services/oanda');
+
 
 const shortWMALength = 12;
 const longWMALength = 26;
@@ -10,10 +12,8 @@ const quoteCurrency = config.QUOTE_CURRENCY;
 
 module.exports = () => {
   majorCurrencies.forEach((currency) => {
-    const currencyPairAbbrev = `${currency}/${quoteCurrency}`;
-    prototype(currencyPairAbbrev)
+    prototype(currency)
       .catch(err => {
-        console.log(err)
         throw new Error('Prototype failed for currency ' + err)
       })
   });
@@ -22,14 +22,14 @@ module.exports = () => {
 /**
  *
  */
-const prototype = async (abbrev) => {
+const prototype = async (currency) => {
+  const abbrev = `${currency}/${quoteCurrency}`;
   console.log(`prototype for >>> ${abbrev}`)
 
   let shortWMADataPoints;
   try {
     shortWMADataPoints = await getShortWMADataPoints(abbrev);
   } catch (err) {
-    console.log(err);
     throw new Error('getting short WMA data points');
   }
 
@@ -51,16 +51,12 @@ const prototype = async (abbrev) => {
   if (prevShortWMA === shortWMA) prevShortWMA = getLastWMADiffer(shortWMA, shortWMADataPoints);
   if (prevLongWMA === longWMA) prevLongWMA = getLastWMADiffer(longWMA, longWMADataPoints);
 
-  if (shortWMA > longWMA) console.log('SHORT WMA IS HIGHER');
-  if (shortWMA < longWMA) console.log('SHORT WMA IS LOWER');
-
-  if (prevShortWMA > prevLongWMA) console.log('PREV SHORT WMA IS HIGHER')
-  if (prevShortWMA < prevLongWMA) console.log('PREV SHORT WMA IS LOWER')
 
   /* short WMA has moved above long WMA */
   if (shortWMA > longWMA && prevShortWMA < prevLongWMA) {
     console.log('>> BUY TRADE <<')
     tradeRepo.insertBuyTrade(abbrev, shortWMADataPoint.rate, 1);
+    oandaService.placeBuyOrder(currency);
     return;
   }
 
@@ -68,6 +64,7 @@ const prototype = async (abbrev) => {
   if (shortWMA < longWMA && prevShortWMA > prevLongWMA) {
     console.log('>> SELL TRADE <<')
     tradeRepo.insertSellTrade(abbrev, longWMADataPoint.rate, 1);
+    oandaService.placeSellOrder(currency);
   }
 }
 

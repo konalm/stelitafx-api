@@ -14,12 +14,6 @@ module.exports = () => new Promise(async (resolve, reject) => {
     throw new Error('Unable to retrieve currency rates');
   }
 
-  console.log('currency rates from fixer API >>>>')
-  console.log(currencyRates)
-
-  console.log('retrieved currency rates from third party api');
-  console.log(currencyRates);
-
   const query = "INSERT INTO currency_rate (abbrev, exchange_rate) VALUES ?";
   const queryValues = [];
 
