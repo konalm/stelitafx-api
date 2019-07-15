@@ -89,6 +89,7 @@ exports.getWMAs = async (req, res) => {
  * (including buffer)
  */
 exports.getWMAsForTrade = async (req, res) => {
+  console.log('get WMAs for trade');
   const abbrev = `${req.params.currency}/USD`;
   const buyTradeId = req.params.buy_trade_id;
   const sellTradeId = req.params.sell_trade_id;
@@ -101,6 +102,7 @@ exports.getWMAsForTrade = async (req, res) => {
                                sellTradeId
                              );
   } catch (err) {
+    console.log(err)
     return res.status(500).send('could not get trade transaction');
   }
 
