@@ -1,7 +1,7 @@
 deploy:
 	git pull \
 	&& forever stopall \
-	&& forever start index.js;
+	&& forever restartall;
 
 deploy-docker:
 	git pull \

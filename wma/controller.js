@@ -133,7 +133,7 @@ exports.getWMAsForTrade = async (req, res) => {
                             latestCurrencyDate,
                             historicWMAs
                           );
-  } catch {
+  } catch (err) {
     return res.status(500).send('Error getting WMA data points');
   }
 
