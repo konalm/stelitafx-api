@@ -24,6 +24,8 @@ routes(app);
  *
  */
 cron.schedule('* * * * *', async () => {
+  console.log('cron');
+  
   try {
     await insertCurrencyRates();
   } catch (err) {
