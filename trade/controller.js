@@ -4,10 +4,14 @@ const repo = require('./repository.js');
  * Get all of a proto's trades for a currency
  */
 exports.getProtoCurrencyTrades = async (req, res) => {
+  console.log('get proto currency trades !!');
+
   const algoId = req.params.algo_id;
   const baseCurrency = req.params.currency;
   const currencyPairAbbrev = `${baseCurrency}/USD`;
   const dateTimeFilter = req.query.date || '';
+
+  console.log(dateTimeFilter);
 
   let trades;
   try {

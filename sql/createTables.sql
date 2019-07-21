@@ -1,4 +1,18 @@
 /**
+ *
+ */
+CREATE TABLE IF NOT EXISTS currency_wma (
+  id INT AUTO_INCREMENT,
+  abbrev CHAR(7),
+  FOREIGN KEY (abbrev)
+    REFERENCES currency_pair(abbrev)
+    ON DELETE CASCADE,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  wma_data_json LONGTEXT,
+  PRIMARY KEY(id)
+);
+
+/**
  * Create currency table
  */
  CREATE TABLE IF NOT EXISTS currency (

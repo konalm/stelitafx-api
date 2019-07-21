@@ -31,11 +31,11 @@ const placeOrder = (units, currency) => (currency) => {
 
   axios.post(`${demoAccountUrl}/orders`, payload, options)
     .then((res) => {
-      console.log('>>>>> Placed order to OANDA <<<<<<<');
+      // console.log('>>>>> Placed order to OANDA <<<<<<<');
     })
     .catch(err => {
-      console.log('>>>>>> ERROR placing order to OANDA <<<<<<<');
-      console.log(err)
+      // console.log('>>>>>> ERROR placing order to OANDA <<<<<<<');
+      // console.log(err)
     });
 }
 

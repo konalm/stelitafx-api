@@ -3,7 +3,7 @@ const tradeRepo = require('../trade/repository.js');
 const currencyRatesRepo = require('../currencyRates/repository');
 const calculateWMAs = require('../services/calculateWMAs');
 const oandaService = require('../services/oanda');
-
+const wmaRepo = require('../wma/repository')
 
 const shortWMALength = 12;
 const longWMALength = 26;
@@ -24,46 +24,26 @@ module.exports = () => {
  */
 const prototype = async (currency) => {
   const abbrev = `${currency}/${quoteCurrency}`;
-  console.log(`prototype for >>> ${abbrev}`)
-
-  let shortWMADataPoints;
+  let wmaDataPoints;
   try {
-    shortWMADataPoints = await getShortWMADataPoints(abbrev);
+    wmaDataPoints = await wmaRepo.getWMAs(abbrev, 2)
   } catch (err) {
-    throw new Error('getting short WMA data points');
+    throw new Error('could not get WMAs:' + err);
   }
 
-  let longWMADataPoints;
-  try {
-    longWMADataPoints = await getLongWMADataPoints(abbrev);
-  } catch (err) {
-    throw new Error('getting long WMA data points');
-  }
-
-  const shortWMADataPoint = shortWMADataPoints[shortWMADataPoints.length - 1];
-  const longWMADataPoint = longWMADataPoints[longWMADataPoints.length - 1];
-
-  const shortWMA = shortWMADataPoint.weightedMovingAverage;
-  let prevShortWMA = shortWMADataPoints[shortWMADataPoints.length - 2].weightedMovingAverage;
-  const longWMA = longWMADataPoint.weightedMovingAverage;
-  let prevLongWMA = longWMADataPoints[longWMADataPoints.length - 2].weightedMovingAverage;
-
-  if (prevShortWMA === shortWMA) prevShortWMA = getLastWMADiffer(shortWMA, shortWMADataPoints);
-  if (prevLongWMA === longWMA) prevLongWMA = getLastWMADiffer(longWMA, longWMADataPoints);
-
+  const WMA = wmaDataPoints[0];
+  const prevWMA  = wmaDataPoints[1];
 
   /* short WMA has moved above long WMA */
-  if (shortWMA > longWMA && prevShortWMA < prevLongWMA) {
-    console.log('>> BUY TRADE <<')
-    tradeRepo.insertBuyTrade(abbrev, shortWMADataPoint.rate, 1);
+  if (WMA.shortWMA >= WMA.longWMA && prevWMA.shortWMA < prevWMA.longWMA) {
+    tradeRepo.insertBuyTrade(abbrev, WMA.rate, 1);
     oandaService.placeBuyOrder(currency);
     return;
   }
 
   /* short WMA has moved below long WMA */
-  if (shortWMA < longWMA && prevShortWMA > prevLongWMA) {
-    console.log('>> SELL TRADE <<')
-    tradeRepo.insertSellTrade(abbrev, longWMADataPoint.rate, 1);
+  if (WMA.shortWMA <= WMA.longWMA && prevWMA.shortWMA > prevWMA.longWMA) {
+    tradeRepo.insertSellTrade(abbrev, WMA.rate, 1);
     oandaService.placeSellOrder(currency);
   }
 }

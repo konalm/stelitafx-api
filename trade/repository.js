@@ -3,16 +3,20 @@ const conn = require('../db');
 /**
  *
  */
-const insertTrade = (transaction, abbrev, rate, algoProtoNo) => (abbrev, rate, algoProtoNo) => {
+const insertTrade = (transaction, abbrev, rate, algoProtoNo) => (abbrev, rate, algoProtoNo) =>
+  new Promise((resolve, reject) =>
+{
   const query = "INSERT INTO trade (abbrev, transaction, algo_proto_no, rate) VALUES ?";
   const queryValues = [
     [abbrev, transaction, algoProtoNo, rate]
   ];
 
   conn.query(query, [queryValues], function(err, result) {
-    if (err) throw new Error(err);
+    if (err) return reject(err);
+
+    resolve(result);
   });
-}
+});
 exports.insertBuyTrade = insertTrade('buy');
 exports.insertSellTrade = insertTrade('sell');
 
@@ -114,6 +118,7 @@ exports.getTrade = (abbrev, tradeId, transaction) =>
   });
 });
 
+
 /**
  *
  */
@@ -127,6 +132,27 @@ exports.getProtoTrades = (protoNo) => new Promise((resolve, reject) => {
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
-    return resolve(results);
+    resolve(results);
+  });
+});
+
+
+/**
+ *
+ */
+exports.getLastTrade = (protoNo, abbrev) => new Promise((resolve, reject) => {
+  const query = `
+    SELECT date, transaction, rate
+    FROM trade
+    WHERE algo_proto_no = ?
+      AND abbrev = ?
+    ORDER BY date DESC
+    LIMIT 1`;
+  const queryValues = [protoNo, abbrev];
+
+  conn.query(query, queryValues, (err, results) => {
+    if (err) return reject(err);
+
+    resolve(results[0]);
   });
 });

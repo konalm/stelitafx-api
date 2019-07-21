@@ -5,14 +5,11 @@ app.use(cors());
 const cron = require('node-cron')
 const port = 8000
 const insertCurrencyRates = require('./updateCurrencyRates/insertCurrencyRates');
-const currencyRatesRepo = require('./currencyRates/repository');
-const currencyRatesService = require('./currencyRates/service');
-const calculateWMAs = require('./services/calculateWMAs');
-const prototype = require('./algorithms/prototype');
-const prototypeRepo = require('./proto/repository');
-const tradeRepo = require('./trade/repository');
-const groupWMADataPoints = require('./services/groupWMADataPoints');
+const wmaService = require('./wma/service');
 const routes = require('./routes');
+
+const prototype = require('./algorithms/prototype');
+const prototypeNo2 = require('./algorithms/prototype#2');
 
 
 /**
@@ -20,18 +17,27 @@ const routes = require('./routes');
  */
 routes(app);
 
+// prototypeNo2()
+
 
 /**
  *
  */
-cron.schedule('* * * * *', () => {
-  insertCurrencyRates()
-    .then(() => {
-      prototype();
-    })
-    .catch((err) => {
-      throw new Error(err);
-    });
+cron.schedule('* * * * *', async () => {
+  // try {
+  //   await insertCurrencyRates();
+  // } catch (err) {
+  //   throw new Error('Error inserting currency rates');
+  // }
+  //
+  // try {
+  //   await wmaService.storeWMAData();
+  // } catch (err) {
+  //   throw new Error("Error storing WMA data: " + err);
+  // }
+  //
+  // prototype()
+  // prototypeNo2()
 });
 
 app.listen(port, () => console.log(`Stelita FX API listening in port ${port}`))

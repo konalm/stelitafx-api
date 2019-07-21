@@ -27,7 +27,7 @@ exports.getCurrencyRatesBetweenDateRange = (abbrev, startDate, endDate, buffer) 
 /**
  *
  */
-exports.GetCurrencyPairsAndLatestRate = new Promise(function(resolve, reject) {
+exports.GetCurrencyPairsAndLatestRate = new Promise((resolve, reject) => {
   const query = `
     SELECT cp.abbrev, cp.base_currency, cr.date, cr.exchange_rate
     FROM currency_pair cp
@@ -110,6 +110,8 @@ exports.getCurrencyRate = (abbrev) => new Promise((resolve, reject) => {
 
   conn.query(query, [abbrev], (err, results) => {
     if (err) return reject(err);
+
+    if (results.length === 0) return;
 
     const mappedResult = {
       abbrev: results[0].abbrev,

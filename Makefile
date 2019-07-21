@@ -1,6 +1,5 @@
 deploy:
 	git pull \
-	&& forever stopall \
 	&& forever restartall;
 
 deploy-docker:
