@@ -24,20 +24,20 @@ routes(app);
  *
  */
 cron.schedule('* * * * *', async () => {
-  // try {
-  //   await insertCurrencyRates();
-  // } catch (err) {
-  //   throw new Error('Error inserting currency rates');
-  // }
-  //
-  // try {
-  //   await wmaService.storeWMAData();
-  // } catch (err) {
-  //   throw new Error("Error storing WMA data: " + err);
-  // }
-  //
-  // prototype()
-  // prototypeNo2()
+  try {
+    await insertCurrencyRates();
+  } catch (err) {
+    throw new Error('Error inserting currency rates');
+  }
+
+  try {
+    await wmaService.storeWMAData();
+  } catch (err) {
+    throw new Error("Error storing WMA data: " + err);
+  }
+
+  prototype()
+  prototypeNo2()
 });
 
 app.listen(port, () => console.log(`Stelita FX API listening in port ${port}`))
