@@ -28,7 +28,7 @@ exports.getWMAs = (currencyAbbrev, amount) => new Promise((resolve, reject) => {
   conn.query(query, queryValues, (err, results) => {
     if (err) reject(err);
 
-    if (results.length === 0) return [];
+    if (!results || results.length === 0) return [];
 
     const dataPoints = [];
     results.forEach((result) => {
