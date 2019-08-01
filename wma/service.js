@@ -6,6 +6,8 @@ const calculateWMAs = require('../services/calculateWMAs');
 const repo = require('./repository');
 const currencyRatesService = require('../currencyRates/service');
 
+const WMALengths = [5, 12, 15, 36];
+
 /**
  *
  */
@@ -71,15 +73,15 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
   });
 });
 
+/**
+ *
+ */
 exports.storeWMAData = () => {
-  console.log('store WMA Data');
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
 
   currencies.forEach((currency) => {
-    console.log('currency ' + currency)
     const currencyAbbrev = `${currency}/${quoteCurrency}`;
-
     storeCurrencyWMAData(currencyAbbrev)
   })
 }
@@ -88,40 +90,37 @@ exports.storeWMAData = () => {
  *
  */
 const storeCurrencyWMAData = async (currencyAbbrev) => {
-  console.log('save wma !!');
-
-  let rate;
+  let rateData;
   try {
-    rate = await currencyRatesRepo.GetCurrencyLatestRates(currencyAbbrev, 1, 0)
+    rateData = await currencyRatesRepo.GetCurrencyLatestRates(currencyAbbrev, 1, 0)
   } catch (err) {
     throw new Error('Error getting currency rate');
   }
-  rate = rate[0].exchange_rate;
+  const rate = rateData[0].exchange_rate;
 
-  let shortWMA;
-  try {
-    shortWMA = await calcWMA(currencyAbbrev, 12);
-  } catch (err) {
-    throw new Error('Error calculating short WMA: ' + err);
-  }
+  wmaPromises = [];
+  WMALengths.forEach((length) => {
+    wmaPromises.push(calcWMA(currencyAbbrev, length));
+  });
 
-  let longWMA;
-  try {
-    longWMA = await calcWMA(currencyAbbrev, 36);
-  } catch (err) {
-    throw new Error('Error calculating long WMA: ' + err);
-  }
+  Promise.all(wmaPromises).then(values => {
+    const WMAData = [];
+    WMALengths.forEach((length, index) => {
+      WMADataPoint = {
+        length,
+        wma: values[index],
+      }
+      WMAData.push(WMADataPoint);
+    });
 
-
-  repo.storeWMAData(currencyAbbrev, rate, shortWMA, longWMA);
+    repo.storeWMAData(currencyAbbrev, rate, WMAData);
+  });
 }
 
 /**
  *
  */
 const calcWMA = async (abbrev, WMALength) => {
-  const historical = 5;
-
   let currencyRates = [];
   try {
     currencyRates = await currencyRatesRepo.GetCurrencyLatestRates(
@@ -132,6 +131,8 @@ const calcWMA = async (abbrev, WMALength) => {
   } catch (err) {
     throw new Error('Error Getting WMA Data points: ' + err);
   }
+
+  if (currencyRates.length < WMALength) return '';
 
   return currencyRatesService.calcWeightedMovingAverage(currencyRates);
 }

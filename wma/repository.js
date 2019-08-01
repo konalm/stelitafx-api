@@ -1,13 +1,12 @@
 const conn = require('../db');
 
 
-exports.storeWMAData = (currencyAbbrev, rate, shortWMA, longWMA) => {
-  const wmaData = {rate, shortWMA, longWMA};
+exports.storeWMAData = (currencyAbbrev, rate, wmaData) => {
   const wmaDataJSON = JSON.stringify(wmaData);
 
-  const query = 'INSERT INTO currency_wma (abbrev, wma_data_json) VALUES ?';
+  const query = 'INSERT INTO currency_wma (abbrev, rate, wma_data_json) VALUES ?';
   const queryValues = [
-    [currencyAbbrev, wmaDataJSON]
+    [currencyAbbrev, rate, wmaDataJSON]
   ];
 
   conn.query(query, [queryValues], (err, results) => {
@@ -18,7 +17,7 @@ exports.storeWMAData = (currencyAbbrev, rate, shortWMA, longWMA) => {
 
 exports.getWMAs = (currencyAbbrev, amount) => new Promise((resolve, reject) => {
   const query =  `
-    SELECT date, wma_data_json
+    SELECT date, rate, wma_data_json
     FROM currency_wma
     WHERE abbrev = ?
     ORDER BY DATE DESC
@@ -31,12 +30,17 @@ exports.getWMAs = (currencyAbbrev, amount) => new Promise((resolve, reject) => {
     if (!results || results.length === 0) return [];
 
     const dataPoints = [];
-    results.forEach((result) => {
+    results.forEach((result, index) => {
       const wmaData = JSON.parse(result.wma_data_json);
-      const dataPoint = {
+      let dataPoint = {
         date: result.date,
-        ...wmaData
+        rate: result.rate,
+        WMAs: {}
       };
+      wmaData.forEach((wmaRow) => {
+        dataPoint.WMAs[wmaRow.length] = wmaRow.wma
+      });
+
       dataPoints.push(dataPoint);
     });
 
@@ -52,7 +56,7 @@ exports.getWMAsBetweenDates = (abbrev, startDate, endDate, buffer) =>
   new Promise((resolve, reject) =>
 {
   const query = `
-    SELECT date, wma_data_json
+    SELECT date, rate, wma_data_json
     FROM currency_wma
     WHERE abbrev = ?
      AND date >= (? - INTERVAL ? MINUTE)
@@ -70,8 +74,13 @@ exports.getWMAsBetweenDates = (abbrev, startDate, endDate, buffer) =>
       const wmaData = JSON.parse(result.wma_data_json);
       const dataPoint = {
         date: result.date,
-        ...wmaData
+        rate: result.rate,
+        WMAs: {}
       };
+      wmaData.forEach((wmaRow) => {
+        dataPoint.WMAs[wmaRow.length] = wmaRow.wma
+      });
+
       dataPoints.push(dataPoint);
     });
 

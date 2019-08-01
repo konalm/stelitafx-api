@@ -5,4 +5,8 @@ module.exports = (app) => {
     .get(controller.getProtoCurrencyTrades);
 
   app.route('/proto/:proto_no/trades').get(controller.getProtoTrades);
+  app.route('/proto/:proto_no/currency/:currency')
+     .get(controller.getProtoCurrencyClosedTrades);
+
+  app.route('/proto/:protoNo/currency/:currency/trade/:tradeId').get(controller.getTrade);
 }

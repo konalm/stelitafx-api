@@ -74,14 +74,14 @@ module.exports = (app) => {
   /**
    *
    */
-  app.get('/currency-pairs-latest-rates', async (req, res) => {
-    let latestRates;
-    try {
-      latestRates = await currencyRatesRepo.GetCurrencyPairsAndLatestRate;
-    } catch (err) {
-      return res.status(500).send(err);
-    }
-
-    return res.send(latestRates);
-  });
+  // app.get('/currency-pairs-latest-rates', async (req, res) => {
+  //   let latestRates;
+  //   try {
+  //     latestRates = await currencyRatesRepo.GetCurrencyPairsAndLatestRate;
+  //   } catch (err) {
+  //     return res.status(500).send(err);
+  //   }
+  //
+  //   return res.send(latestRates);
+  // });
 }

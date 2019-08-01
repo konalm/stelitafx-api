@@ -1,4 +1,39 @@
 const conn = require('../db');
+const calculatePip = require('../services/calculatePip');
+
+/**
+ *
+ */
+exports.getProtoCurrencyClosedTrades = (protoNo, abbrev) =>
+  new Promise((resolve, reject) =>
+{
+  const query = `
+    SELECT id,
+      open_rate AS openRate,
+      date AS openDate,
+      close_rate AS closeRate,
+      close_date AS closeDate,
+      open_notes AS openNotes,
+      close_notes AS closeNotes,
+      viewed
+    FROM tradeV2
+    WHERE proto_no = ?
+    AND abbrev = ?
+    AND closed = true
+    ORDER BY closeDate DESC`;
+  const queryValues = [protoNo, abbrev];
+
+  conn.query(query, queryValues, (err, results) => {
+    if (err) return reject(err);
+
+    results.forEach((result) => {
+      result.pips = calculatePip(result.openRate, result.closeRate, abbrev);
+    })
+
+    resolve(results)
+  });
+});
+
 
 /**
  *
@@ -100,21 +135,55 @@ exports.getTradeTransactions = (abbrev, buyTradeId, sellTradeId) =>
 /**
  *
  */
-exports.getTrade = (abbrev, tradeId, transaction) =>
-  new Promise((resolve, reject) =>
+exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =>
 {
   const query = `
-    SELECT date, rate, transaction
-    FROM trade
-    WHERE abbrev = ?
-    AND transaction = ?
+    SELECT open_rate AS openRate,
+    date AS openDate,
+    close_rate AS closeRate,
+    close_date AS closeDate,
+    viewed
+    FROM tradeV2
+    WHERE proto_no = ?
+    AND abbrev = ?
     AND id = ?`;
-  const queryValues = [abbrev, transaction, tradeId];
+  const queryValues = [protoNo, abbrev, tradeId];
 
   conn.query(query, queryValues, (err, results) => {
+    console.log(err)
     if (err) return reject(err);
 
+    if (!results) return resolve()
+
+    results[0].pips = calculatePip(results[0].openRate, results[0].closeRate, abbrev)
+
     return resolve(results[0]);
+  });
+});
+
+
+/**
+ *
+ */
+exports.getTradeV2 = (abbrev, tradeId) => new Promise((resolve, reject) => {
+  const query = `
+    SELECT open_rate AS openRate,
+      date AS openDate,
+      close_rate AS closeRate,
+      close_date AS closeDate,
+      closed
+    FROM tradeV2
+    WHERE abbrev = ?
+      AND id = ?`;
+  const queryValues = [abbrev, tradeId];
+
+  console.log(queryValues)
+
+  conn.query(query, queryValues, (err, results) => {
+    if (err) return reject(err)
+
+    console.log(results)
+    return resolve(results[0])
   });
 });
 
@@ -142,9 +211,9 @@ exports.getProtoTrades = (protoNo) => new Promise((resolve, reject) => {
  */
 exports.getLastTrade = (protoNo, abbrev) => new Promise((resolve, reject) => {
   const query = `
-    SELECT date, transaction, rate
-    FROM trade
-    WHERE algo_proto_no = ?
+    SELECT id, date, open_rate, closed
+    FROM tradeV2
+    WHERE proto_no = ?
       AND abbrev = ?
     ORDER BY date DESC
     LIMIT 1`;
@@ -153,6 +222,43 @@ exports.getLastTrade = (protoNo, abbrev) => new Promise((resolve, reject) => {
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
-    resolve(results[0]);
+    if (!results || results.length === 0) return resolve();
+
+    const mappedResult = {
+      id: results[0].id,
+      openRate: results[0].open_rate,
+      closed: results[0].closed
+    };
+
+    resolve(mappedResult);
   });
 });
+
+/**
+ *
+ */
+exports.createTrade = (data) => new Promise((resolve, reject) => {
+  if (!data) return;
+
+  let query = "INSERT INTO tradeV2 SET ?";
+  conn.query(query, data, (err, results) => {
+    if (err) return reject(err);
+
+    resolve('created trade');
+  });
+});
+
+/**
+ *
+ */
+exports.updateTrade = (id, data) => new Promise((resolve, reject) => {
+  if (!data) return;
+
+  let query = 'UPDATE tradeV2 SET ? WHERE id = ?';
+
+  conn.query(query, [data, id], (err, result) => {
+    if (err) return reject(err);
+
+    resolve('updated trade');
+  })
+})

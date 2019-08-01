@@ -10,6 +10,7 @@ const routes = require('./routes');
 
 const prototype = require('./algorithms/prototype');
 const prototypeNo2 = require('./algorithms/prototype#2');
+const prototypeNo3 = require('./algorithms/prototype#3');
 
 
 /**
@@ -17,15 +18,12 @@ const prototypeNo2 = require('./algorithms/prototype#2');
  */
 routes(app);
 
-// prototypeNo2()
 
 
 /**
  *
  */
 cron.schedule('* * * * *', async () => {
-  console.log('cron');
-  
   try {
     await insertCurrencyRates();
   } catch (err) {
@@ -40,6 +38,7 @@ cron.schedule('* * * * *', async () => {
 
   prototype()
   prototypeNo2()
+  prototypeNo3()
 });
 
 app.listen(port, () => console.log(`Stelita FX API listening in port ${port}`))

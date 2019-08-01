@@ -7,6 +7,5 @@ module.exports = (app) => {
   app.route('/currency/:currency/weighted_moving_average/:movingAverageLength')
     .get(controller.getWMAs);
 
-  app.route('/wma/:currency/buy/:buy_trade_id/sell/:sell_trade_id')
-    .get(controller.getWMAsForTradeV2);
+  app.route('/wma/:currency/trade/:tradeId').get(controller.getWMAsForTrade);
 }

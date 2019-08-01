@@ -3,8 +3,6 @@ const retrieveCurrencyRates = require('./retrieveCurrencyRates');
 
 
 module.exports = () => new Promise(async (resolve, reject) => {
-  console.log('insert currency rates');
-  
   let currentRates;
 
   try {

@@ -14,8 +14,6 @@ const repo = require('./repository');
    const currencyPairAbbrev = `${currency}/USD`;
    const count = parseInt(req.params.count);
 
-   console.log(typeof(count))
-
    let WMADataPoints;
    try {
      WMADataPoints = await repo.getWMAs(currencyPairAbbrev, count);
@@ -34,7 +32,6 @@ const repo = require('./repository');
    const currency = req.params.currency;
    const currencyPairAbbrev = `${currency}/USD`;
    const count = parseInt(req.params.count);
-
 
    /* get rates */
    let currencyRates;
@@ -112,100 +109,29 @@ exports.getWMAs = async (req, res) => {
  * (including buffer)
  */
 exports.getWMAsForTrade = async (req, res) => {
-  console.log('get WMAs for trade');
   const abbrev = `${req.params.currency}/USD`;
-  const buyTradeId = req.params.buy_trade_id;
-  const sellTradeId = req.params.sell_trade_id;
+  const tradeId = req.params.tradeId;
 
-  let tradeTransaction;
+  let trade;
   try {
-    tradeTransaction = await service.getTradeTransactions(
-                               abbrev,
-                               buyTradeId,
-                               sellTradeId
-                             );
+    trade = await tradeRepo.getTradeV2(abbrev, tradeId)
   } catch (err) {
     console.log(err)
-    return res.status(500).send('could not get trade transaction');
+    return res.status(500).send('could not get trade');
   }
+  if (!trade) return res.status(404).send('could not find trade');
 
-  if (tradeTransaction.status !== 200) {
-    return res.status(tradeTransaction.status).send(tradeTransaction.data);
-  }
-
-  const buyTrade = tradeTransaction.data.buy;
-  const sellTrade = tradeTransaction.data.sell;
-
-  let currencyRates;
-  try {
-    currencyRates = await currencyRateRepo.getCurrencyRatesBetweenDateRange(
-                            abbrev,
-                            buyTrade.date,
-                            sellTrade.date,
-                            20
-                          );
-  } catch (err) {
-    return res.status(500).send('Could not get currency rates');
-  }
-
-  const latestCurrencyDate = currencyRates[0].date;
-  const historicWMAs = currencyRates.length - 1;
-
-  let wmaDataPoints;
-  try {
-    wmaDataPoints = await service.getWMAsForTrade(
-                            abbrev,
-                            latestCurrencyDate,
-                            historicWMAs
-                          );
-  } catch (err) {
-    return res.status(500).send('Error getting WMA data points');
-  }
-
-  const WMADataPoints = groupWMADataPoints(
-                          currencyRates,
-                          wmaDataPoints.data.short,
-                          wmaDataPoints.data.long
-                        );
-  return res.send(WMADataPoints);
-}
-
-
-/**
- * Get the weighted moving averages of currency rates between a buy and sell trade
- * (including buffer)
- */
-exports.getWMAsForTradeV2 = async (req, res) => {
-  console.log('get WMAs for trade');
-  const abbrev = `${req.params.currency}/USD`;
-  const buyTradeId = req.params.buy_trade_id;
-  const sellTradeId = req.params.sell_trade_id;
-
-  let tradeTransaction;
-  try {
-    tradeTransaction = await service.getTradeTransactions(
-                               abbrev,
-                               buyTradeId,
-                               sellTradeId
-                             );
-  } catch (err) {
-    console.log(err)
-    return res.status(500).send('could not get trade transaction');
-  }
-
-  if (tradeTransaction.status !== 200) {
-    return res.status(tradeTransaction.status).send(tradeTransaction.data);
-  }
-
-  const buyTrade = tradeTransaction.data.buy;
-  const sellTrade = tradeTransaction.data.sell;
+  console.log(trade)
 
   let WMADataPoints;
   try {
-    WMADataPoints = await repo.getWMAsBetweenDates(abbrev, buyTrade.date, sellTrade.date, 15);
+    WMADataPoints =
+      await repo.getWMAsBetweenDates(abbrev, trade.openDate, trade.closeDate, 40);
   } catch (err) {
     return res.status(500).sen('could not get WMAs between dates: ' + err);
   }
+
+  console.log(WMADataPoints)
 
   return res.send(WMADataPoints);
 }

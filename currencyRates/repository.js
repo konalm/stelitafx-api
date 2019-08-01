@@ -27,24 +27,24 @@ exports.getCurrencyRatesBetweenDateRange = (abbrev, startDate, endDate, buffer) 
 /**
  *
  */
-exports.GetCurrencyPairsAndLatestRate = new Promise((resolve, reject) => {
-  const query = `
-    SELECT cp.abbrev, cp.base_currency, cr.date, cr.exchange_rate
-    FROM currency_pair cp
-    LEFT JOIN currency_rate cr
-      ON cr.abbrev = cp.abbrev
-    WHERE date = (
-      SELECT MAX(date)
-      FROM currency_rate cr2
-      WHERE cr2.abbrev = cp.abbrev
-    )`;
-
-  conn.query(query, (err, results) => {
-    if (err) return reject('Error Getting currency pair and latest rate');
-
-    resolve(results);
-  });
-});
+// exports.GetCurrencyPairsAndLatestRate = new Promise((resolve, reject) => {
+//   const query = `
+//     SELECT cp.abbrev, cp.base_currency, cr.date, cr.exchange_rate
+//     FROM currency_pair cp
+//     LEFT JOIN currency_rate cr
+//       ON cr.abbrev = cp.abbrev
+//     WHERE date = (
+//       SELECT MAX(date)
+//       FROM currency_rate cr2
+//       WHERE cr2.abbrev = cp.abbrev
+//     )`;
+//
+//   conn.query(query, (err, results) => {
+//     if (err) return reject('Error Getting currency pair and latest rate');
+//
+//     resolve(results);
+//   });
+// });
 
 
 /**
@@ -74,11 +74,6 @@ exports.GetCurrencyLatestRates = (currencyAbbrev, ratesAmount, historicalCount) 
 exports.getCurrencyRatesAtDate = (abbrev, date, historic) =>
   new Promise((resolve, reject) =>
 {
-  console.log('get currency rates at date >>')
-  console.log('abbrev ' + abbrev)
-  console.log('date' + date)
-  console.log('historic ' + historic)
-
   const query = `
     SELECT date, exchange_rate
     FROM currency_rate

@@ -1,9 +1,35 @@
 /**
  *
  */
+CREATE TABLE IF NOT EXISTS tradeV2 (
+  id INT AUTO_INCREMENT,
+  abbrev CHAR(7),
+  FOREIGN KEY (abbrev)
+    REFERENCES currency_pair(abbrev)
+    ON DELETE CASCADE,
+  proto_no INTEGER,
+  FOREIGN KEY (proto_no)
+    REFERENCES algorithm(prototype_no)
+    ON DELETE CASCADE,
+  open_rate DECIMAL(20,10),
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  close_date TIMESTAMP NULL,
+  close_rate DECIMAL(20,10),
+  open_notes LONGTEXT NULL,
+  close_notes LONGTEXT NULL,
+  closed BOOLEAN DEFAULT false,
+  viewed BOOLEAN DEFAULT false,
+  PRIMARY KEY(id)
+);
+
+
+/**
+ *
+ */
 CREATE TABLE IF NOT EXISTS currency_wma (
   id INT AUTO_INCREMENT,
   abbrev CHAR(7),
+  rate DECIMAL(20,10),
   FOREIGN KEY (abbrev)
     REFERENCES currency_pair(abbrev)
     ON DELETE CASCADE,
@@ -11,6 +37,7 @@ CREATE TABLE IF NOT EXISTS currency_wma (
   wma_data_json LONGTEXT,
   PRIMARY KEY(id)
 );
+
 
 /**
  * Create currency table

@@ -9,6 +9,7 @@ exports.getProtos = new Promise((resolve, reject) => {
     FROM algorithm`;
 
   conn.query(query, (err, results) => {
+    console.log(err);
     if (err) return reject('Error getting algorithms');
 
     resolve(results);
