@@ -1,5 +1,84 @@
 const conn = require('../db');
 const calculatePip = require('../services/calculatePip');
+const util = require('util')
+
+/**
+ *
+ */
+exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
+  let trade;
+  try {
+    trade = await this.getTradeById(tradeId);
+  } catch (err) {
+    console.log(err)
+    return reject('Could not get trade');
+  }
+
+  const query = `
+    SELECT id FROM tradeV2
+    WHERE proto_no = ?
+      AND abbrev = ?
+      AND date > ?
+    ORDER BY date ASC
+    LIMIT 1`;
+  const queryValues = [trade.proto_no, trade.abbrev, trade.date];
+
+  conn.query(query, queryValues, (err, results) => {
+    console.log(err)
+    if (err) return reject(err);
+
+    return results ? resolve(results[0].id) : resolve();
+  })
+})
+
+
+/**
+ *
+ */
+exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
+  let trade;
+  try {
+    trade = await this.getTradeById(tradeId);
+  } catch (err) {
+    console.log(err)
+    return reject('Could not get trade');
+  }
+
+  const query = `
+    SELECT id FROM tradeV2
+    WHERE proto_no = ?
+      AND abbrev = ?
+      AND date < ?
+    ORDER BY date DESC
+    LIMIT 1`;
+  const queryValues = [trade.proto_no, trade.abbrev, trade.date];
+
+  conn.query(query, queryValues, (err, results) => {
+    if (err) return reject(err);
+
+    console.log(results)
+
+    return results.length > 0 ? resolve(results[0].id) : resolve();
+  })
+})
+
+
+/**
+ *
+ */
+exports.getTradeById = (id) => new Promise((resolve, reject) => {
+  const query = `
+    SELECT abbrev, proto_no, date
+    FROM tradeV2 WHERE id = ?
+    LIMIT 1`;
+
+  conn.query(query, [id], (err, results) => {
+    if (err) return reject(err);
+
+    return results ? resolve(results[0]) : resolve();
+  });
+});
+
 
 /**
  *

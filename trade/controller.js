@@ -1,13 +1,50 @@
 const repo = require('./repository.js');
 
+/**
+ *
+ */
+exports.getPrevTrade = async (req, res) => {
+  const tradeId = req.params.tradeId;
+
+  let prevTrade;
+  try {
+    prevTrade = await repo.getPrevTrade(tradeId);
+  } catch (err) {
+    return res.status(500).send('Unable to get prev trade');
+  }
+
+  if (!prevTrade) return res.status(404).send('prev trade not found')
+
+  return res.send({tradeId: prevTrade});
+}
+
+/**
+ *
+ */
+exports.getNextTrade = async (req, res) => {
+  const tradeId = req.params.tradeId;
+
+  let nextTrade;
+  try {
+    nextTrade = await repo.getNextTrade(tradeId);
+  } catch (err) {
+    return res.status(500).send('Unable to get next trade');
+  }
+
+  return res.send({tradeId: nextTrade});
+}
+
+/**
+ *
+ */
 exports.getTrade = async (req, res) => {
+  const tradeId = req.params.tradeId;
   const protoNo = req.params.protoNo;
   const abbrev = `${req.params.currency}/USD`
-  const tradeId = req.params.tradeId;
 
   let trade;
   try {
-    trade = await repo.getTrade(protoNo, abbrev, tradeId);
+    trade = await repo.getTrade(tradeId, protoNo, abbrev);
   } catch (err) {
     return res.status(500).send('Failed to get trade');
   }
