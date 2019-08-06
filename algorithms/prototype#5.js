@@ -10,7 +10,7 @@ module.exports = () =>
  *
  * 1. Current and previous WMA
  */
-const conditionData = () => {
+const conditionData = async (abbrev) => {
   let WMAs
   try {
     WMAs = await service.getCurrentAndPrevWMAs(abbrev);
@@ -37,6 +37,6 @@ const openConditionsMet = async (data) => {
  *
  * 1. Short WMA crossed under the long WMA
  */
-const closeConditionsMet = async () => {
+const closeConditionsMet = async (data) => {
   return service.shortWMACrossedOver(data.WMAs, 5, 15);
 }

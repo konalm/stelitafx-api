@@ -18,16 +18,17 @@ exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
     SELECT id FROM tradeV2
     WHERE proto_no = ?
       AND abbrev = ?
-      AND date > ?
+      AND close_date > ?
+      AND closed = true
     ORDER BY date ASC
     LIMIT 1`;
-  const queryValues = [trade.proto_no, trade.abbrev, trade.date];
+  const queryValues = [trade.proto_no, trade.abbrev, trade.closeDate];
 
   conn.query(query, queryValues, (err, results) => {
     console.log(err)
     if (err) return reject(err);
 
-    return results ? resolve(results[0].id) : resolve();
+    return results.length > 0 ? resolve(results[0].id) : resolve();
   })
 })
 
@@ -48,10 +49,11 @@ exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
     SELECT id FROM tradeV2
     WHERE proto_no = ?
       AND abbrev = ?
-      AND date < ?
+      AND close_date < ?
+      AND closed = true
     ORDER BY date DESC
     LIMIT 1`;
-  const queryValues = [trade.proto_no, trade.abbrev, trade.date];
+  const queryValues = [trade.proto_no, trade.abbrev, trade.closeDate];
 
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
@@ -68,8 +70,10 @@ exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
  */
 exports.getTradeById = (id) => new Promise((resolve, reject) => {
   const query = `
-    SELECT abbrev, proto_no, date
-    FROM tradeV2 WHERE id = ?
+    SELECT abbrev, proto_no, date, close_date AS closeDate
+    FROM tradeV2
+    WHERE id = ?
+      AND closed = true
     LIMIT 1`;
 
   conn.query(query, [id], (err, results) => {
@@ -216,6 +220,7 @@ exports.getTradeTransactions = (abbrev, buyTradeId, sellTradeId) =>
  */
 exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =>
 {
+  console.log('get trade !!');
   const query = `
     SELECT open_rate AS openRate,
     date AS openDate,
@@ -228,11 +233,13 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
     AND id = ?`;
   const queryValues = [protoNo, abbrev, tradeId];
 
+  console.log(queryValues);
+
   conn.query(query, queryValues, (err, results) => {
     console.log(err)
     if (err) return reject(err);
 
-    if (!results) return resolve()
+    if (results.length === 0) return resolve()
 
     results[0].pips = calculatePip(results[0].openRate, results[0].closeRate, abbrev)
 

@@ -121,8 +121,6 @@ exports.getWMAsForTrade = async (req, res) => {
   }
   if (!trade) return res.status(404).send('could not find trade');
 
-  console.log(trade)
-
   let WMADataPoints;
   try {
     WMADataPoints =
@@ -130,8 +128,6 @@ exports.getWMAsForTrade = async (req, res) => {
   } catch (err) {
     return res.status(500).sen('could not get WMAs between dates: ' + err);
   }
-
-  console.log(WMADataPoints)
 
   return res.send(WMADataPoints);
 }

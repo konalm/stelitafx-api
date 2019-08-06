@@ -44,7 +44,7 @@ exports.getTrade = async (req, res) => {
 
   let trade;
   try {
-    trade = await repo.getTrade(tradeId, protoNo, abbrev);
+    trade = await repo.getTrade(protoNo, abbrev, tradeId);
   } catch (err) {
     return res.status(500).send('Failed to get trade');
   }
