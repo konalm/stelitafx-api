@@ -6,9 +6,7 @@ const tradeService = require('../trade/service');
 const tradeRepo = require('../trade/repository');
 const currencyRateRepo = require('../currencyRates/repository');
 
-/**
- *
- */
+
 module.exports = (prototypeNo, conditionData, openConditionsMet, closeConditionsMet) => {
   majorCurrencies.forEach((currency) => {
     try {
@@ -18,7 +16,7 @@ module.exports = (prototypeNo, conditionData, openConditionsMet, closeConditions
         conditionData,
         openConditionsMet,
         closeConditionsMet
-      );
+      )
     } catch(err) {
       throw new Error(err);
     }
@@ -49,20 +47,18 @@ const prototypeFramework =
   /* open trade */
   if (!openingTrade || openingTrade.closed) {
     if (await openConditionsMet(tradeData)) {
-      // console.log(`OPEN TRADE >> ${protoNo} >> ${abbrev}`);
       try {
         await tradeService.openTrade(protoNo, abbrev, currencyRate.rate, null);
       } catch (err) {
         throw new Error(`Failed to open trade: ${err}`)
       }
     }
+    
     return;
   }
 
   /* close trade */
   if (await closeConditionsMet(tradeData)) {
-    // console.log(`CLOSE TRADE >> ${protoNo} >> ${abbrev}`)
-
     try {
       await tradeService.closeTrade(protoNo, abbrev, currencyRate.rate);
     } catch (err) {

@@ -35,9 +35,9 @@ exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
  *
  */
 exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
-  let trade;
-  try {
-    trade = await this.getTradeById(tradeId);
+ let trade;
+ try {
+   trade = await this.getTradeById(tradeId);
   } catch (err) {
     return reject('Could not get trade');
   }
