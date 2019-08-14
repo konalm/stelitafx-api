@@ -84,7 +84,6 @@ exports.getCurrencyRatesAtDate = (abbrev, date, historic) =>
   const queryValues = [abbrev, date, historic];
 
   conn.query(query, queryValues, (err, results) => {
-    console.log(err);
     if (err) return reject('Error getting currency rates by date');
 
     resolve(results);

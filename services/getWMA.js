@@ -15,7 +15,6 @@ exports.getLatestWMAs = async (currencyPairAbbrev, wmaLength, historical) => {
                            historical
                          );
   } catch (err) {
-    console.log(err)
     throw new Error('Getting currency rates');
   }
 
@@ -37,7 +36,6 @@ exports.getWMAsAtDate = async (abbrev, wmaLength, historical, date) => {
                             amount
                           );
   } catch (err) {
-    console.log(err);
     throw new Error('Getting currency rates at date');
   }
 

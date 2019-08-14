@@ -10,7 +10,6 @@ exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
   try {
     trade = await this.getTradeById(tradeId);
   } catch (err) {
-    console.log(err)
     return reject('Could not get trade');
   }
 
@@ -25,7 +24,6 @@ exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
   const queryValues = [trade.proto_no, trade.abbrev, trade.closeDate];
 
   conn.query(query, queryValues, (err, results) => {
-    console.log(err)
     if (err) return reject(err);
 
     return results.length > 0 ? resolve(results[0].id) : resolve();
@@ -41,7 +39,6 @@ exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
   try {
     trade = await this.getTradeById(tradeId);
   } catch (err) {
-    console.log(err)
     return reject('Could not get trade');
   }
 
@@ -57,8 +54,6 @@ exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
 
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
-
-    console.log(results)
 
     return results.length > 0 ? resolve(results[0].id) : resolve();
   })
@@ -83,14 +78,52 @@ exports.getTradeById = (id) => new Promise((resolve, reject) => {
   });
 });
 
+exports.getTradesProto = (protoNo, dateFilter) =>
+  new Promise((resolve, reject) =>
+{
+  const queryValues = [protoNo];
+  let query = `
+    SELECT id
+      abbrev,
+      open_rate AS openRate,
+      date AS openDate,
+      close_rate AS closeRate,
+      close_date AS closeDate,
+      open_notes AS openNotes,
+      close_notes AS closeNotes,
+      viewed
+    FROM tradeV2
+    WHERE proto_no = ?
+    AND closed = true`
+
+  if (dateFilter) {
+    query += ' AND close_date >= ?'
+    queryValues.push(dateFilter);
+  }
+
+  query += ` ORDER BY closeDate DESC`;
+
+  conn.query(query, queryValues, (err, results) => {
+    console.log(err)
+    if (err) return reject('Failed to trades for proto from DB')
+
+    results.forEach((result) => {
+      result.pip = calculatePip(result.openRate, result.closeRate, result.abbrev)
+    })
+
+    resolve(results)
+  })
+})
+
 
 /**
  *
  */
-exports.getProtoCurrencyClosedTrades = (protoNo, abbrev) =>
+exports.getProtoCurrencyClosedTrades = (protoNo, abbrev, dateFilter) =>
   new Promise((resolve, reject) =>
 {
-  const query = `
+  const queryValues = [protoNo, abbrev];
+  let query = `
     SELECT id,
       open_rate AS openRate,
       date AS openDate,
@@ -102,14 +135,20 @@ exports.getProtoCurrencyClosedTrades = (protoNo, abbrev) =>
     FROM tradeV2
     WHERE proto_no = ?
     AND abbrev = ?
-    AND closed = true
-    ORDER BY closeDate DESC`;
-  const queryValues = [protoNo, abbrev];
+    AND closed = true`
+
+  if (dateFilter) {
+    query += ' AND close_date >= ?'
+    queryValues.push(dateFilter);
+  }
+
+  query += ` ORDER BY closeDate DESC`;
 
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
     results.forEach((result) => {
+      console.log('abbrev ??? ' + abbrev)
       result.pips = calculatePip(result.openRate, result.closeRate, abbrev);
     })
 
@@ -121,7 +160,8 @@ exports.getProtoCurrencyClosedTrades = (protoNo, abbrev) =>
 /**
  *
  */
-const insertTrade = (transaction, abbrev, rate, algoProtoNo) => (abbrev, rate, algoProtoNo) =>
+const insertTrade = (transaction, abbrev, rate, algoProtoNo) =>
+  (abbrev, rate, algoProtoNo) =>
   new Promise((resolve, reject) =>
 {
   const query = "INSERT INTO trade (abbrev, transaction, algo_proto_no, rate) VALUES ?";
@@ -233,17 +273,21 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
     AND id = ?`;
   const queryValues = [protoNo, abbrev, tradeId];
 
-  console.log(queryValues);
-
   conn.query(query, queryValues, (err, results) => {
     console.log(err)
     if (err) return reject(err);
-
     if (results.length === 0) return resolve()
 
-    results[0].pips = calculatePip(results[0].openRate, results[0].closeRate, abbrev)
+    const mappedResult = {
+      openRate: results[0].openRate,
+      openDate: results[0].openDate,
+      closeRate: results[0].closeRate,
+      closeDate: results[0].closeDate,
+      viewed: !results[0].viewed ? false : true,
+      pips: calculatePip(results[0].openRate, results[0].closeRate, abbrev)
+    }
 
-    return resolve(results[0]);
+    return resolve(mappedResult);
   });
 });
 

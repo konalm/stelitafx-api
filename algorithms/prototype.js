@@ -27,6 +27,9 @@ const conditionData = async (abbrev) => {
  * 1. Short WMA crossed over the long WMA
  */
 const openConditionsMet = async (data) => {
+  // console.log('prototype #1 >> open conditions met')
+  // console.log(data)
+
   return service.shortWMACrossedOver(data.WMAs, 12, 36);
 }
 

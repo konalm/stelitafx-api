@@ -1,8 +1,19 @@
 const repo = require('./repository.js');
 
-/**
- *
- */
+exports.updateTradeToViewed = async (req, res) => {
+  const tradeId = req.params.tradeId;
+  const trade = { viewed: true };
+
+  try {
+    await repo.updateTrade(tradeId, trade);
+  } catch (err) {
+    return res.status(500).send('Failed to set trade to viewed');
+  }
+
+  return res.send(`trade ${tradeId} updated to viewed`);
+}
+
+
 exports.getPrevTrade = async (req, res) => {
   const tradeId = req.params.tradeId;
 
@@ -18,9 +29,6 @@ exports.getPrevTrade = async (req, res) => {
   return res.send({tradeId: prevTrade});
 }
 
-/**
- *
- */
 exports.getNextTrade = async (req, res) => {
   const tradeId = req.params.tradeId;
 
@@ -34,9 +42,6 @@ exports.getNextTrade = async (req, res) => {
   return res.send({tradeId: nextTrade});
 }
 
-/**
- *
- */
 exports.getTrade = async (req, res) => {
   const tradeId = req.params.tradeId;
   const protoNo = req.params.protoNo;
@@ -54,12 +59,22 @@ exports.getTrade = async (req, res) => {
   return res.send(trade)
 }
 
-/**
- *
- */
-exports.getProtoCurrencyClosedTrades = async (req, res) => {
-  console.log('get proto currency close trades !!');
+exports.getTradesProto = async (req, res) => {
+  const protoNo = req.params.proto_no;
+  const dateFilter = req.query.date || '';
 
+  let trades;
+  try {
+    trades = await repo.getTradesProto(protoNo, dateFilter)
+  } catch (err) {
+    console.log(err)
+    return res.status(500).send(`Failed to get trades for proto ${protoNo}`);
+  }
+
+  return res.send(trades)
+}
+
+exports.getProtoCurrencyClosedTrades = async (req, res) => {
   const protoNo = req.params.proto_no;
   const baseCurrency = req.params.currency;
   const abbrev = `${baseCurrency}/USD`;
@@ -69,7 +84,6 @@ exports.getProtoCurrencyClosedTrades = async (req, res) => {
   try {
     trades = await repo.getProtoCurrencyClosedTrades(protoNo, abbrev, dateTimeFilter);
   } catch (err) {
-    console.log(err);
     return res.status(500).send(
       `Failed to get trades for proto ${protoNo} with currency ${abbrev}`
     );
@@ -83,8 +97,6 @@ exports.getProtoCurrencyClosedTrades = async (req, res) => {
  * Get all of a proto's trades for a currency
  */
 exports.getProtoCurrencyTrades = async (req, res) => {
-  console.log('get proto currency trades !!');
-
   const algoId = req.params.algo_id;
   const baseCurrency = req.params.currency;
   const currencyPairAbbrev = `${baseCurrency}/USD`;
@@ -95,23 +107,6 @@ exports.getProtoCurrencyTrades = async (req, res) => {
     trades = await repo.getCurrencyTrades(algoId, currencyPairAbbrev, dateTimeFilter);
   } catch (err) {
     return res.status(500).send(err);
-  }
-
-  return res.send(trades);
-}
-
-
-/**
- * Get all of proto's trades
- */
-exports.getProtoTrades = async (req, res) => {
-  const protoNo = req.params.proto_no;
-
-  let trades;
-  try {
-    trades = await repo.getProtoTrades(protoNo);
-  } catch (err) {
-    return res.status(500).send('Error getting protos trades');
   }
 
   return res.send(trades);

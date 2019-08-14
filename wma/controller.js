@@ -10,6 +10,7 @@ const repo = require('./repository');
  * Get Weighted moving average data
  */
  exports.getWMADataPointsV2 = async (req, res) => {
+   console.log('get WMA data points !!')
    const currency = req.params.currency;
    const currencyPairAbbrev = `${currency}/USD`;
    const count = parseInt(req.params.count);
@@ -18,7 +19,6 @@ const repo = require('./repository');
    try {
      WMADataPoints = await repo.getWMAs(currencyPairAbbrev, count);
    } catch (err) {
-     console.log(err)
      return res.status(500).send('Error getting WMAs');
    }
 
@@ -116,7 +116,6 @@ exports.getWMAsForTrade = async (req, res) => {
   try {
     trade = await tradeRepo.getTradeV2(abbrev, tradeId)
   } catch (err) {
-    console.log(err)
     return res.status(500).send('could not get trade');
   }
   if (!trade) return res.status(404).send('could not find trade');

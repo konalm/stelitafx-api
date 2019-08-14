@@ -1,6 +1,7 @@
 const service = require('./service');
 const prototypeFramework = require('./prototypeFramework');
-
+const calculatePip = require('../services/calculatePip');
+const tradeRepo = require('../trade/repository');
 
 module.exports = () => prototypeFramework(
   2,
@@ -25,13 +26,15 @@ const conditionData = async (abbrev) => {
   let openingTrade;
   try {
     openingTrade = await tradeRepo.getLastTrade(2, abbrev);
-  } catch (err) {}
+  } catch (err) {
+    throw new Error(`Failed to get last trade: ${err}`)
+  }
 
   let openTradeRate = null
   if (openingTrade && !openingTrade.closed) openTradeRate = openingTrade.openRate
 
   let pip = 0;
-  if (openTradeRate && currencyRate) pip = calculatePip(openTradeRate, currencyRate), abbrev;
+  if (openTradeRate && currencyRate) pip = calculatePip(openTradeRate, currencyRate, abbrev);
 
   return {
     WMAs,

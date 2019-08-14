@@ -4,7 +4,7 @@ module.exports = (app) => {
   app.route('/algo/:algo_id/currency/:currency')
     .get(controller.getProtoCurrencyTrades);
 
-  app.route('/proto/:proto_no/trades').get(controller.getProtoTrades);
+  app.route('/proto/:proto_no/trades').get(controller.getTradesProto);
   app.route('/proto/:proto_no/currency/:currency')
      .get(controller.getProtoCurrencyClosedTrades);
 
@@ -13,4 +13,5 @@ module.exports = (app) => {
 
   app.route('/next-trade/:tradeId').get(controller.getNextTrade);
   app.route('/prev-trade/:tradeId').get(controller.getPrevTrade);
+  app.route('/trade/:tradeId/viewed').get(controller.updateTradeToViewed);
 }

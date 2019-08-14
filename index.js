@@ -21,7 +21,6 @@ const prototypeNo6 = require('./algorithms/prototype#6');
 routes(app);
 
 
-
 /**
  *
  */

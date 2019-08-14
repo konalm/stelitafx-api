@@ -10,8 +10,6 @@ const currencyRateRepo = require('../currencyRates/repository');
  *
  */
 module.exports = (prototypeNo, conditionData, openConditionsMet, closeConditionsMet) => {
-  console.log(`PROTOTYPE  #${prototypeNo}`)
-
   majorCurrencies.forEach((currency) => {
     try {
       prototypeFramework(
@@ -35,7 +33,6 @@ const prototypeFramework =
   async (protoNo, currency, conditionDataForTrades, openConditionsMet, closeConditionsMet) =>
 {
   const abbrev = `${currency}/${quoteCurrency}`;
-  console.log(`currency >>> ${currency}`);
 
   const tradeData = await conditionDataForTrades(abbrev);
   const currencyRate = await currencyRateRepo.getCurrencyRate(abbrev);
@@ -52,7 +49,7 @@ const prototypeFramework =
   /* open trade */
   if (!openingTrade || openingTrade.closed) {
     if (await openConditionsMet(tradeData)) {
-      console.log(`OPEN TRADE >> ${protoNo} >> ${abbrev}`);
+      // console.log(`OPEN TRADE >> ${protoNo} >> ${abbrev}`);
       try {
         await tradeService.openTrade(protoNo, abbrev, currencyRate.rate, null);
       } catch (err) {
@@ -64,7 +61,7 @@ const prototypeFramework =
 
   /* close trade */
   if (await closeConditionsMet(tradeData)) {
-    console.log(`CLOSE TRADE >> ${protoNo} >> ${abbrev}`)
+    // console.log(`CLOSE TRADE >> ${protoNo} >> ${abbrev}`)
 
     try {
       await tradeService.closeTrade(protoNo, abbrev, currencyRate.rate);
