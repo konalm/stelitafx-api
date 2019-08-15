@@ -14,12 +14,12 @@ const prototypeNo3 = require('./algorithms/prototype#3');
 const prototypeNo4 = require('./algorithms/prototype#4');
 const prototypeNo5 = require('./algorithms/prototype#5');
 const prototypeNo6 = require('./algorithms/prototype#6');
+const prototypeNo7 = require('./algorithms/prototype#7');
 
 /**
  *
  */
 routes(app);
-
 
 /**
  *
@@ -43,6 +43,7 @@ cron.schedule('* * * * *', async () => {
   prototypeNo4()
   prototypeNo5()
   prototypeNo6()
+  prototypeNo7()
 });
 
 app.listen(port, () => console.log(`Stelita FX API listening in port ${port}`))

@@ -28,7 +28,13 @@ module.exports = (prototypeNo, conditionData, openConditionsMet, closeConditions
  *
  */
 const prototypeFramework =
-  async (protoNo, currency, conditionDataForTrades, openConditionsMet, closeConditionsMet) =>
+  async (
+    protoNo,
+    currency,
+    conditionDataForTrades,
+    openConditionsMet,
+    closeConditionsMet
+  ) =>
 {
   const abbrev = `${currency}/${quoteCurrency}`;
 
@@ -44,23 +50,25 @@ const prototypeFramework =
     throw new Error(`Failed to get last trade: ${err}`)
   }
 
+  const notes = JSON.stringify(tradeData);
+
   /* open trade */
   if (!openingTrade || openingTrade.closed) {
     if (await openConditionsMet(tradeData)) {
       try {
-        await tradeService.openTrade(protoNo, abbrev, currencyRate.rate, null);
+        await tradeService.openTrade(protoNo, abbrev, currencyRate.rate, notes);
       } catch (err) {
         throw new Error(`Failed to open trade: ${err}`)
       }
     }
-    
+
     return;
   }
 
   /* close trade */
   if (await closeConditionsMet(tradeData)) {
     try {
-      await tradeService.closeTrade(protoNo, abbrev, currencyRate.rate);
+      await tradeService.closeTrade(protoNo, abbrev, currencyRate.rate, notes);
     } catch (err) {
       throw new Error(`Failed to close trade: ${err}`)
     }

@@ -5,10 +5,15 @@ const repo = require('./repository');
  *
  */
 exports.openTrade = async (protoNo, abbrev, rate, notes) => {
+  console.log('open trade')
+  console.log(notes)
+  console.log('<<<<<<<<')
+
   const trade = {
     proto_no: protoNo,
     abbrev,
     open_rate: rate,
+    open_notes: notes
   };
 
   try {
@@ -22,8 +27,12 @@ exports.openTrade = async (protoNo, abbrev, rate, notes) => {
  *
  */
 exports.closeTrade = async (protoNo, abbrev, rate, notes) => {
-  let openTrade;
-  try {
+  console.log('close trade')
+  console.log(notes)
+  console.log('<<<<<<<<<<<')
+  
+ let openTrade;
+ try {
     openTrade = await repo.getLastTrade(protoNo, abbrev);
   } catch (err) {
     throw new Error(`Getting last trade: ${err}`)
@@ -35,8 +44,8 @@ exports.closeTrade = async (protoNo, abbrev, rate, notes) => {
   const now = new Date();
   const trade = {
     close_rate: rate,
-    close_notes: notes,
     close_date: moment(now.toISOString()).format('YYYY-MM-DD HH:mm:ss'),
+    close_notes: notes,
     closed: true,
   }
 

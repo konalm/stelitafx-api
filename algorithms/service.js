@@ -21,6 +21,24 @@ exports.getCurrentAndPrevWMAs = async (abbrev) => {
   return {WMA, prevWMA};
 }
 
+/**
+ * Current rate below the short WMA ??
+ */
+exports.currentRateUnderShortWMA = (currentRate, WMAs, shortLength) => {
+  const WMA = WMAs.WMA.WMAs;
+
+  return currentRate < WMA[shortLength];
+}
+
+/**
+ *
+ */
+exports.currentRateAboveShortWMA = (currentRate, WMAs, shortLength) => {
+  const WMA = WMAs.WMA.WMAs;
+
+  return currentRate > WMA[shortLength];
+}
+
 
 /**
  * Short WMA moved above the long WMA

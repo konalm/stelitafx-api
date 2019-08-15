@@ -15,3 +15,6 @@ VALUES (5, '5 short WMA and 15 long WMA');
 
 INSERT INTO algorithm (prototype_no, description)
 VALUES (6, '5 short WMA and 12 long WMA, close on pip increase or short WMA crossed under');
+
+INSERT INTO algorithm (prototype_no, description)
+VALUES (7, 'Flip prototype#1 buy on the low, sell on the high')
