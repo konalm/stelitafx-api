@@ -1,7 +1,9 @@
 const conn = require('../db');
 
 
-exports.storeWMAData = (currencyAbbrev, rate, wmaData) => {
+exports.storeWMAData = (currencyAbbrev, rate, wmaData) =>
+  new Promise((resolve, reject) =>
+{
   const wmaDataJSON = JSON.stringify(wmaData);
 
   const query = 'INSERT INTO currency_wma (abbrev, rate, wma_data_json) VALUES ?';
@@ -10,9 +12,13 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData) => {
   ];
 
   conn.query(query, [queryValues], (err, results) => {
-    if (err) throw new Error('Error storing currency WMA data');
+    if (err) reject('Error storing currency WMA data');
+
+    console.log('Stored WMA data for ' + currencyAbbrev)
+
+    resolve('Stored WMA data')
   });
-}
+});
 
 
 exports.getWMAs = (currencyAbbrev, amount) => new Promise((resolve, reject) => {

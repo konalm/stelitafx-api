@@ -76,20 +76,33 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
 /**
  *
  */
-exports.storeWMAData = () => {
+exports.storeWMAData = () =>
+  new Promise((resolve, reject) =>
+{
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
 
+  storeCurrencyPromises = [];
   currencies.forEach((currency) => {
     const currencyAbbrev = `${currency}/${quoteCurrency}`;
-    storeCurrencyWMAData(currencyAbbrev)
-  })
-}
+    storeCurrencyPromises.push(storeCurrencyWMAData(currencyAbbrev));
+  });
+
+  Promise.all(storeCurrencyPromises)
+    .then(() => {
+      resolve('sucessfully stored currencies');
+    })
+    .catch(err => {
+      reject(`Failed to store currencies: ${err}`);
+    })
+})
 
 /**
  *
  */
-const storeCurrencyWMAData = async (currencyAbbrev) => {
+const storeCurrencyWMAData = (currencyAbbrev) =>
+  new Promise(async (resolve, reject) =>
+{
   let rateData;
   try {
     rateData = await currencyRatesRepo.GetCurrencyLatestRates(currencyAbbrev, 1, 0)
@@ -103,7 +116,7 @@ const storeCurrencyWMAData = async (currencyAbbrev) => {
     wmaPromises.push(calcWMA(currencyAbbrev, length));
   });
 
-  Promise.all(wmaPromises).then(values => {
+  Promise.all(wmaPromises).then(async (values) => {
     const WMAData = [];
     WMALengths.forEach((length, index) => {
       WMADataPoint = {
@@ -113,9 +126,15 @@ const storeCurrencyWMAData = async (currencyAbbrev) => {
       WMAData.push(WMADataPoint);
     });
 
-    repo.storeWMAData(currencyAbbrev, rate, WMAData);
+    try {
+      await repo.storeWMAData(currencyAbbrev, rate, WMAData);
+    } catch (err) {
+      return resolve('Failed to store WMA data')
+    }
+
+    resolve('Stored Currency WMA data')
   });
-}
+});
 
 /**
  *
