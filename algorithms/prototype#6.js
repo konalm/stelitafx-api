@@ -55,5 +55,7 @@ const openConditionsMet = async (data) => {
  * 1. Short WMA crossed under the long WMA
  */
 const closeConditionsMet = async (data) => {
+  if (data.pip >= 1) return true;
+  
   return service.shortWMACrossedOver(data.WMAs, 5, 12);
 }
