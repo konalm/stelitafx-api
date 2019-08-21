@@ -56,6 +56,7 @@ const openConditionsMet = async (data) => {
  */
 const closeConditionsMet = async (data) => {
   if (data.pip >= 1) return true;
-  
-  return service.shortWMACrossedOver(data.WMAs, 5, 12);
+
+  const shortWMACrossedUnder = service.shortWMACrossedUnder(data.WMAs, 12, 36);
+  if (shortWMACrossedUnder) return true;
 }
