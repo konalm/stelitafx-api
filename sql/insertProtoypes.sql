@@ -18,3 +18,15 @@ VALUES (6, '5 short WMA and 12 long WMA, close on pip increase or short WMA cros
 
 INSERT INTO algorithm (prototype_no, description)
 VALUES (7, 'Flip prototype#1 buy on the low, sell on the high')
+
+INSERT INTO algorithm (prototype_no, description)
+VALUES (71, 'close trade if pip drops below 8')
+
+INSERT INTO algorithm (prototype_no, description)
+VALUES (72, 'close trade if pip drops below 12')
+
+INSERT INTO algorithm (prototype_no, description)
+VALUES (73, 'close trade if open for 30mins or longer')
+
+INSERT INTO algorithm (prototype_no, description)
+VALUES (74, 'close trade if open for 45mins or longer')

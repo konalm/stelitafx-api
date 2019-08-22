@@ -1,11 +1,8 @@
 const service = require('./service');
 const prototypeFramework = require('./prototypeFramework');
-const tradeRepo = require('../trade/repository');
-const calculatePip = require('../services/calculatePip');
-
 
 module.exports = () =>
-  prototypeFramework(6, conditionData, openConditionsMet, closeConditionsMet);
+  prototypeFramework(7, conditionData, openConditionsMet, closeConditionsMet);
 
 /**
  * Retrieve data required to determine open and close conditions met
@@ -17,11 +14,11 @@ const conditionData = async (abbrev) => {
   try {
     WMAs = await service.getCurrentAndPrevWMAs(abbrev);
   } catch(err) {}
-  const currencyRate = WMAs.WMA.rate;
+  const currentRate = WMAs.WMA.rate;
 
   let openingTrade;
   try {
-    openingTrade = await tradeRepo.getLastTrade(6, abbrev);
+    openingTrade = await tradeRepo.getLastTrade(3, abbrev);
   } catch (err) {
     throw new Error(`Failed to get last trade: ${err}`)
   }
@@ -33,30 +30,43 @@ const conditionData = async (abbrev) => {
   if (openTradeRate && currencyRate) pip = calculatePip(openTradeRate, currencyRate, abbrev);
 
   return {
+    currentRate,
     WMAs,
     pip
   }
 }
 
-
 /**
  * Open trade if following conditions met;
  *
- * 1. Short WMA crossed over the long WMA
+ * 1. Short WMA crossed under the long WMA
  */
 const openConditionsMet = async (data) => {
-  return service.shortWMACrossedOver(data.WMAs, 5, 12);
+  console.log('prototype#7 open condiitons met')
+  console.log(data)
+  console.log('<<<<<<<<<<')
+
+  if (service.shortWMACrossedUnder(data.WMAs, 12, 36)) {
+    console.log('short WMA crossed under');
+    if (service.currentRateUnderShortWMA(data.currentRate, data.WMAs, 12)) {
+      console.log('current rate under short WMA')
+      return true;
+    } else {
+      console.log('current date was over')
+    }
+  } else {
+    console.log('short WMA did not cross under')
+  }
 }
 
 
 /**
  * Close trade if following conditions met;
  *
- * 1. Short WMA crossed under the long WMA
+ * 1. Short WMA crossed over the long WMA
  */
 const closeConditionsMet = async (data) => {
-  if (data.pip >= 1) return true;
+  if (data.pip <= 12) return true;
 
-  const shortWMACrossedUnder = service.shortWMACrossedUnder(data.WMAs, 5, 12);
-  if (shortWMACrossedUnder) return true;
+  return service.shortWMACrossedOver(data.WMAs, 12, 36);
 }

@@ -28,11 +28,21 @@ const conditionData = async (abbrev) => {
  * 1. Short WMA crossed under the long WMA
  */
 const openConditionsMet = async (data) => {
+  console.log('prototype#7 open condiitons met')
+  console.log(data)
+  console.log('<<<<<<<<<<,')
+
   if (service.shortWMACrossedUnder(data.WMAs, 12, 36)) {
+    console.log('short WMA crossed under');
     if (service.currentRateUnderShortWMA(data.currentRate, data.WMAs, 12)) {
+      console.log('current rate under short WMA')
       return true;
+    } else {
+      console.log('current date was over')
     }
-  } 
+  } else {
+    console.log('short WMA did not cross under')
+  }
 }
 
 
