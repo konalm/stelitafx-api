@@ -13,6 +13,7 @@ const prototypeNo2 = require('./algorithms/prototype#2');
 const prototypeNo3 = require('./algorithms/prototype#3');
 const prototypeNo4 = require('./algorithms/prototype#4');
 const prototypeNo5 = require('./algorithms/prototype#5');
+const prototypeNo51 = require('./algorithms/prototype#51');
 const prototypeNo6 = require('./algorithms/prototype#6');
 const prototypeNo7 = require('./algorithms/prototype#7');
 const prototypeNo71 = require('./algorithms/prototype#71');
@@ -48,6 +49,7 @@ cron.schedule('* * * * *', async () => {
   prototypeNo3()
   prototypeNo4()
   prototypeNo5()
+  prototypeNo51()
   prototypeNo6()
   prototypeNo7()
   prototypeNo71()
