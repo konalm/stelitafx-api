@@ -67,7 +67,6 @@ exports.getTradesProto = async (req, res) => {
   try {
     trades = await repo.getTradesProto(protoNo, dateFilter)
   } catch (err) {
-    console.log(err)
     return res.status(500).send(`Failed to get trades for proto ${protoNo}`);
   }
 

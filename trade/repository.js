@@ -104,7 +104,6 @@ exports.getTradesProto = (protoNo, dateFilter) =>
   query += ` ORDER BY closeDate DESC`;
 
   conn.query(query, queryValues, (err, results) => {
-    console.log(err)
     if (err) return reject('Failed to trades for proto from DB')
 
     results.forEach((result) => {
@@ -148,7 +147,6 @@ exports.getProtoCurrencyClosedTrades = (protoNo, abbrev, dateFilter) =>
     if (err) return reject(err);
 
     results.forEach((result) => {
-      console.log('abbrev ??? ' + abbrev)
       result.pips = calculatePip(result.openRate, result.closeRate, abbrev);
     })
 
@@ -260,7 +258,6 @@ exports.getTradeTransactions = (abbrev, buyTradeId, sellTradeId) =>
  */
 exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =>
 {
-  console.log('get trade !!');
   const query = `
     SELECT open_rate AS openRate,
     date AS openDate,
@@ -274,7 +271,6 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
   const queryValues = [protoNo, abbrev, tradeId];
 
   conn.query(query, queryValues, (err, results) => {
-    console.log(err)
     if (err) return reject(err);
     if (results.length === 0) return resolve()
 
@@ -307,12 +303,9 @@ exports.getTradeV2 = (abbrev, tradeId) => new Promise((resolve, reject) => {
       AND id = ?`;
   const queryValues = [abbrev, tradeId];
 
-  console.log(queryValues)
-
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err)
 
-    console.log(results)
     return resolve(results[0])
   });
 });

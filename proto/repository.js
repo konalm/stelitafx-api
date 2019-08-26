@@ -19,12 +19,12 @@ exports.getProtos = new Promise((resolve, reject) => {
 /**
  *
  */
-exports.getProto = (id) => new Promise((resolve, reject) => {
+exports.getProto = (protoNo) => new Promise((resolve, reject) => {
   const query = `
     SELECT prototype_no, date_created, description
     FROM algorithm
-    WHERE id = ?`;
-  const queryValues = [id];
+    WHERE prototype_no = ?`;
+  const queryValues = [protoNo];
 
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);

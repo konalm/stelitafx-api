@@ -1,11 +1,12 @@
 const service = require('./service');
 const tradeRepo = require('../trade/repository');
+const calculatePip = require('../services/calculatePip');
 
 /**
  * Condition return for passed indicators being triggered 
  */
 exports.indicatorsTriggered = (data, prototypeIndicators) => {
-  const abbrevIndicators = indicators(data);
+  const abbrevIndicators = this.indicators(data);
 
   const allConditionsMet = !prototypeIndicators.some((condition) => 
     abbrevIndicators[condition] === false
@@ -19,7 +20,7 @@ exports.indicatorsTriggered = (data, prototypeIndicators) => {
 /**
  * All indicators that can trigger an action on a trade 
  */
-const indicators = (data) => {
+exports.indicators = (data) => {
   return {
     twelveWMACrossedOver36WMA: service.shortWMACrossedOver(data.WMAs, 12, 36),
     twelveWMACrossedUnder36WMA: service.shortWMACrossedUnder(data.WMAs, 12, 36),
@@ -30,7 +31,7 @@ const indicators = (data) => {
     currentRateUnderTwelveWMA: service.currentRateUnderShortWMA(data.currentRate, data.WMAs, 12),
     pipDecreasedByEight: data.pip <= 8,
     pipDecreasedByTwelve: data.pip <= 12,
-    ThirtyMinsSinceTrade: data.openingTrade 
+    thirtyMinsSinceTrade: data.openingTrade 
       ? service.minsSinceOpeningTrade(data.openingTrade.openDate) >= 30
       : 0,
     fortyFiveMinsSinceTrade: data.openingTrade

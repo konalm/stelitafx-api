@@ -4,9 +4,6 @@ const wmaRepo = require('../wma/repository')
 const tradeRepo = require('../trade/repository');
 
 
-/**
- *
- */
 exports.getCurrentAndPrevWMAs = async (abbrev) => {
   let wmaDataPoints;
   try {
@@ -21,18 +18,13 @@ exports.getCurrentAndPrevWMAs = async (abbrev) => {
   return {WMA, prevWMA};
 }
 
-/**
- * Current rate below the short WMA ??
- */
 exports.currentRateUnderShortWMA = (currentRate, WMAs, shortLength) => {
   const WMA = WMAs.WMA.WMAs;
 
   return currentRate < WMA[shortLength];
 }
 
-/**
- *
- */
+
 exports.currentRateAboveShortWMA = (currentRate, WMAs, shortLength) => {
   const WMA = WMAs.WMA.WMAs;
 
@@ -40,9 +32,6 @@ exports.currentRateAboveShortWMA = (currentRate, WMAs, shortLength) => {
 }
 
 
-/**
- * Short WMA moved above the long WMA
- */
 exports.shortWMACrossedOver = (WMAs, shortLength, longLength) => {
   const WMA = WMAs.WMA.WMAs;
   const prevWMA = WMAs.prevWMA.WMAs;
@@ -55,10 +44,6 @@ exports.shortWMACrossedOver = (WMAs, shortLength, longLength) => {
   );
 }
 
-
-/**
- * Short WMA moved below the long WMA
- */
 exports.shortWMACrossedUnder = (WMAs, shortLength, longLength) => {
   const WMA = WMAs.WMA.WMAs;
   const prevWMA = WMAs.prevWMA.WMAs;
@@ -71,10 +56,6 @@ exports.shortWMACrossedUnder = (WMAs, shortLength, longLength) => {
   );
 }
 
-
-/**
- *
- */
 exports.getOpeningTrade = async (protoNo, currencyPairAbbrev) => {
   let lastTrade;
   try {
@@ -87,4 +68,17 @@ exports.getOpeningTrade = async (protoNo, currencyPairAbbrev) => {
   if (!lastTrade || lastTrade.transaction === 'sell') return;
 
   return lastTrade;
+}
+
+exports.minsSinceOpeningTrade = async (openingDate) => {
+  const openDate = new Date(openingDate)
+  const currentDate = new Date()
+
+  const diffMs = (currentDate - openDate);
+  const mins = Math.round(((diffMs % 86400000) % 3600000) / 60000);
+
+  const hours = (Math.abs(currentDate - openDate) / 36e5).toFixed(0)
+  const hoursToMins = parseInt(hours) * 60;
+
+  return hoursToMins + mins
 }

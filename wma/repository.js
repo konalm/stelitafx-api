@@ -14,8 +14,6 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData) =>
   conn.query(query, [queryValues], (err, results) => {
     if (err) reject('Error storing currency WMA data');
 
-    console.log('Stored WMA data for ' + currencyAbbrev)
-
     resolve('Stored WMA data')
   });
 });

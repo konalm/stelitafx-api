@@ -5,10 +5,6 @@ const repo = require('./repository');
  *
  */
 exports.openTrade = async (protoNo, abbrev, rate, notes) => {
-  console.log('open trade')
-  console.log(notes)
-  console.log('<<<<<<<<')
-
   const trade = {
     proto_no: protoNo,
     abbrev,
@@ -27,10 +23,6 @@ exports.openTrade = async (protoNo, abbrev, rate, notes) => {
  *
  */
 exports.closeTrade = async (protoNo, abbrev, rate, notes) => {
-  console.log('close trade')
-  console.log(notes)
-  console.log('<<<<<<<<<<<')
-  
  let openTrade;
  try {
     openTrade = await repo.getLastTrade(protoNo, abbrev);

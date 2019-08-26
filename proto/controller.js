@@ -1,5 +1,5 @@
-const repo = require('./repository');
-
+const repo = require('./repository')
+const indicators = require('../algorithms/indicators')
 
 /**
  * Get all prototypes
@@ -19,16 +19,16 @@ exports.getProtos = async (req, res) => {
  * Get a prototype
  */
 exports.getProto = async (req, res) => {
-  const id = req.params.id;
+  const protoNo = req.params.protoNo;
 
   let proto;
   try {
-    proto = await repo.getProto(id);
+    proto = await repo.getProto(protoNo);
   } catch (err) {
     return res.status(500).send('Error getting prototype');
   }
 
-  if (!proto) return res.status(404).send(`no prototype found with id ${id}`);
+  if (!proto) return res.status(404).send(`no prototype found with no ${protoNo}`);
 
   return res.send({
     prototypeNo: proto.prototype_no,
@@ -36,3 +36,22 @@ exports.getProto = async (req, res) => {
     description: proto.description
   });
 }
+
+
+exports.getProtoAlgoCurrencyData = async (req, res ) => {
+  const protoNo = req.params.protoNo
+  const currency = req.params.currency
+  const abbrev = `${currency}/USD`
+
+  let dataForIndicators
+  try {
+    dataForIndicators = await indicators.dataForIndicators(protoNo, abbrev)
+  } catch (e) {
+    return res.send(`Failed to get data for indicator`)
+  }
+
+  indicatorsTriggered = indicators.indicators(dataForIndicators)
+
+  return res.send(indicatorsTriggered)
+}
+

@@ -1,4 +1,3 @@
-const service = require('./service');
 const prototypeFramework = require('./prototypeFrameworkV2');
 
 module.exports = () => prototypeFramework(protoNo, openConditions, closeConditions);
@@ -6,11 +5,11 @@ module.exports = () => prototypeFramework(protoNo, openConditions, closeConditio
 const protoNo = 71
 
 const openConditions = [
-  'twelveWMACrossedOver36WMA'
+  'twelveWMACrossedUnder36WMA'
 ]
 
 const closeConditions = [
-  'twelveWMACrossedUnder36WMA',
+  'twelveWMACrossedOver36WMA',
   'pipDecreasedByEight'
 ]
 
