@@ -2,7 +2,8 @@ const config = require('../config');
 const quoteCurrency = config.QUOTE_CURRENCY;
 const wmaRepo = require('../wma/repository')
 const tradeRepo = require('../trade/repository');
-
+const calculatePip = require('../services/calculatePip')
+const calculateVolatility = require('../services/calculateVolatility')
 
 exports.getCurrentAndPrevWMAs = async (abbrev) => {
   let wmaDataPoints;
@@ -81,4 +82,32 @@ exports.minsSinceOpeningTrade = async (openingDate) => {
   const hoursToMins = parseInt(hours) * 60;
 
   return hoursToMins + mins
+}
+
+exports.stats = async (data, abbrev) => {
+  console.log('open trade stats !!')
+
+  const currentRate = data.currentRate
+  const fiveWMA = data.WMAs.WMA['5']
+  const twelveWMA = data.WMAs.WMA['12']
+  const thirtySixWMA = data.WMAs.WMA['36']
+
+  const currentRate5WMADistance = calculatePip(currentRate, fiveWMA);
+  const currentRate12WMADistance = calculatePip(currentRate, twelveWMA);
+  const currentRate36WMADistance = calculatePip(currentRate, thirtySixWMA)
+
+  let volatility
+  try {
+    volatility = await calculateVolatility(abbrev)
+  } catch (err) {
+    throw new Error(`Failed to calculate volatility: ${err}`)
+  }
+
+  /* want to calculate RSI */ 
+
+  return {
+    currentRate5WMADistance,
+    currentRate12WMADistance,
+    currentRate36WMADistance
+  }
 }

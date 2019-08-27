@@ -3,7 +3,7 @@ const majorCurrencies = config.MAJOR_CURRENCIES
 const quoteCurrency = config.QUOTE_CURRENCY;
 const tradeService = require('../trade/service');
 const indicators = require('./indicators')
-
+const service = require('./service')
 
 module.exports = (prototypeNo, openConditions, closeConditions) => {
   majorCurrencies.forEach((currency) => {
@@ -24,6 +24,14 @@ const prototypeFramework = async (protoNo, currency, openConditions, closeCondit
   const abbrev = `${currency}/${quoteCurrency}`
   const data = await indicators.dataForIndicators(protoNo, abbrev)
   const notes = JSON.stringify(data)
+
+  let openTradeStats;
+  try {
+    openTradeStats = await service.stats(data, abbrev)
+  } catch (err) {
+    throw new Error(`failed to get open trade stats: ${err}`)
+  }
+  
 
   /* open trade */
   const openingTrade = data.openingTrade

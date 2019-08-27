@@ -59,7 +59,6 @@ exports.indicators = (data) => {
 }
 
 
-
 /**
  * Weighted moving averages
  * Current rate of abbrev
@@ -72,7 +71,7 @@ exports.dataForIndicators = async (protoNo, abbrev) => {
     const currentRate = WMAs.WMA
       ? WMAs.WMA.rate
       : null
-    
+
     let openingTrade 
     try  {
       openingTrade = await tradeRepo.getLastTrade(protoNo, abbrev)
