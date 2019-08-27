@@ -10,6 +10,6 @@ const openConditions = [
 ];
 
 const closeConditions = [
-  'twelveWMAOverOver36WMA',
+  'twelveWMACrossedOver36WMA',
   'fortyFiveMinsSinceTrade'
 ]
