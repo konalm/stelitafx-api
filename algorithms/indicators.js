@@ -20,10 +20,12 @@ exports.indicatorsTriggered = (data, prototypeIndicators) => {
  */
 exports.anIndicatorTriggered = (data, prototypeIndicators) => {
   const abbrevIndicators = this.indicators(data);
-
+ 
   let conditionMet = false
   prototypeIndicators.forEach((indicator) => {
-    if (abbrevIndicators[indicator]) conditionMet = true
+    if (abbrevIndicators[indicator]) {
+      conditionMet = true
+    }
   })
 
   return conditionMet
@@ -45,8 +47,8 @@ exports.indicators = (data) => {
     fiveWMACrossedOverFifteenWMA: service.shortWMACrossedOver(data.WMAs, 5, 15),
     fiveWMACroseedUnderFifteenWMA: service.shortWMACrossedUnder(data.WMAs, 5, 15),
     currentRateUnderTwelveWMA: service.currentRateUnderShortWMA(data.currentRate, data.WMAs, 12),
-    pipDecreasedByEight: data.pip <= 8,
-    pipDecreasedByTwelve: data.pip <= 12,
+    pipDecreasedByEight: data.pip <= -8,
+    pipDecreasedByTwelve: data.pip <= -12,
     thirtyMinsSinceTrade: data.openingTrade 
       ? service.minsSinceOpeningTrade(data.openingTrade.openDate) >= 30
       : 0,

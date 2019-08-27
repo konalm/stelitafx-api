@@ -39,6 +39,8 @@ const prototypeFramework = async (protoNo, currency, openConditions, closeCondit
   /* close trade */
   const closeConditionsMet = indicators.anIndicatorTriggered(data, closeConditions)    
   if (closeConditionsMet) {
-    await tradeService.closeTrade(protoNo, abbrev, data.currentRate, notes);
+    const indicatorStateOnClose = indicators.indicators(data);
+    const closeNotes = { data, indicatorState: indicatorStateOnClose }
+    await tradeService.closeTrade(protoNo, abbrev, data.currentRate, JSON.stringify(closeNotes));
   }
 }
