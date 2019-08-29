@@ -71,7 +71,7 @@ exports.getOpeningTrade = async (protoNo, currencyPairAbbrev) => {
   return lastTrade;
 }
 
-exports.minsSinceOpeningTrade = async (openingDate) => {
+exports.minsSinceOpeningTrade = (openingDate) => {
   const openDate = new Date(openingDate)
   const currentDate = new Date()
 
@@ -85,8 +85,6 @@ exports.minsSinceOpeningTrade = async (openingDate) => {
 }
 
 exports.stats = async (data, abbrev) => {
-  console.log('open trade stats !!')
-
   const currentRate = data.currentRate
   const fiveWMA = data.WMAs.WMA['5']
   const twelveWMA = data.WMAs.WMA['12']
@@ -103,11 +101,10 @@ exports.stats = async (data, abbrev) => {
     throw new Error(`Failed to calculate volatility: ${err}`)
   }
 
-  /* want to calculate RSI */ 
-
   return {
     currentRate5WMADistance,
     currentRate12WMADistance,
-    currentRate36WMADistance
+    currentRate36WMADistance,
+    volatility
   }
 }

@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS tradeV2 (
   PRIMARY KEY(id)
 );
 
+ALTER TABLE tradeV2 ADD COLUMN open_stats LONGTEXT NULL;
 
 /**
  *

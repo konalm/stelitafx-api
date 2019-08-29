@@ -1,8 +1,6 @@
 const currencyRateRepo = require('../currencyRates/repository')
 
 module.exports = (abbrev, length = 10) => new Promise(async (resolve, reject) => {
-  console.log('calculate volatility')
-
   let currencyRatesResponse;
   try {
     currencyRatesResponse = await currencyRateRepo.getCurrenciesRates(abbrev, length)
@@ -18,14 +16,11 @@ module.exports = (abbrev, length = 10) => new Promise(async (resolve, reject) =>
   currencyRates.forEach((rate) => 
     deviations.push(Math.abs(rate - average))
   )
-
   const squaredDeviations = deviations.map(x => Math.sqrt(x))
-  const squaredDeviationSum = squaredDeviations.reduce((a, b) => a + b, 0)
-  const squaredDeviationAverage = squaredDeviationSum / length
-  const squareRootAverage = Math.pow(squaredDeviationAverage, 10)
 
-  console.log(squareRootAverage)
-  console.log(Math.round(squareRootAverage))
-  console.log(parseFloat(squareRootAverage).toFixed(2))
+  const deviationSum = squaredDeviations.reduce((a, b) => a + b, 0)
+  const variance = deviationSum / length
+  const volatility = Math.sqrt(variance)
 
+  resolve(volatility * 100)
 })

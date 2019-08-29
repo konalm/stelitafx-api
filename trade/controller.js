@@ -51,6 +51,7 @@ exports.getTrade = async (req, res) => {
   try {
     trade = await repo.getTrade(protoNo, abbrev, tradeId);
   } catch (err) {
+    console.log(err)
     return res.status(500).send('Failed to get trade');
   }
 
@@ -109,4 +110,18 @@ exports.getProtoCurrencyTrades = async (req, res) => {
   }
 
   return res.send(trades);
+}
+
+exports.getLastProtoCurrencyTrade = async (req, res) => {
+  const protoNo = req.params.protoNo
+  const abbrev = `${req.params.currency}/USD`
+
+  let trade;
+  try {
+    trade = await repo.getLastTrade(protoNo, abbrev)
+  } catch (e) {
+    return res.status(500).send('Failed to get last trade')
+  }
+
+  return res.send(trade)
 }

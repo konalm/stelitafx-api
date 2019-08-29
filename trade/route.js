@@ -14,4 +14,6 @@ module.exports = (app) => {
   app.route('/next-trade/:tradeId').get(controller.getNextTrade);
   app.route('/prev-trade/:tradeId').get(controller.getPrevTrade);
   app.route('/trade/:tradeId/viewed').get(controller.updateTradeToViewed);
+  app.route('/proto/:protoNo/currency/:currency/last-trade')
+    .get(controller.getLastProtoCurrencyTrade);
 }

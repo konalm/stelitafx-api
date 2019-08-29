@@ -4,12 +4,13 @@ const repo = require('./repository');
 /**
  *
  */
-exports.openTrade = async (protoNo, abbrev, rate, notes) => {
+exports.openTrade = async (protoNo, abbrev, rate, notes, stats) => {
   const trade = {
     proto_no: protoNo,
     abbrev,
     open_rate: rate,
-    open_notes: notes
+    open_notes: notes,
+    open_stats: stats
   };
 
   try {

@@ -25,21 +25,20 @@ const prototypeFramework = async (protoNo, currency, openConditions, closeCondit
   const data = await indicators.dataForIndicators(protoNo, abbrev)
   const notes = JSON.stringify(data)
 
-  let openTradeStats;
-  try {
-    openTradeStats = await service.stats(data, abbrev)
-  } catch (err) {
-    throw new Error(`failed to get open trade stats: ${err}`)
-  }
-  
-
   /* open trade */
   const openingTrade = data.openingTrade
 
   if (!openingTrade || openingTrade.closed) {
     const openConditionsMet = indicators.indicatorsTriggered(data, openConditions)
     if (openConditionsMet) {
-      await tradeService.openTrade(protoNo, abbrev, data.currentRate, notes);
+      const openStats = await service.stats(data, abbrev)
+      await tradeService.openTrade(
+        protoNo, 
+        abbrev, 
+        data.currentRate, 
+        notes, 
+        JSON.stringify(openStats)
+      );
     }
     return;
   }

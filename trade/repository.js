@@ -263,6 +263,7 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
     date AS openDate,
     close_rate AS closeRate,
     close_date AS closeDate,
+    open_stats AS openStats,
     viewed
     FROM tradeV2
     WHERE proto_no = ?
@@ -279,6 +280,7 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
       openDate: results[0].openDate,
       closeRate: results[0].closeRate,
       closeDate: results[0].closeDate,
+      openStats: results[0].openStats,
       viewed: !results[0].viewed ? false : true,
       pips: calculatePip(results[0].openRate, results[0].closeRate, abbrev)
     }
@@ -350,6 +352,7 @@ exports.getLastTrade = (protoNo, abbrev) => new Promise((resolve, reject) => {
     const mappedResult = {
       id: results[0].id,
       openRate: results[0].open_rate,
+      openDate: results[0].date,
       closed: results[0].closed
     };
 

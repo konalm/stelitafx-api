@@ -26,9 +26,6 @@ const prototypeNo74 = require('./algorithms/prototype#74');
  */
 routes(app);
 
-// prototypeNo71()
-
-
 /**
  *
  */
@@ -44,9 +41,7 @@ cron.schedule('* * * * *', async () => {
   } catch (err) {
     throw new Error("Error storing WMA data: " + err);
   }
-
-  // return
-
+ 
   prototype()
   prototypeNo2()
   prototypeNo3()
