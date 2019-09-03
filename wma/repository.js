@@ -1,17 +1,20 @@
 const conn = require('../db');
+const getIntervalMins = require('../services/intervalMins')
 
-
-exports.storeWMAData = (currencyAbbrev, rate, wmaData) =>
+exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval) =>
   new Promise((resolve, reject) =>
 {
   const wmaDataJSON = JSON.stringify(wmaData);
 
-  const query = 'INSERT INTO currency_wma (abbrev, rate, wma_data_json) VALUES ?';
+  const query = `
+    INSERT INTO currency_wma 
+    (abbrev, rate, wma_data_json, time_interval) 
+    VALUES ?`;
   const queryValues = [
-    [currencyAbbrev, rate, wmaDataJSON]
+    [currencyAbbrev, rate, wmaDataJSON, timeInterval]
   ];
 
-  conn.query(query, [queryValues], (err, results) => {
+  conn.query(query, [queryValues], (err) => {
     if (err) reject('Error storing currency WMA data');
 
     resolve('Stored WMA data')
@@ -19,11 +22,16 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData) =>
 });
 
 
-exports.getWMAs = (currencyAbbrev, amount) => new Promise((resolve, reject) => {
-  const query =  `
-    SELECT date, rate, wma_data_json
+exports.getWMAs = (currencyAbbrev, interval, amount) => 
+  new Promise((resolve, reject) => 
+{
+  const intervalMins = getIntervalMins(interval)
+
+  const query = `
+    SELECT date, rate, wma_data_json, time_interval
     FROM currency_wma
     WHERE abbrev = ?
+      AND MINUTE(date) IN (${intervalMins})
     ORDER BY DATE DESC
     LIMIT ?`;
   const queryValues = [currencyAbbrev, amount];
@@ -34,7 +42,7 @@ exports.getWMAs = (currencyAbbrev, amount) => new Promise((resolve, reject) => {
     if (!results || results.length === 0) return [];
 
     const dataPoints = [];
-    results.forEach((result, index) => {
+    results.forEach((result) => {
       const wmaData = JSON.parse(result.wma_data_json);
       let dataPoint = {
         date: result.date,

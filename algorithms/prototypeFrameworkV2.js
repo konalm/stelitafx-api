@@ -5,10 +5,16 @@ const tradeService = require('../trade/service');
 const indicators = require('./indicators')
 const service = require('./service')
 
-module.exports = (prototypeNo, openConditions, closeConditions) => {
+module.exports = (prototypeNo, openConditions, closeConditions, timeInterval) => {
   majorCurrencies.forEach((currency) => {
     try {
-      prototypeFramework(prototypeNo, currency, openConditions, closeConditions)
+      prototypeFramework(
+        prototypeNo, 
+        currency, 
+        openConditions, 
+        closeConditions, 
+        timeInterval
+      )
     } catch(err) {
       throw new Error(err);
     }
@@ -19,10 +25,15 @@ module.exports = (prototypeNo, openConditions, closeConditions) => {
 /**
  *
  */
-const prototypeFramework = async (protoNo, currency, openConditions, closeConditions) =>
-{
+const prototypeFramework = async (
+  protoNo, 
+  currency, 
+  openConditions, 
+  closeConditions,
+  timeInterval
+) => {
   const abbrev = `${currency}/${quoteCurrency}`
-  const data = await indicators.dataForIndicators(protoNo, abbrev)
+  const data = await indicators.dataForIndicators(protoNo, abbrev, timeInterval)
   const notes = JSON.stringify(data)
 
   /* open trade */
@@ -37,7 +48,8 @@ const prototypeFramework = async (protoNo, currency, openConditions, closeCondit
         abbrev, 
         data.currentRate, 
         notes, 
-        JSON.stringify(openStats)
+        JSON.stringify(openStats),
+        timeInterval
       );
     }
     return;
@@ -48,6 +60,12 @@ const prototypeFramework = async (protoNo, currency, openConditions, closeCondit
   if (closeConditionsMet) {
     const indicatorStateOnClose = indicators.indicators(data);
     const closeNotes = { data, indicatorState: indicatorStateOnClose }
-    await tradeService.closeTrade(protoNo, abbrev, data.currentRate, JSON.stringify(closeNotes));
+    await tradeService.closeTrade(
+      protoNo, 
+      abbrev, 
+      data.currentRate, 
+      JSON.stringify(closeNotes),
+      timeInterval
+    );
   }
 }

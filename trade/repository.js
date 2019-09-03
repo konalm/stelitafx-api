@@ -334,15 +334,18 @@ exports.getProtoTrades = (protoNo) => new Promise((resolve, reject) => {
 /**
  *
  */
-exports.getLastTrade = (protoNo, abbrev) => new Promise((resolve, reject) => {
+exports.getLastTrade = (protoNo, abbrev, timeInterval) => 
+  new Promise((resolve, reject) => 
+{
   const query = `
     SELECT id, date, open_rate, closed
     FROM tradeV2
     WHERE proto_no = ?
       AND abbrev = ?
+      AND time_interval = ?
     ORDER BY date DESC
     LIMIT 1`;
-  const queryValues = [protoNo, abbrev];
+  const queryValues = [protoNo, abbrev, timeInterval];
 
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);

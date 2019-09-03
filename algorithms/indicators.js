@@ -12,7 +12,7 @@ exports.indicatorsTriggered = (data, prototypeIndicators) => {
     abbrevIndicators[condition] === false
   )
 
-  return allConditionsMet;
+  return allConditionsMet
 }
 
 /**
@@ -30,8 +30,6 @@ exports.anIndicatorTriggered = (data, prototypeIndicators) => {
 
   return conditionMet
 }
-
-
 
 /**
  * All indicators that can trigger an action on a trade 
@@ -65,16 +63,17 @@ exports.indicators = (data) => {
  * opening trade
  * abbrev rate when trade was opened
  */
-exports.dataForIndicators = async (protoNo, abbrev) => {
+exports.dataForIndicators = async (protoNo, abbrev, timeInterval) => {
   try {
-    const WMAs = await service.getCurrentAndPrevWMAs(abbrev)
+    const WMAs = await service.getCurrentAndPrevWMAs(abbrev, timeInterval)
+
     const currentRate = WMAs.WMA
       ? WMAs.WMA.rate
       : null
 
     let openingTrade 
     try  {
-      openingTrade = await tradeRepo.getLastTrade(protoNo, abbrev)
+      openingTrade = await tradeRepo.getLastTrade(protoNo, abbrev, timeInterval)
     } catch (err) {
       console.error(err)
     }

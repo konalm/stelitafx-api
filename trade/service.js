@@ -4,13 +4,14 @@ const repo = require('./repository');
 /**
  *
  */
-exports.openTrade = async (protoNo, abbrev, rate, notes, stats) => {
+exports.openTrade = async (protoNo, abbrev, rate, notes, stats, timeInterval) => {
   const trade = {
     proto_no: protoNo,
     abbrev,
     open_rate: rate,
     open_notes: notes,
-    open_stats: stats
+    open_stats: stats,
+    time_interval: timeInterval
   };
 
   try {
@@ -23,10 +24,10 @@ exports.openTrade = async (protoNo, abbrev, rate, notes, stats) => {
 /**
  *
  */
-exports.closeTrade = async (protoNo, abbrev, rate, notes) => {
+exports.closeTrade = async (protoNo, abbrev, rate, notes, timeInterval) => {
  let openTrade;
  try {
-    openTrade = await repo.getLastTrade(protoNo, abbrev);
+    openTrade = await repo.getLastTrade(protoNo, abbrev, timeInterval);
   } catch (err) {
     throw new Error(`Getting last trade: ${err}`)
   }

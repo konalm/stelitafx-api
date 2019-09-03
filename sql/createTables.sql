@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS tradeV2 (
 );
 
 ALTER TABLE tradeV2 ADD COLUMN open_stats LONGTEXT NULL;
+ALTER TABLE tradeV2 ADD COLUMN time_interval INT NULL;
 
 /**
  *
@@ -38,6 +39,8 @@ CREATE TABLE IF NOT EXISTS currency_wma (
   wma_data_json LONGTEXT,
   PRIMARY KEY(id)
 );
+
+ALTER TABLE currency_wma ADD COLUMN time_interval INT NULL;
 
 
 /**

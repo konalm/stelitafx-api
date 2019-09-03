@@ -9,68 +9,21 @@ const repo = require('./repository');
 /**
  * Get Weighted moving average data
  */
- exports.getWMADataPointsV2 = async (req, res) => {
+ exports.getWMADataPoints = async (req, res) => {
    const currency = req.params.currency;
    const currencyPairAbbrev = `${currency}/USD`;
+   const interval = req.params.interval
    const count = parseInt(req.params.count);
 
    let WMADataPoints;
    try {
-     WMADataPoints = await repo.getWMAs(currencyPairAbbrev, count);
+     WMADataPoints = await repo.getWMAs(currencyPairAbbrev, interval, count);
    } catch (err) {
+     console.log(err)
      return res.status(500).send('Error getting WMAs');
    }
 
    return res.send(WMADataPoints);
- }
-
-/**
- * Get Weighted moving average data
- */
- exports.getWMADataPoints = async (req, res) => {
-   const currency = req.params.currency;
-   const currencyPairAbbrev = `${currency}/USD`;
-   const count = parseInt(req.params.count);
-
-   /* get rates */
-   let currencyRates;
-   try {
-     currencyRates = await currencyRateRepo.GetCurrencyLatestRates(
-                            currencyPairAbbrev,
-                            count,
-                            0
-                          );
-   } catch (err) {
-     return res.status(500).send('Error getting currency rates');
-   }
-
-   historicalWMACount = count - 1;
-
-   let shortWMADataPoints;
-   try {
-     shortWMADataPoints = await getWMA.getLatestWMAs(
-                                  currencyPairAbbrev,
-                                  12,
-                                  historicalWMACount
-                                );
-   } catch (err) {
-     return res.status(500).send('Error getting short WMA data points');
-   }
-
-   let longWMADataPoints;
-   try {
-     longWMADataPoints = await getWMA.getLatestWMAs(
-                                 currencyPairAbbrev,
-                                 36,
-                                 historicalWMACount
-                               );
-   } catch (err) {
-     return res.status(500).send('Error getting long WMA data points');
-   }
-
-   const dataPoints = groupWMADataPoints(currencyRates, shortWMADataPoints, longWMADataPoints);
-
-   return res.send(dataPoints);
  }
 
 /**

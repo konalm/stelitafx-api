@@ -1,4 +1,5 @@
 const conn = require('../db');
+const getIntervalMins = require('../services/intervalMins')
 
 /**
  * get currencies between (start date - buffer)  and (end date + buffer)
@@ -28,19 +29,30 @@ exports.getCurrencyRatesBetweenDateRange = (abbrev, startDate, endDate, buffer) 
 /**
  *
  */
-exports.GetCurrencyLatestRates = (currencyAbbrev, ratesAmount, historicalCount) =>
+exports.GetCurrencyLatestRates = (
+  currencyAbbrev, 
+  ratesAmount, 
+  historicalCount, 
+  timeInterval = 1
+) =>
   new Promise((resolve, reject) =>
 {
+  const intervalMins = getIntervalMins(timeInterval)
+ 
   const query = `
     SELECT date, exchange_rate
     FROM currency_rate
     WHERE abbrev = ?
+     AND MINUTE(date) IN (${intervalMins})
     ORDER BY date DESC
     LIMIT ?`;
   const limit = ratesAmount + historicalCount
 
   conn.query(query, [currencyAbbrev, limit], (err, results) => {
-    if (err) return reject('Error Getting currency latest rates');
+    if (err) {
+      console.log(err)
+      return reject('Error Getting currency latest rates');
+    }
 
     resolve(results);
   });

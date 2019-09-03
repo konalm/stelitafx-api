@@ -37,7 +37,7 @@ cron.schedule('* * * * *', async () => {
   }
 
   try {
-    await wmaService.storeWMAData();
+    await wmaService.storeWMAData(1);
   } catch (err) {
     throw new Error("Error storing WMA data: " + err);
   }
@@ -55,5 +55,8 @@ cron.schedule('* * * * *', async () => {
   prototypeNo73()
   prototypeNo74()
 });
+
+require('./crons')
+
 
 app.listen(port, () => console.log(`Stelita FX API listening in port ${port}`))

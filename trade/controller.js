@@ -29,6 +29,7 @@ exports.getPrevTrade = async (req, res) => {
   return res.send({tradeId: prevTrade});
 }
 
+
 exports.getNextTrade = async (req, res) => {
   const tradeId = req.params.tradeId;
 
@@ -41,6 +42,7 @@ exports.getNextTrade = async (req, res) => {
 
   return res.send({tradeId: nextTrade});
 }
+
 
 exports.getTrade = async (req, res) => {
   const tradeId = req.params.tradeId;
@@ -59,6 +61,7 @@ exports.getTrade = async (req, res) => {
 
   return res.send(trade)
 }
+
 
 exports.getTradesProto = async (req, res) => {
   const protoNo = req.params.proto_no;

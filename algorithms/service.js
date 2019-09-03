@@ -1,14 +1,13 @@
 const config = require('../config');
-const quoteCurrency = config.QUOTE_CURRENCY;
 const wmaRepo = require('../wma/repository')
 const tradeRepo = require('../trade/repository');
 const calculatePip = require('../services/calculatePip')
 const calculateVolatility = require('../services/calculateVolatility')
 
-exports.getCurrentAndPrevWMAs = async (abbrev) => {
+exports.getCurrentAndPrevWMAs = async (abbrev, timeInterval = 1) => {
   let wmaDataPoints;
   try {
-    wmaDataPoints = await wmaRepo.getWMAs(abbrev, 2);
+    wmaDataPoints = await wmaRepo.getWMAs(abbrev, timeInterval, 2);
   } catch (err) {
     throw new Error('could not get WMAs:' + err);
   }
