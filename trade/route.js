@@ -5,6 +5,12 @@ module.exports = (app) => {
     .get(controller.getProtoCurrencyTrades);
 
   app.route('/proto/:proto_no/trades').get(controller.getTradesProto);
+  app.route('/protos/:protoNo/intervals/:interval/trades')
+    .get(controller.getProtoIntervalTrades);
+  
+  app.route('/protos/:protoNo/intervals/:interval/currency/:currency/trades')
+    .get(controller.getProtoIntervalCurrencyTrades);
+
   app.route('/proto/:proto_no/currency/:currency')
      .get(controller.getProtoCurrencyClosedTrades);
 

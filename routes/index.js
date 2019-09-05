@@ -1,19 +1,17 @@
 const currencyRatesRepo = require('../currencyRates/repository');
-const getWMA = require('../services/getWMA');
-const groupWMADataPoints = require('../services/groupWMADataPoints');
-const calculateWMAs = require('../services/calculateWMAs');
 const tradeRepo = require('../trade/repository');
-const prototypeRepo = require('../proto/repository');
 const wmaRoutes = require('../wma/route');
 const protoRoutes = require('../proto/route');
 const tradeRoutes = require('../trade/route');
 const currencyRoutes = require('../currency/route');
+const timeIntervalRoutes = require('../timeInterval/route')
 
 module.exports = (app) => {
   wmaRoutes(app);
   protoRoutes(app);
   tradeRoutes(app);
   currencyRoutes(app);
+  timeIntervalRoutes(app)
 
   /**
    * Get trade

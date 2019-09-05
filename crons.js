@@ -4,7 +4,6 @@ const prototypeIni = require('./algorithms/ini');
 const config = require('./config')
 
 
-
 const cronScheduleStoreWMA = (min) => {
   cron.schedule(`*/${min} * * * *`, async () => {
     try {

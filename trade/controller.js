@@ -1,5 +1,49 @@
 const repo = require('./repository.js');
 
+exports.getProtoIntervalCurrencyTrades = async (req, res) => {
+  const {protoNo, interval, currency} = req.params
+
+  const conditions = {
+    proto_no: parseInt(protoNo),
+    time_interval: parseInt(interval),
+    abbrev: `${currency}/USD`,
+    closed: true
+  }
+
+  let trades
+  try {
+    trades = await repo.getTrades(conditions)
+  } catch (err) {
+    return res.status(500).send('Failed to get trades')
+  }
+
+  if (trades.length) return res.status(404).send('No trades found')
+
+  return res.send(trades)
+}
+
+exports.getProtoIntervalTrades = async (req, res) => {
+  const {protoNo, interval} = req.params
+
+  const conditions = {
+    proto_no: parseInt(protoNo),
+    time_interval: parseInt(interval),
+    closed: true
+  }
+
+  let trades
+  try {
+    trades = await repo.getTrades(conditions)
+  } catch (err) {
+    console.log(err)
+    return res.status(500).send(`Failed to get trades`)
+  }
+
+  if (!trades.length) return res.status(404).send('No trades!')
+
+  return res.send(trades)
+}
+
 exports.updateTradeToViewed = async (req, res) => {
   const tradeId = req.params.tradeId;
   const trade = { viewed: true };

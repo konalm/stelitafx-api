@@ -2,6 +2,38 @@ const conn = require('../db');
 const calculatePip = require('../services/calculatePip');
 const util = require('util')
 
+exports.getTrades = (conditions) =>
+  new Promise(async (resolve, reject) => 
+{
+  let query = `
+    SELECT id
+      abbrev,
+      open_rate AS openRate,
+      date AS openDate,
+      close_rate AS closeRate,
+      close_date AS closeDate,
+      open_notes AS openNotes,
+      close_notes AS closeNotes,
+      viewed
+    FROM tradeV2`;
+
+  let i = 0
+  let queryValues = []
+  for (const [key, value] of Object.entries(conditions)) {
+    if (i === 0) query += ` WHERE ${key} = ?`
+    else query += ` AND ${key} = ?`
+    i++
+
+    queryValues.push(value)
+  }
+
+  conn.query(query, queryValues, (err, results) => {
+    if (err) return reject(err)
+
+    resolve(results)
+  })
+})
+
 /**
  *
  */
