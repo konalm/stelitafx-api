@@ -10,12 +10,6 @@ const connection = mysql.createConnection({
   database: dbConf.database
 });
 
-// const connection = mysql.createConnection({
-//   host: '138.68.167.173',
-//   user: 'connor',
-//   password: '$$superstar',
-//   database: 'stelitafx'
-// })
 
 try {
   connection.connect();

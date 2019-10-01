@@ -24,7 +24,22 @@ CREATE TABLE IF NOT EXISTS tradeV2 (
 
 ALTER TABLE tradeV2 ADD COLUMN open_stats LONGTEXT NULL;
 ALTER TABLE tradeV2 ADD COLUMN time_interval INT NULL;
+ALTER TABLE tradeV2 ADD COLUMN account VARCHAR(50) NULL;
+ALTER TABLE tradeV2 ADD COLUMN uuid VARCHAR(36) NULL;
 
+/**
+ *
+ */
+CREATE TABLE IF NOT EXISTS trade_oandatrade (
+  id INT NOT NULL AUTO_INCREMENT,
+  trade_uuid VARCHAR(36) NOT NULL,
+  oandatrade_id INTEGER NOT NULL,
+  PRIMARY KEY(id)
+);
+
+ALTER TABLE trade_oandatrade RENAME COLUMN oanda_opentrade_id NOT NULL;
+ALTER TABLE trade_oandatrade ADD COLUMN oanda_closetrade_id NULL;
+ 
 /**
  *
  */

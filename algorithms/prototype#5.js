@@ -2,18 +2,23 @@ const service = require('./service');
 const prototypeFramework = require('./prototypeFramework');
 
 
-module.exports = () =>
-  prototypeFramework(5, conditionData, openConditionsMet, closeConditionsMet);
+module.exports = (timeInterval) => prototypeFramework(
+  5,
+  conditionData,
+  openConditionsMet,
+  closeConditionsMet,
+  timeInterval
+);
 
 /**
  * Retrieve data required to determine open and close conditions met
  *
  * 1. Current and previous WMA
  */
-const conditionData = async (abbrev) => {
+const conditionData = async (abbrev, timeInterval) => {
   let WMAs
   try {
-    WMAs = await service.getCurrentAndPrevWMAs(abbrev);
+    WMAs = await service.getCurrentAndPrevWMAs(abbrev, timeInterval);
   } catch(err) {}
 
   return {

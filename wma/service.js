@@ -80,7 +80,7 @@ exports.storeWMAData = (timeInterval) =>
 {
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
-  
+
   storeCurrencyPromises = [];
   currencies.forEach((currency) => {
     const currencyAbbrev = `${currency}/${quoteCurrency}`;
@@ -148,6 +148,7 @@ const calcWMA = async (abbrev, WMALength, timeInterval) => {
                             abbrev,
                             WMALength,
                             0,
+                            timeInterval
                           );
   } catch (err) {
     throw new Error('Error Getting WMA Data points: ' + err);

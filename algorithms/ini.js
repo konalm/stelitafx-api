@@ -12,14 +12,14 @@ const prototypeNo73 = require('./prototype#73');
 const prototypeNo74 = require('./prototype#74');
 
 module.exports = (timeInterval) => {
-  // prototype()
-  // prototypeNo2()
-  // prototypeNo3()
-  // prototypeNo4()
-  // prototypeNo5()
+  prototype(timeInterval)
+  prototypeNo2(timeInterval)
+  prototypeNo3(timeInterval)
+  prototypeNo4(timeInterval)
+  prototypeNo5(timeInterval)
   prototypeNo51(timeInterval)
-  // prototypeNo6()
-  // prototypeNo7()
+  prototypeNo6(timeInterval)
+  prototypeNo7(timeInterval)
   prototypeNo71(timeInterval)
   prototypeNo72(timeInterval)
   prototypeNo73(timeInterval)

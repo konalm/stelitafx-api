@@ -38,14 +38,13 @@ exports.getProto = async (req, res) => {
 }
 
 
-exports.getProtoAlgoCurrencyData = async (req, res ) => {
-  const protoNo = req.params.protoNo
-  const currency = req.params.currency
+exports.getProtoIntervalCurrencyData = async (req, res ) => {
+  const {protoNo, interval, currency} = req.params;
   const abbrev = `${currency}/USD`
 
   let dataForIndicators
   try {
-    dataForIndicators = await indicators.dataForIndicators(protoNo, abbrev)
+    dataForIndicators = await indicators.dataForIndicators(protoNo, abbrev, interval)
   } catch (e) {
     return res.send(`Failed to get data for indicator`)
   }
@@ -54,4 +53,3 @@ exports.getProtoAlgoCurrencyData = async (req, res ) => {
 
   return res.send(indicatorsTriggered)
 }
-

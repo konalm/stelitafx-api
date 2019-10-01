@@ -7,8 +7,8 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval) =>
   const wmaDataJSON = JSON.stringify(wmaData);
 
   const query = `
-    INSERT INTO currency_wma 
-    (abbrev, rate, wma_data_json, time_interval) 
+    INSERT INTO currency_wma
+    (abbrev, rate, wma_data_json, time_interval)
     VALUES ?`;
   const queryValues = [
     [currencyAbbrev, rate, wmaDataJSON, timeInterval]
@@ -22,19 +22,17 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval) =>
 });
 
 
-exports.getWMAs = (currencyAbbrev, interval, amount) => 
-  new Promise((resolve, reject) => 
+exports.getWMAs = (currencyAbbrev, interval, amount) =>
+  new Promise((resolve, reject) =>
 {
-  const intervalMins = getIntervalMins(interval)
-
   const query = `
     SELECT date, rate, wma_data_json, time_interval
     FROM currency_wma
     WHERE abbrev = ?
-      AND MINUTE(date) IN (${intervalMins})
+      AND time_interval = ?
     ORDER BY DATE DESC
     LIMIT ?`;
-  const queryValues = [currencyAbbrev, amount];
+  const queryValues = [currencyAbbrev, interval, amount];
 
   conn.query(query, queryValues, (err, results) => {
     if (err) reject(err);
@@ -64,21 +62,22 @@ exports.getWMAs = (currencyAbbrev, interval, amount) =>
 /**
  *
  */
-exports.getWMAsBetweenDates = (abbrev, startDate, endDate, buffer) =>
+exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer) =>
   new Promise((resolve, reject) =>
 {
+  const buffer = _buffer * timeInterval
   const query = `
     SELECT date, rate, wma_data_json
     FROM currency_wma
     WHERE abbrev = ?
+     AND time_interval = ?
      AND date >= (? - INTERVAL ? MINUTE)
      AND date <= (? + INTERVAL ? MINUTE)
     ORDER BY date DESC`;
-  const queryValues = [abbrev, startDate, buffer, endDate, buffer];
+  const queryValues = [abbrev, timeInterval, startDate, buffer, endDate, buffer];
 
   conn.query(query, queryValues, (err, results) => {
     if (err) reject(err);
-
     if (!results) return [];
 
     const dataPoints = [];

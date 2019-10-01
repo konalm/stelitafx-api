@@ -75,9 +75,15 @@ exports.getWMAsForTrade = async (req, res) => {
   let WMADataPoints;
   try {
     WMADataPoints =
-      await repo.getWMAsBetweenDates(abbrev, trade.openDate, trade.closeDate, 40);
+      await repo.getWMAsBetweenDates(
+        abbrev, 
+        trade.openDate, 
+        trade.closeDate, 
+        trade.timeInterval,
+        40
+      );
   } catch (err) {
-    return res.status(500).sen('could not get WMAs between dates: ' + err);
+    return res.status(500).send('could not get WMAs between dates: ' + err);
   }
 
   return res.send(WMADataPoints);

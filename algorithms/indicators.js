@@ -3,12 +3,12 @@ const tradeRepo = require('../trade/repository');
 const calculatePip = require('../services/calculatePip');
 
 /**
- * Condition return for passed indicators being triggered 
+ * Condition return for passed indicators being triggered
  */
 exports.indicatorsTriggered = (data, prototypeIndicators) => {
   const abbrevIndicators = this.indicators(data);
 
-  const allConditionsMet = !prototypeIndicators.some((condition) => 
+  const allConditionsMet = !prototypeIndicators.some((condition) =>
     abbrevIndicators[condition] === false
   )
 
@@ -16,11 +16,11 @@ exports.indicatorsTriggered = (data, prototypeIndicators) => {
 }
 
 /**
- * 
+ *
  */
 exports.anIndicatorTriggered = (data, prototypeIndicators) => {
   const abbrevIndicators = this.indicators(data);
- 
+
   let conditionMet = false
   prototypeIndicators.forEach((indicator) => {
     if (abbrevIndicators[indicator]) {
@@ -32,7 +32,7 @@ exports.anIndicatorTriggered = (data, prototypeIndicators) => {
 }
 
 /**
- * All indicators that can trigger an action on a trade 
+ * All indicators that can trigger an action on a trade
  */
 exports.indicators = (data) => {
   return {
@@ -47,7 +47,7 @@ exports.indicators = (data) => {
     currentRateUnderTwelveWMA: service.currentRateUnderShortWMA(data.currentRate, data.WMAs, 12),
     pipDecreasedByEight: data.pip <= -8,
     pipDecreasedByTwelve: data.pip <= -12,
-    thirtyMinsSinceTrade: data.openingTrade 
+    thirtyMinsSinceTrade: data.openingTrade
       ? service.minsSinceOpeningTrade(data.openingTrade.openDate) >= 30
       : 0,
     fortyFiveMinsSinceTrade: data.openingTrade
@@ -55,6 +55,8 @@ exports.indicators = (data) => {
       : 0
   }
 }
+
+
 
 
 /**
@@ -71,12 +73,14 @@ exports.dataForIndicators = async (protoNo, abbrev, timeInterval) => {
       ? WMAs.WMA.rate
       : null
 
-    let openingTrade 
+    let openingTrade
     try  {
-      openingTrade = await tradeRepo.getLastTrade(protoNo, abbrev, timeInterval)
+      openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev)
     } catch (err) {
       console.error(err)
     }
+
+ 
     const openingRate = openingTrade && !openingTrade.closed
       ? openingTrade.openRate
       : null
@@ -93,5 +97,3 @@ exports.dataForIndicators = async (protoNo, abbrev, timeInterval) => {
   }
   catch (e) { throw Error(`data for indicators ${e}`) }
 }
-
-

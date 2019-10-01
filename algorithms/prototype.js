@@ -1,41 +1,14 @@
-const service = require('./service');
-const prototypeFramework = require('./prototypeFramework');
+const prototypeFramework = require('./prototypeFrameworkV2');
 
+module.exports = (timeInterval) =>
+  prototypeFramework(protoNo, openConditions, closeConditions, timeInterval);
 
-module.exports = () =>
-  prototypeFramework(1, conditionData, openConditionsMet, closeConditionsMet);
+const protoNo = 1
 
-/**
- * Retrieve data required to determine open and close conditions met
- *
- * 1. Current and previous WMA
- */
-const conditionData = async (abbrev) => {
-  let WMAs
-  try {
-    WMAs = await service.getCurrentAndPrevWMAs(abbrev);
-  } catch(err) {}
+const openConditions = [
+  'twelveWMACrossedOver36WMA'
+]
 
-  return {
-    WMAs
-  }
-}
-
-/**
- * Open trade if following conditions met;
- *
- * 1. Short WMA crossed over the long WMA
- */
-const openConditionsMet = async (data) => {
-  return service.shortWMACrossedOver(data.WMAs, 12, 36);
-}
-
-
-/**
- * Close trade if following conditions met;
- *
- * 1. Short WMA crossed under the long WMA
- */
-const closeConditionsMet = async (data) => {
-  return service.shortWMACrossedUnder(data.WMAs, 12, 36);
-}
+const closeConditions = [
+  'twelveWMACrossedUnder36WMA'
+]

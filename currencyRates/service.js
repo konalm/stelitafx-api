@@ -7,7 +7,7 @@ exports.calcWeightedMovingAverage = (currencyRates) => {
 
   let weightedRates = [];
   let weightIndex = movingAverage;
-  currencyRates.forEach((rate, index) => {
+  currencyRates.forEach((rate) => {
     const weightedRate = calcRateByWeight(rate.exchange_rate, weightIndex, weightFactor);
     weightedRates.push(weightedRate);
     weightIndex--;

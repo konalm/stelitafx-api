@@ -1,6 +1,7 @@
 const prototypeFramework = require('./prototypeFrameworkV2');
 
-module.exports = () => prototypeFramework(protoNo, openConditions, closeConditions);
+module.exports = (timeInterval) =>
+  prototypeFramework(protoNo, openConditions, closeConditions, timeInterval);
 
 const protoNo = 72
 
@@ -11,5 +12,5 @@ const openConditions = [
 
 const closeConditions = [
   'twelveWMACrossedOver36WMA',
-  'pipDecreasedByTwelve' 
+  'pipDecreasedByTwelve'
 ];

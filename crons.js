@@ -4,7 +4,7 @@ const prototypeIni = require('./algorithms/ini');
 const config = require('./config')
 
 
-const cronScheduleStoreWMA = (min) => {
+const cronSchedule = (min) => {
   cron.schedule(`*/${min} * * * *`, async () => {
     try {
       await wmaService.storeWMAData(min)
@@ -17,7 +17,5 @@ const cronScheduleStoreWMA = (min) => {
 }
 
 config.TIME_INTERVALS.forEach((timeInterval) => {
-  cronScheduleStoreWMA(timeInterval)
+  cronSchedule(timeInterval)
 })
-
-

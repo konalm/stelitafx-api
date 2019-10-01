@@ -7,7 +7,6 @@ const service = require('./service')
 
 module.exports = (prototypeNo, openConditions, closeConditions, timeInterval) => {
   majorCurrencies.forEach((currency) => {
-    try {
       prototypeFramework(
         prototypeNo, 
         currency, 
@@ -15,9 +14,10 @@ module.exports = (prototypeNo, openConditions, closeConditions, timeInterval) =>
         closeConditions, 
         timeInterval
       )
-    } catch(err) {
-      throw new Error(err);
-    }
+        .catch((err) => {
+          console.log('catch')
+          console.log(err)
+        })
   });
 }
 
@@ -35,7 +35,7 @@ const prototypeFramework = async (
   const abbrev = `${currency}/${quoteCurrency}`
   const data = await indicators.dataForIndicators(protoNo, abbrev, timeInterval)
   const notes = JSON.stringify(data)
-
+  
   /* open trade */
   const openingTrade = data.openingTrade
 
@@ -45,7 +45,7 @@ const prototypeFramework = async (
       const openStats = await service.stats(data, abbrev)
       await tradeService.openTrade(
         protoNo, 
-        abbrev, 
+        currency, 
         data.currentRate, 
         notes, 
         JSON.stringify(openStats),
@@ -62,7 +62,7 @@ const prototypeFramework = async (
     const closeNotes = { data, indicatorState: indicatorStateOnClose }
     await tradeService.closeTrade(
       protoNo, 
-      abbrev, 
+      currency, 
       data.currentRate, 
       JSON.stringify(closeNotes),
       timeInterval

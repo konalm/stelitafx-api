@@ -7,7 +7,13 @@ const tradeRepo = require('../trade/repository');
 const currencyRateRepo = require('../currencyRates/repository');
 
 
-module.exports = (prototypeNo, conditionData, openConditionsMet, closeConditionsMet) => {
+module.exports = (
+  prototypeNo,
+  conditionData,
+  openConditionsMet,
+  closeConditionsMet,
+  timeInterval
+) => {
   majorCurrencies.forEach((currency) => {
     try {
       prototypeFramework(
@@ -15,7 +21,8 @@ module.exports = (prototypeNo, conditionData, openConditionsMet, closeConditions
         currency,
         conditionData,
         openConditionsMet,
-        closeConditionsMet
+        closeConditionsMet,
+        timeInterval
       )
     } catch(err) {
       throw new Error(err);
@@ -33,19 +40,20 @@ const prototypeFramework =
     currency,
     conditionDataForTrades,
     openConditionsMet,
-    closeConditionsMet
+    closeConditionsMet,
+    timeInterval
   ) =>
 {
   const abbrev = `${currency}/${quoteCurrency}`;
 
-  const tradeData = await conditionDataForTrades(abbrev);
+  const tradeData = await conditionDataForTrades(abbrev, timeInterval);
   const currencyRate = await currencyRateRepo.getCurrencyRate(abbrev);
   if (!currencyRate) return;
 
   /* last trade */
   let openingTrade;
   try {
-    openingTrade = await tradeRepo.getLastTrade(protoNo, abbrev);
+    openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev);
   } catch (err) {
     throw new Error(`Failed to get last trade: ${err}`)
   }
@@ -54,9 +62,16 @@ const prototypeFramework =
 
   /* open trade */
   if (!openingTrade || openingTrade.closed) {
-    if (await openConditionsMet(tradeData)) {
+    if (await openConditionsMet(tradeData, timeInterval)) {
       try {
-        await tradeService.openTrade(protoNo, abbrev, currencyRate.rate, notes);
+        await tradeService.openTrade(
+          protoNo,
+          currency,
+          currencyRate.rate,
+          JSON.stringify(notes),
+          '',
+          timeInterval
+        )
       } catch (err) {
         throw new Error(`Failed to open trade: ${err}`)
       }
@@ -68,7 +83,13 @@ const prototypeFramework =
   /* close trade */
   if (await closeConditionsMet(tradeData)) {
     try {
-      await tradeService.closeTrade(protoNo, abbrev, currencyRate.rate, notes);
+      await tradeService.closeTrade(
+        protoNo,
+        currency,
+        currencyRate.rate,
+        notes,
+        timeInterval
+      );
     } catch (err) {
       throw new Error(`Failed to close trade: ${err}`)
     }

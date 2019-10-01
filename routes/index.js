@@ -5,13 +5,17 @@ const protoRoutes = require('../proto/route');
 const tradeRoutes = require('../trade/route');
 const currencyRoutes = require('../currency/route');
 const timeIntervalRoutes = require('../timeInterval/route')
+const readLogRoutes = require('../readLogs/route')
+const tradeSimuatorRoutes = require('../tradeSimulator/route')
 
 module.exports = (app) => {
   wmaRoutes(app);
   protoRoutes(app);
   tradeRoutes(app);
   currencyRoutes(app);
-  timeIntervalRoutes(app)
+  timeIntervalRoutes(app);
+  readLogRoutes(app);
+  tradeSimuatorRoutes(app)
 
   /**
    * Get trade
