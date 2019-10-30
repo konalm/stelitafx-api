@@ -1,6 +1,7 @@
 const repo = require('./repository.js');
 const oandaService = require('../services/oanda')
 
+
 exports.getOandaTradeTransactions  = async (req, res) => {
   const tradeId = req.params.id; 
   // if account not demo, return 
@@ -30,19 +31,22 @@ exports.getOandaTradeTransactions  = async (req, res) => {
   return res.send({ openTradeTransaction, closeTradeTransaction})
 }
 
+
 exports.getProtoIntervalCurrencyTrades = async (req, res) => {
   const {protoNo, interval, currency} = req.params
+  const currencyRateSource = req.query.currencyRateSouce || 'currency_rate';
+  const dateTimeFilter = req.query.date || '';
   const conditions = {
     proto_no: parseInt(protoNo),
     time_interval: parseInt(interval),
     abbrev: `${currency}/USD`,
-    closed: true
+    closed: true,
+    currency_rate_source: currencyRateSource
   }
-  const dateTimeFilter = req.query.date || '';
 
   let trades
   try {
-    trades = await repo.getTrades(conditions, dateTimeFilter)
+    trades = await repo.getTrades(conditions, dateTimeFilter, currencyRateSource)
   } catch (err) {
     return res.status(500).send('Failed to get trades')
   }
@@ -52,16 +56,24 @@ exports.getProtoIntervalCurrencyTrades = async (req, res) => {
   return res.send(trades)
 }
 
+
 exports.getProtoIntervalTrades = async (req, res) => {
+  
   const {protoNo, interval} = req.params
+  const currencyRateSource = req.query.currencyRateSource === 'Fixer IO'
+  ? 'fixerio_currency_rate'
+  : 'currency_rate'
+  
+  console.log(`get proto interval trades for proto ${protoNo}, with crs ${currencyRateSource}, 
+    interval ${interval}`)
 
   const conditions = {
     proto_no: parseInt(protoNo),
     time_interval: parseInt(interval),
-    closed: true
+    closed: true,
+    currency_rate_source: currencyRateSource
   }
   const dateTimeFilter = req.query.date || '';
-
 
   let trades
   try {
@@ -75,6 +87,7 @@ exports.getProtoIntervalTrades = async (req, res) => {
 
   return res.send(trades)
 }
+
 
 exports.updateTradeToViewed = async (req, res) => {
   const tradeId = req.params.tradeId;
@@ -121,6 +134,7 @@ exports.getNextTrade = async (req, res) => {
 
 
 exports.getTrade = async (req, res) => {
+  console.log('get trade');
   const tradeId = req.params.tradeId;
   const protoNo = req.params.protoNo;
   const abbrev = `${req.params.currency}/USD`

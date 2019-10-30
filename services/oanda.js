@@ -14,7 +14,7 @@ const options = {
 
 exports.openTrade = async (currency) => {
   const instrument = `${currency}_USD`
-  const units = 100;
+  const units = 100000;
   const payload = {
     order: {
       units,
@@ -109,9 +109,6 @@ const getAbbrevOpenTrades = async (instrument) => {
 
 
 exports.getTransactions = async (transactionIds) => {
-  console.log('oanda service get transactions')
-  console.log(transactionIds)
-
   const transactionPromises = []  
   transactionIds.forEach((id) => {
     /* promise for each transactions request so they can be resolve in parralel */
@@ -120,11 +117,9 @@ exports.getTransactions = async (transactionIds) => {
 
       axios.get(url, options)
         .then((res) => {
-          console.log('then ??')
           resolve(res.data.transaction)
         })
         .catch((e) => {
-          console.log('CATCH !!!')
           console.error(e)
           resolve()
         })
@@ -137,8 +132,6 @@ exports.getTransactions = async (transactionIds) => {
   } catch (e) {
     throw new Error(`Failed to resolve transactions: ${e}`)
   }
-
-  console.log('got transactions ?????????')
 
   return transactions
 }

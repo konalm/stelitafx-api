@@ -4,10 +4,14 @@ const tradeRepo = require('../trade/repository');
 const calculatePip = require('../services/calculatePip')
 const calculateVolatility = require('../services/calculateVolatility')
 
-exports.getCurrentAndPrevWMAs = async (abbrev, timeInterval = 1) => {
+exports.getCurrentAndPrevWMAs = async (
+  abbrev, 
+  timeInterval = 1, 
+  currencyRateSource
+) => {
   let wmaDataPoints;
   try {
-    wmaDataPoints = await wmaRepo.getWMAs(abbrev, timeInterval, 2);
+    wmaDataPoints = await wmaRepo.getWMAs(abbrev, timeInterval, 2, 0, currencyRateSource)
   } catch (err) {
     throw new Error('could not get WMAs:' + err);
   }

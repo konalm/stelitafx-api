@@ -6,7 +6,15 @@ const logTrade = require('../services/logTrade')
 const logger = require('../services/logger');
 
 
-exports.openTrade = async (protoNo, currency, rate, notes, stats, timeInterval) => {
+exports.openTrade = async (
+  protoNo, 
+  currency, 
+  rate, 
+  notes, 
+  stats, 
+  timeInterval,
+  currencyRateSource
+) => {
   const uuid = uuidGenerator();
   const account = getAccount(protoNo, timeInterval)
   const abbrev = `${currency}/USD`
@@ -18,15 +26,16 @@ exports.openTrade = async (protoNo, currency, rate, notes, stats, timeInterval) 
     open_stats: stats,
     time_interval: timeInterval,
     account,
-    uuid
-  };
+    uuid,
+    currency_rate_source: currencyRateSource
+  }
 
   try {
     await repo.createTrade(trade)
   } catch (err) {
     throw new Error(`could not create trade >> ${err}`)
   }
-  logger(`stored paper trade in the DB: ${uuid}`, 'success');
+  logger(`stored paper trade in the DB: ${uuid}`, 'success')
   logger(`account type: ${account}`, 'info')
 
   /* only open trade on trading plaform for selected prototype on selected interval */
@@ -60,12 +69,24 @@ const openOandaTrade = async (uuid, currency) => {
 }
 
 
-exports.closeTrade = async (protoNo, currency, rate, notes, timeInterval) => {
+exports.closeTrade = async (
+  protoNo, 
+  currency, 
+  rate, 
+  notes, 
+  timeInterval, 
+  currencyRateSource
+) => {
   const abbrev = `${currency}/USD`
 
   let openingTrade;
   try {
-    openingTrade = await repo.getLastTrade(protoNo, timeInterval, abbrev);
+    openingTrade = await repo.getLastTrade(
+      protoNo, 
+      timeInterval, 
+      abbrev, 
+      currencyRateSource
+    )
   } catch (err) {
     throw new Error(`Getting last trade: ${err}`)
   }
@@ -111,7 +132,7 @@ exports.closeTrade = async (protoNo, currency, rate, notes, timeInterval) => {
  * Get the type of account trade is to be made on; paper, oanda demo of oanda live account
  */
 const getAccount = (prototypeNo, timeInterval) => {
-  if (prototypeNo === 1) {
+  if (prototypeNo === 1 || prototypeNo === 5) {
     if (timeInterval === 15) return 'demo'
   }
 

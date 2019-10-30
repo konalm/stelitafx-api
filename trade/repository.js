@@ -1,22 +1,34 @@
 const conn = require('../db');
 const calculatePip = require('../services/calculatePip');
+const calcOandaPipsFromTransactions = require('../services/calcOandaPipsFromTransactions')
 
 
 exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reject) => {
   let query = `
     SELECT
-      id,
-      abbrev,
-      open_rate AS openRate,
-      date AS openDate,
-      close_rate AS closeRate,
-      close_date AS closeDate,
-      open_notes AS openNotes,
-      close_notes AS closeNotes,
-      time_interval AS timeInterval,
-      viewed
-    FROM tradeV2`;
-
+      t.id,
+      t.abbrev,
+      t.open_rate AS openRate,
+      t.date AS openDate,
+      t.close_rate AS closeRate,
+      t.close_date AS closeDate,
+      t.open_notes AS openNotes,
+      t.close_notes AS closeNotes,
+      t.time_interval AS timeInterval,
+      t.account,
+      t.viewed,
+      ot.oanda_opentrade_id AS oandaOpenTradeId,
+      ot.oanda_closetrade_id AS oandaCloseTradeId,
+      open_ott.json AS openTradeTransactionJson,
+      close_ott.json AS closeTradeTransactionJson
+    FROM tradeV2 t
+    LEFT JOIN trade_oandatrade ot
+      ON ot.trade_uuid = t.uuid
+    LEFT JOIN oanda_trade_transactions open_ott
+      ON open_ott.trade_id = ot.oanda_opentrade_id
+    LEFT JOIN oanda_trade_transactions close_ott
+      ON close_ott.trade_id = ot.oanda_closetrade_id
+  `
   let i = 0
   let queryValues = []
   for (const [key, value] of Object.entries(conditions)) {
@@ -37,11 +49,20 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
 
   query += ' ORDER BY close_date DESC'
 
+
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err)
 
-    results.forEach((result) => {
-      result.pips = calculatePip(result.openRate, result.closeRate, conditions.abbrev);
+    results.forEach((r) => {
+      r.pips = calculatePip(r.openRate, r.closeRate, conditions.abbrev)
+  
+      /* calculate oanda pips for demo account trades */ 
+      if (r.account === 'demo') {
+        r.oandaPips = calcOandaPipsFromTransactions(
+          r.openTradeTransactionJson, 
+          r.closeTradeTransactionJson
+        )
+      }
     })
 
     resolve(results)
@@ -289,7 +310,8 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
     close_date AS closeDate,
     open_stats AS openStats,
     time_interval AS timeInterval,
-    viewed
+    viewed,
+    account
     FROM tradeV2
     WHERE proto_no = ?
     AND abbrev = ?
@@ -308,6 +330,7 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
       openStats: results[0].openStats,
       timeInterval: results[0].timeInterval,
       viewed: !results[0].viewed ? false : true,
+      account: results[0].account,
       pips: calculatePip(results[0].openRate, results[0].closeRate, abbrev)
     }
 
@@ -341,18 +364,19 @@ exports.getProtoTrades = (protoNo) => new Promise((resolve, reject) => {
   const query = `
     SELECT abbrev, date, rate, transaction
     FROM trade
-    WHERE algo_proto_no = ?`;
-  const queryValues = [protoNo];
+    WHERE algo_proto_no = ?
+  `
+  const queryValues = [protoNo]
 
   conn.query(query, queryValues, (err, results) => {
-    if (err) return reject(err);
+    if (err) return reject(err)
 
     resolve(results);
   });
 });
 
 
-exports.getLastTrade = (protoNo, timeInterval, abbrev) =>
+exports.getLastTrade = (protoNo, timeInterval, abbrev, currencyRateSource) =>
   new Promise((resolve, reject) =>
 {
   const query = `
@@ -361,9 +385,11 @@ exports.getLastTrade = (protoNo, timeInterval, abbrev) =>
     WHERE proto_no = ?
       AND abbrev = ?
       AND time_interval = ?
+      AND currency_rate_source = ?
     ORDER BY date DESC
-    LIMIT 1`;
-  const queryValues = [protoNo, abbrev, timeInterval];
+    LIMIT 1
+  `
+  const queryValues = [protoNo, abbrev, timeInterval, currencyRateSource];
 
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);

@@ -1,7 +1,7 @@
 const conn = require('../db');
 
 /**
- * Select all prototype from the DB
+ * Select all prototypes from the DB
  */
 exports.getProtos = new Promise((resolve, reject) => {
   const query = `
@@ -9,6 +9,7 @@ exports.getProtos = new Promise((resolve, reject) => {
     FROM algorithm`;
 
   conn.query(query, (err, results) => {
+    console.log(err)
     if (err) return reject('Error getting algorithms');
 
     resolve(results);

@@ -15,6 +15,7 @@ exports.indicatorsTriggered = (data, prototypeIndicators) => {
   return allConditionsMet
 }
 
+
 /**
  *
  */
@@ -30,6 +31,7 @@ exports.anIndicatorTriggered = (data, prototypeIndicators) => {
 
   return conditionMet
 }
+
 
 /**
  * All indicators that can trigger an action on a trade
@@ -57,17 +59,24 @@ exports.indicators = (data) => {
 }
 
 
-
-
 /**
  * Weighted moving averages
  * Current rate of abbrev
  * opening trade
  * abbrev rate when trade was opened
  */
-exports.dataForIndicators = async (protoNo, abbrev, timeInterval) => {
+exports.dataForIndicators = async (
+  protoNo, 
+  abbrev, 
+  timeInterval, 
+  currencyRateSource
+) => {
   try {
-    const WMAs = await service.getCurrentAndPrevWMAs(abbrev, timeInterval)
+    const WMAs = await service.getCurrentAndPrevWMAs(
+      abbrev, 
+      timeInterval, 
+      currencyRateSource
+    )
 
     const currentRate = WMAs.WMA
       ? WMAs.WMA.rate
@@ -75,12 +84,16 @@ exports.dataForIndicators = async (protoNo, abbrev, timeInterval) => {
 
     let openingTrade
     try  {
-      openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev)
+      openingTrade = await tradeRepo.getLastTrade(
+        protoNo, 
+        timeInterval, 
+        abbrev, 
+        currencyRateSource
+      )
     } catch (err) {
       console.error(err)
     }
 
- 
     const openingRate = openingTrade && !openingTrade.closed
       ? openingTrade.openRate
       : null

@@ -1,5 +1,7 @@
 const axios = require('axios');
 const config = require('../config');
+const env = require('../env.js');
+const oandaFXAccountHttp = require('../services/oandaFXAccountHttpRequest')
 
 /**
  *
@@ -55,4 +57,61 @@ exports.fixerAPI = async () => {
   }
 
   return rates;
+}
+
+/**
+ * Get latest currency rates from the OANDA currency API quoted against the USD
+ */
+exports.oandaCurrencyRateAPI = async () => {
+  const url = 'https://www1.oanda.com/rates/api/v2/rates/spot.json'
+  const queryParams = {
+    params: {
+      api_key: env.OANDA_CURRENCY_RATE_API_SECRET,
+      base: config.QUOTE_CURRENCY,
+      quote: config.MAJOR_CURRENCIES.join()
+    }
+  }
+
+  let apiResponse
+  try {
+    apiResponse = await fetchRates(url, queryParams)
+  } catch (e) {
+    throw new Error('Fetching currency rates from Oanda currency rates API')
+  }
+
+
+  let rates = {};
+  apiResponse.quotes.forEach((q) => {
+    const exchangeRate = q.bid;
+    rates[q.quote_currency] = 1 / exchangeRate;
+  })
+
+  return rates;
+}
+
+
+exports.oandaFXAccountRate = async () => {
+  const instruments = []
+  config.MAJOR_CURRENCIES.forEach((currency) => {
+    instruments.push(`${currency}_${config.QUOTE_CURRENCY}`)
+  })
+
+  const url = `accounts/101-004-11651761-001/pricing?instruments=${instruments.join()}`
+
+  let response
+  try {
+    response = await oandaFXAccountHttp.get(url) 
+  } catch (e) {
+    console.error('http request to oanda FX account for pricing failed')
+    return
+  }
+
+  let bids = {}
+  response.prices.forEach((price) => {
+    const currencyAbbrev = price.instrument.substring(0,3);
+    const bid = price.bids[0].price;
+    bids[currencyAbbrev] = bid
+  })
+
+  return bids
 }

@@ -1,6 +1,25 @@
 const conn = require('../db');
 const getIntervalMins = require('../services/intervalMins')
 
+exports.getMultiRates = () => new Promise((resolve, reject) => {
+  const query = `
+    SELECT 
+      abbrev, 
+      date,
+      oanda_demo_rate AS oandaDemoRate,
+      oanda_fxaccount_rate AS oandaFXAccountRate,
+      fixerio_rate AS fixerioRate
+    FROM multi_rate
+    ORDER BY date DESC
+  `
+  conn.query(query, (err, results) => {
+    if (err) return reject('Error getting multi rates')
+
+    resolve(results)
+  })
+})
+
+
 /**
  * get currencies between (start date - buffer)  and (end date + buffer)
  * (Used for getting currencies between trades with addition rates before
@@ -33,7 +52,8 @@ exports.GetCurrencyLatestRates = (
   currencyAbbrev, 
   ratesAmount, 
   historicalCount, 
-  timeInterval = 1
+  timeInterval,
+  currencyRateTable
 ) =>
   new Promise((resolve, reject) =>
 {
@@ -41,17 +61,18 @@ exports.GetCurrencyLatestRates = (
  
   const query = `
     SELECT date, exchange_rate
-    FROM currency_rate
+    FROM ${currencyRateTable}
     WHERE abbrev = ?
      AND MINUTE(date) IN (${intervalMins})
     ORDER BY date DESC
-    LIMIT ?`;
+    LIMIT ?
+  `
   const limit = ratesAmount + historicalCount
 
   conn.query(query, [currencyAbbrev, limit], (err, results) => {
     if (err) {
       console.log(err)
-      return reject('Error Getting currency latest rates');
+      return reject('Failed Getting currency latest rates');
     }
 
     resolve(results);

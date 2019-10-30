@@ -12,7 +12,8 @@ module.exports = (
   conditionData,
   openConditionsMet,
   closeConditionsMet,
-  timeInterval
+  timeInterval,
+  currencyRateSource
 ) => {
   majorCurrencies.forEach((currency) => {
     try {
@@ -22,7 +23,8 @@ module.exports = (
         conditionData,
         openConditionsMet,
         closeConditionsMet,
-        timeInterval
+        timeInterval,
+        currencyRateSource
       )
     } catch(err) {
       throw new Error(err);
@@ -41,7 +43,8 @@ const prototypeFramework =
     conditionDataForTrades,
     openConditionsMet,
     closeConditionsMet,
-    timeInterval
+    timeInterval,
+    currencyRateSource
   ) =>
 {
   const abbrev = `${currency}/${quoteCurrency}`;
@@ -53,7 +56,12 @@ const prototypeFramework =
   /* last trade */
   let openingTrade;
   try {
-    openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev);
+    openingTrade = await tradeRepo.getLastTrade(
+      protoNo, 
+      timeInterval, 
+      abbrev, 
+      currencyRateSource
+    );
   } catch (err) {
     throw new Error(`Failed to get last trade: ${err}`)
   }
@@ -70,7 +78,8 @@ const prototypeFramework =
           currencyRate.rate,
           JSON.stringify(notes),
           '',
-          timeInterval
+          timeInterval,
+          currencyRateSource
         )
       } catch (err) {
         throw new Error(`Failed to open trade: ${err}`)

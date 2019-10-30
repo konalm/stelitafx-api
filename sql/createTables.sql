@@ -26,6 +26,7 @@ ALTER TABLE tradeV2 ADD COLUMN open_stats LONGTEXT NULL;
 ALTER TABLE tradeV2 ADD COLUMN time_interval INT NULL;
 ALTER TABLE tradeV2 ADD COLUMN account VARCHAR(50) NULL;
 ALTER TABLE tradeV2 ADD COLUMN uuid VARCHAR(36) NULL;
+ALTER TABLE tradeV2 ADD COLUMN currency_rate_source VARCHAR(255) NULL;
 
 /**
  *
@@ -56,6 +57,20 @@ CREATE TABLE IF NOT EXISTS currency_wma (
 );
 
 ALTER TABLE currency_wma ADD COLUMN time_interval INT NULL;
+
+
+/**
+ *
+ */
+CREATE TABLE IF NOT EXISTS fixerio_currency_wma (
+  id INT AUTO_INCREMENT,
+  abbrev CHAR(7),
+  rate DECIMAL(20,10),
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  wma_data_json LONGTEXT,
+  time_interval INT NULL,
+  PRIMARY KEY(id)
+);
 
 
 /**
@@ -103,6 +118,40 @@ CREATE TABLE IF NOT EXISTS currency_rate (
   PRIMARY KEY(id)
 );
 
+CREATE TABLE IF NOT EXISTS fixerio_currency_rate (
+  id INT AUTO_INCREMENT,
+  abbrev CHAR(7),
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  exchange_rate DECIMAL(20,10),
+  PRIMARY KEY(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS currency_rate (
+  id INT AUTO_INCREMENT,
+  abbrev CHAR(7),
+  FOREIGN KEY (abbrev)
+    REFERENCES currency_pair(abbrev)
+    ON DELETE CASCADE,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  exchange_rate DECIMAL(20,10),
+  PRIMARY KEY(id)
+);
+
+
+/**
+ * Create multi rate table 
+ */
+CREATE TABLE IF NOT EXISTS multi_rate (
+  id INT AUTO_INCREMENT,
+  abbrev CHAR(7),
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  oanda_demo_rate DECIMAL(20,10),
+  oanda_fxaccount_rate DECIMAL(20,10),
+  fixerio_rate DECIMAL(20,10),
+  PRIMARY KEY(id)
+);
+
 
 /**
 * Create algo table
@@ -134,4 +183,35 @@ CREATE TABLE IF NOT EXISTS trade (
     ON DELETE CASCADE,
   rate DECIMAL(20,10),
   PRIMARY KEY(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS oanda_trade_transactions (
+  id INT AUTO_INCREMENT,
+  trade_id INT NOT NULL,
+  json LONGTEXT NOT NULL,
+  PRIMARY KEY(id)
+);
+ALTER TABLE oand4a_trade_transactions 
+ADD UNIQUE KEY(trade_id);
+
+
+ALTER TABLE Persons
+ADD CONSTRAINT UC_Person UNIQUE (ID,LastName);
+
+
+CREATE TABLE IF NOT EXISTS charting_wma_options (
+  uuid VARCHAR(36) AUTO_INCREMENT NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  options_json LONGTEXT NULL,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY(uuid)
+);
+
+CREATE TABLE IF NOT EXISTS charting_wma_options (
+  uuid VARCHAR(36) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  options_json LONGTEXT NULL,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY(uuid)
 );

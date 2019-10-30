@@ -11,17 +11,17 @@ const prototypeNo72 = require('./prototype#72');
 const prototypeNo73 = require('./prototype#73');
 const prototypeNo74 = require('./prototype#74');
 
-module.exports = (timeInterval) => {
-  prototype(timeInterval)
-  prototypeNo2(timeInterval)
-  prototypeNo3(timeInterval)
-  prototypeNo4(timeInterval)
-  prototypeNo5(timeInterval)
-  prototypeNo51(timeInterval)
-  prototypeNo6(timeInterval)
-  prototypeNo7(timeInterval)
-  prototypeNo71(timeInterval)
-  prototypeNo72(timeInterval)
-  prototypeNo73(timeInterval)
-  prototypeNo74(timeInterval)
+module.exports = (timeInterval, currencyRateSource) => {
+  prototype(timeInterval, currencyRateSource)
+  prototypeNo2(timeInterval, currencyRateSource)
+  prototypeNo3(timeInterval, currencyRateSource)
+  prototypeNo4(timeInterval, currencyRateSource)
+  prototypeNo5(timeInterval, currencyRateSource)
+  prototypeNo51(timeInterval, currencyRateSource)
+  prototypeNo6(timeInterval, currencyRateSource)
+  prototypeNo7(timeInterval, currencyRateSource)
+  prototypeNo71(timeInterval, currencyRateSource)
+  prototypeNo72(timeInterval, currencyRateSource)
+  prototypeNo73(timeInterval, currencyRateSource)
+  prototypeNo74(timeInterval, currencyRateSource)
 }

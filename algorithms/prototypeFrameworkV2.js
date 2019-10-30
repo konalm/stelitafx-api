@@ -5,14 +5,21 @@ const tradeService = require('../trade/service');
 const indicators = require('./indicators')
 const service = require('./service')
 
-module.exports = (prototypeNo, openConditions, closeConditions, timeInterval) => {
+module.exports = (
+  prototypeNo, 
+  openConditions, 
+  closeConditions, 
+  timeInterval,
+  currencyRateSource
+) => {
   majorCurrencies.forEach((currency) => {
       prototypeFramework(
         prototypeNo, 
         currency, 
         openConditions, 
         closeConditions, 
-        timeInterval
+        timeInterval,
+        currencyRateSource
       )
         .catch((err) => {
           console.log('catch')
@@ -30,10 +37,16 @@ const prototypeFramework = async (
   currency, 
   openConditions, 
   closeConditions,
-  timeInterval
+  timeInterval,
+  currencyRateSource
 ) => {
   const abbrev = `${currency}/${quoteCurrency}`
-  const data = await indicators.dataForIndicators(protoNo, abbrev, timeInterval)
+  const data = await indicators.dataForIndicators(
+    protoNo, 
+    abbrev, 
+    timeInterval,
+    currencyRateSource
+  )
   const notes = JSON.stringify(data)
   
   /* open trade */
@@ -49,11 +62,14 @@ const prototypeFramework = async (
         data.currentRate, 
         notes, 
         JSON.stringify(openStats),
-        timeInterval
+        timeInterval,
+        currencyRateSource
       );
     }
     return;
   }
+
+  // console.log('checking if closed conditions met !!')
 
   /* close trade */
   const closeConditionsMet = indicators.anIndicatorTriggered(data, closeConditions)    
@@ -65,7 +81,8 @@ const prototypeFramework = async (
       currency, 
       data.currentRate, 
       JSON.stringify(closeNotes),
-      timeInterval
+      timeInterval,
+      currencyRateSource
     );
   }
 }

@@ -75,8 +75,8 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
 /**
  *
  */
-exports.storeWMAData = (timeInterval) =>
-  new Promise((resolve, reject) =>
+exports.storeWMAData = (timeInterval, currencyRateSource) => 
+  new Promise((resolve, reject) => 
 {
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
@@ -84,8 +84,10 @@ exports.storeWMAData = (timeInterval) =>
   storeCurrencyPromises = [];
   currencies.forEach((currency) => {
     const currencyAbbrev = `${currency}/${quoteCurrency}`;
-    storeCurrencyPromises.push(storeCurrencyWMAData(currencyAbbrev, timeInterval));
-  });
+    storeCurrencyPromises.push(
+      storeCurrencyWMAData(currencyAbbrev, timeInterval, currencyRateSource)
+    )
+  })
 
   Promise.all(storeCurrencyPromises)
     .then(() => {
@@ -99,13 +101,17 @@ exports.storeWMAData = (timeInterval) =>
 /**
  *
  */
-const storeCurrencyWMAData = (currencyAbbrev, timeInterval) =>
-  new Promise(async (resolve, reject) =>
+const storeCurrencyWMAData = (currencyAbbrev, timeInterval, currencyRateSource) => 
+  new Promise(async (resolve) =>
 {
   let rateData;
   try {
     rateData = await currencyRatesRepo.GetCurrencyLatestRates(
-      currencyAbbrev, 1, 0,  timeInterval
+      currencyAbbrev, 
+      1, 
+      0,  
+      timeInterval,
+      currencyRateSource
     )
   } catch (err) {
     console.log(err)
@@ -115,7 +121,7 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval) =>
 
   wmaPromises = [];
   WMALengths.forEach((length) => {
-    wmaPromises.push(calcWMA(currencyAbbrev, length));
+    wmaPromises.push(calcWMA(currencyAbbrev, length, timeInterval, currencyRateSource));
   });
 
   Promise.all(wmaPromises).then(async (values) => {
@@ -129,7 +135,13 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval) =>
     });
 
     try {
-      await repo.storeWMAData(currencyAbbrev, rate, WMAData, timeInterval);
+      await repo.storeWMAData(
+        currencyAbbrev, 
+        rate, 
+        WMAData, 
+        timeInterval, 
+        currencyRateSource
+      )
     } catch (err) {
       return resolve('Failed to store WMA data')
     }
@@ -138,17 +150,20 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval) =>
   });
 });
 
+
 /**
  *
  */
-const calcWMA = async (abbrev, WMALength, timeInterval) => {
+const calcWMA = async (abbrev, WMALength, timeInterval, currencyRateSrc) => {
+
   let currencyRates = [];
   try {
     currencyRates = await currencyRatesRepo.GetCurrencyLatestRates(
                             abbrev,
                             WMALength,
                             0,
-                            timeInterval
+                            timeInterval,
+                            currencyRateSrc
                           );
   } catch (err) {
     throw new Error('Error Getting WMA Data points: ' + err);

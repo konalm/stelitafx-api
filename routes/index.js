@@ -7,6 +7,8 @@ const currencyRoutes = require('../currency/route');
 const timeIntervalRoutes = require('../timeInterval/route')
 const readLogRoutes = require('../readLogs/route')
 const tradeSimuatorRoutes = require('../tradeSimulator/route')
+const chartingRoutes = require('../charting/route');
+const currencyRateRoutes = require('../currencyRates/route');
 
 module.exports = (app) => {
   wmaRoutes(app);
@@ -16,6 +18,8 @@ module.exports = (app) => {
   timeIntervalRoutes(app);
   readLogRoutes(app);
   tradeSimuatorRoutes(app)
+  chartingRoutes(app)
+  currencyRateRoutes(app)
 
   /**
    * Get trade

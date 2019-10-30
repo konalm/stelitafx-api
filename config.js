@@ -3,17 +3,18 @@ exports.QUOTE_CURRENCY = 'USD';
 exports.MAJOR_CURRENCIES = [
   'EUR',
   'GBP',
-  'JPY',
+  // 'JPY',
   'AUD',
-];
+]
 
 exports.TIME_INTERVALS = [
   1,
   2,
   3,
   5,
-  15
-];
+  15,
+  30
+]
 
 exports.WMA_LENGTHS = [
   5,
@@ -22,3 +23,10 @@ exports.WMA_LENGTHS = [
   36,
   200
 ]
+
+
+exports.CURRENCY_RATE_SOURCES = [
+  'Oanda FX Account',
+  'Fixer IO'
+]
+
