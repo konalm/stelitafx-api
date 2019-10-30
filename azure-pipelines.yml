@@ -17,6 +17,5 @@ steps:
 
 - script: |
     ssh root@138.68.167.173
-    npm install
 
   displayName: 'ssh into server'
