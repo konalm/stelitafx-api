@@ -1,4 +1,4 @@
-version: '3.3'
+version: '2.0'
 
 services:
   api:
@@ -8,16 +8,6 @@ services:
     volumes:
       - $PWD:$PWD
     ports:
-      - "8000:8000"
+      - "8787:8686"
     expose:
       - "8000"
-    networks:
-      default:
-        aliases:
-          - stelitafx-api
-      stelitafx-network:
-
-networks:
-  default:
-  stelitafx-network:
-    external: true
