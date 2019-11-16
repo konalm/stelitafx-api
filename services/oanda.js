@@ -2,7 +2,7 @@ const axios = require('axios');
 const tradeRepo = require('../trade/repository')
 const logger = require('../services/logger');
 const env = require('../env.js');
-const apiSecret = env.OANDA_API_SECRET;
+const apiSecret = env.OANDA_LIVE_API_SECRET;
 const apiUrl = 'https://api-fxpractice.oanda.com/v3/'
 const demoAccountUrl = `${apiUrl}accounts/101-004-11651761-001`
 const options = {
@@ -14,7 +14,7 @@ const options = {
 
 exports.openTrade = async (currency) => {
   const instrument = `${currency}_USD`
-  const units = 100000;
+  const units = 100;
   const payload = {
     order: {
       units,

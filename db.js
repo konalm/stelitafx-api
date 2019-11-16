@@ -19,4 +19,6 @@ try {
   console.error(err)
 }
 
+console.log('CONNECT TO DB !!')
+
 module.exports = connection;

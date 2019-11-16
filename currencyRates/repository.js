@@ -1,4 +1,5 @@
 const conn = require('../db');
+const db = require('../dbInstance');
 const getIntervalMins = require('../services/intervalMins')
 
 exports.getMultiRates = () => new Promise((resolve, reject) => {
@@ -57,6 +58,9 @@ exports.GetCurrencyLatestRates = (
 ) =>
   new Promise((resolve, reject) =>
 {
+  console.log('get currency latest rates !!!!!!')
+  const dbConn = db()
+
   const intervalMins = getIntervalMins(timeInterval)
  
   const query = `
@@ -69,13 +73,15 @@ exports.GetCurrencyLatestRates = (
   `
   const limit = ratesAmount + historicalCount
 
-  conn.query(query, [currencyAbbrev, limit], (err, results) => {
+  dbConn.query(query, [currencyAbbrev, limit], (err, results) => {
     if (err) {
-      console.log(err)
-      return reject('Failed Getting currency latest rates');
+      reject('Failed Getting currency latest rates');
+      dbConn.end()
+      return
     }
 
     resolve(results);
+    dbConn.end()
   });
 });
 

@@ -15,6 +15,8 @@ exports.openTrade = async (
   timeInterval,
   currencyRateSource
 ) => {
+  console.log('OPEN TRADE')
+
   const uuid = uuidGenerator();
   const account = getAccount(protoNo, timeInterval)
   const abbrev = `${currency}/USD`
@@ -26,8 +28,7 @@ exports.openTrade = async (
     open_stats: stats,
     time_interval: timeInterval,
     account,
-    uuid,
-    currency_rate_source: currencyRateSource
+    uuid
   }
 
   try {
@@ -35,8 +36,8 @@ exports.openTrade = async (
   } catch (err) {
     throw new Error(`could not create trade >> ${err}`)
   }
-  logger(`stored paper trade in the DB: ${uuid}`, 'success')
-  logger(`account type: ${account}`, 'info')
+  // logger(`stored paper trade in the DB: ${uuid}`, 'success')
+  // logger(`account type: ${account}`, 'info')
 
   /* only open trade on trading plaform for selected prototype on selected interval */
   if (account === 'demo' || account === 'live') {
@@ -77,6 +78,8 @@ exports.closeTrade = async (
   timeInterval, 
   currencyRateSource
 ) => {
+  console.log('CLOSE TRADE')
+
   const abbrev = `${currency}/USD`
 
   let openingTrade;
@@ -132,7 +135,7 @@ exports.closeTrade = async (
  * Get the type of account trade is to be made on; paper, oanda demo of oanda live account
  */
 const getAccount = (prototypeNo, timeInterval) => {
-  if (prototypeNo === 1 || prototypeNo === 5) {
+  if (prototypeNo === 1) {
     if (timeInterval === 15) return 'demo'
   }
 

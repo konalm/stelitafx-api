@@ -78,6 +78,8 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
 exports.storeWMAData = (timeInterval, currencyRateSource) => 
   new Promise((resolve, reject) => 
 {
+  console.log('store wma data')
+
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
 
@@ -89,11 +91,14 @@ exports.storeWMAData = (timeInterval, currencyRateSource) =>
     )
   })
 
+  console.log('called promises !!!!!')
   Promise.all(storeCurrencyPromises)
     .then(() => {
+      console.log('STORED WMA DATA FOR ALL CURRENCIES');
       resolve('sucessfully stored currencies');
     })
     .catch(err => {
+      console.log('FAILED TO STORE WMA DATA')
       reject(`Failed to store currencies: ${err}`);
     })
 })
@@ -155,7 +160,6 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval, currencyRateSource) 
  *
  */
 const calcWMA = async (abbrev, WMALength, timeInterval, currencyRateSrc) => {
-
   let currencyRates = [];
   try {
     currencyRates = await currencyRatesRepo.GetCurrencyLatestRates(

@@ -1,4 +1,5 @@
 const conn = require('../db');
+const db = require('../dbInstance')
 const getIntervalMins = require('../services/intervalMins')
 const formatMysqlDate = require('../services/formatMysqlDate')
 
@@ -7,6 +8,8 @@ const formatMysqlDate = require('../services/formatMysqlDate')
 exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, currencyRateSrc) =>
   new Promise((resolve, reject) =>
 {
+  const dbConn = db()
+
   const wmaDataJSON = JSON.stringify(wmaData);
 
   let table = 'currency_wma'
@@ -21,8 +24,14 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, currencyRat
     [currencyAbbrev, rate, wmaDataJSON, timeInterval]
   ]
 
-  conn.query(query, [queryValues], (err) => {
-    if (err) reject('Error storing currency WMA data');
+  dbConn.query(query, [queryValues], (err) => {
+    console.log('close connection !!')
+    dbConn.end();
+
+    if (err) {
+      reject('Error storing currency WMA data');
+      return 
+    }
 
     resolve('Stored WMA data')
   });
@@ -45,7 +54,6 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
     OFFSET ?
   `
   const queryValues = [currencyAbbrev, interval, amount, offset];
-
 
   conn.query(query, queryValues, (e, results) => {
     if (e) return reject(e);

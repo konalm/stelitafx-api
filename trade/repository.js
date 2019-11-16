@@ -4,6 +4,9 @@ const calcOandaPipsFromTransactions = require('../services/calcOandaPipsFromTran
 
 
 exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reject) => {
+  console.log('get trades')
+  console.log(conditions)
+
   let query = `
     SELECT
       t.id,
@@ -379,17 +382,22 @@ exports.getProtoTrades = (protoNo) => new Promise((resolve, reject) => {
 exports.getLastTrade = (protoNo, timeInterval, abbrev, currencyRateSource) =>
   new Promise((resolve, reject) =>
 {
+  const s = new Date()
+
+  const currencyRateSrcId = currencyRateSource === 'currency_rate'
+    ? 1
+    : 2;
+
   const query = `
     SELECT id, date, open_rate, closed, uuid
     FROM tradeV2
     WHERE proto_no = ?
       AND abbrev = ?
       AND time_interval = ?
-      AND currency_rate_source = ?
     ORDER BY date DESC
     LIMIT 1
   `
-  const queryValues = [protoNo, abbrev, timeInterval, currencyRateSource];
+  const queryValues = [protoNo, abbrev, timeInterval];
 
   conn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
@@ -404,6 +412,12 @@ exports.getLastTrade = (protoNo, timeInterval, abbrev, currencyRateSource) =>
       uuid: results[0].uuid
     };
 
+
+  const e = new Date()
+  const diff = e.getTime() - s.getTime()
+  const secondsDiff = diff / 1000
+  console.log(`getting last trade took --> ${secondsDiff}`)
+
     resolve(mappedResult);
   });
 });
@@ -414,7 +428,14 @@ exports.createTrade = (data) => new Promise((resolve, reject) => {
 
   let query = "INSERT INTO tradeV2 SET ?";
   conn.query(query, data, (err, results) => {
-    if (err) return reject(err);
+    if (err) {
+      console.log('FAILED TO CREATE TRADE')
+      return reject(err);
+    }
+
+    console.log('created trade ...... ')
+    console.log(data)
+
 
     resolve('created trade');
   });
@@ -443,7 +464,13 @@ exports.updateTrade = (id, data) => new Promise((resolve, reject) => {
   let query = 'UPDATE tradeV2 SET ? WHERE id = ?';
 
   conn.query(query, [data, id], (err, result) => {
-    if (err) return reject(err);
+    if (err) {
+      console.log('FAILED TO CLOSE TRADE')
+      return reject(err);
+    }
+
+    console.log('closed trade')
+    console.log(data)
 
     resolve('updated trade');
   })

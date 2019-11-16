@@ -11,8 +11,10 @@ module.exports = (
   closeConditions, 
   timeInterval,
   currencyRateSource
-) => {
+) => new Promise((resolve, _) => {
+  const algorithmPromises = []
   majorCurrencies.forEach((currency) => {
+    algorithmPromises.push(
       prototypeFramework(
         prototypeNo, 
         currency, 
@@ -21,12 +23,21 @@ module.exports = (
         timeInterval,
         currencyRateSource
       )
-        .catch((err) => {
-          console.log('catch')
-          console.log(err)
-        })
-  });
-}
+    )
+  })
+
+  Promise.all(algorithmPromises)
+    .then(() => {
+      // console.log(`all algorithmns finished for ${prototypeNo}, ${timeInterval}, 
+        // using currency src ${currencyRateSource}`
+      // )
+      resolve()
+    })
+    .catch(e => {
+      console.log(`ERROR: ${e}`)
+      resolve()
+    })
+})
 
 
 /**
@@ -39,8 +50,11 @@ const prototypeFramework = async (
   closeConditions,
   timeInterval,
   currencyRateSource
-) => {
+) => new Promise(async (resolve, reject) => {
+  // console.log(`algorithm ... ${protoNo}, ${timeInterval}, ${currency}, ${currencyRateSource}`)
+
   const abbrev = `${currency}/${quoteCurrency}`
+
   const data = await indicators.dataForIndicators(
     protoNo, 
     abbrev, 
@@ -48,7 +62,7 @@ const prototypeFramework = async (
     currencyRateSource
   )
   const notes = JSON.stringify(data)
-  
+
   /* open trade */
   const openingTrade = data.openingTrade
 
@@ -66,16 +80,17 @@ const prototypeFramework = async (
         currencyRateSource
       );
     }
-    return;
+    return resolve()
   }
 
-  // console.log('checking if closed conditions met !!')
+  console.log('looking at close conditions !!')
 
   /* close trade */
   const closeConditionsMet = indicators.anIndicatorTriggered(data, closeConditions)    
   if (closeConditionsMet) {
     const indicatorStateOnClose = indicators.indicators(data);
     const closeNotes = { data, indicatorState: indicatorStateOnClose }
+    console.log('closing trade !!')
     await tradeService.closeTrade(
       protoNo, 
       currency, 
@@ -85,4 +100,6 @@ const prototypeFramework = async (
       currencyRateSource
     );
   }
-}
+
+  return resolve()
+})

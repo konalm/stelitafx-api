@@ -57,11 +57,12 @@ const uploadFixerioCurrencyRates = () => new Promise(async (resolve, reject) => 
   resolve()
 })
 
+
 const insertCurrencyRates = (currencyRates, tableName) => 
   new Promise(async (resolve, reject) => 
 {
-  const query = `INSERT INTO ${tableName} (abbrev, exchange_rate) VALUES ?`;
-  const queryValues = [];
+  const query = `INSERT INTO ${tableName} (abbrev, exchange_rate) VALUES ?`
+  const queryValues = []
 
   /* build row of data in sql query */
   for (let [key, value] of Object.entries(currencyRates)) {
@@ -73,10 +74,9 @@ const insertCurrencyRates = (currencyRates, tableName) =>
     if (err) return reject(err);
 
     resolve()
-  });
-
-
+  })
 })
+
 
 const insertMultiRates = (currencyRates) => new Promise(async (resolve, reject) => {
   const query = `

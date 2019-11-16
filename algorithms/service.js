@@ -9,6 +9,8 @@ exports.getCurrentAndPrevWMAs = async (
   timeInterval = 1, 
   currencyRateSource
 ) => {
+  const s = new Date() 
+
   let wmaDataPoints;
   try {
     wmaDataPoints = await wmaRepo.getWMAs(abbrev, timeInterval, 2, 0, currencyRateSource)
@@ -18,6 +20,11 @@ exports.getCurrentAndPrevWMAs = async (
 
   const WMA = wmaDataPoints[0];
   const prevWMA = wmaDataPoints.length > 1 ? wmaDataPoints[1] : null;
+
+  const e = new Date()
+  const diff = e.getTime() - s.getTime()
+  const secondsDiff = diff / 1000
+  // console.log(`getting current & prev WMAs took --> ${secondsDiff}`)
 
   return {WMA, prevWMA};
 }

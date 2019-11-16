@@ -33,15 +33,24 @@ exports.getOandaTradeTransactions  = async (req, res) => {
 
 
 exports.getProtoIntervalCurrencyTrades = async (req, res) => {
+  console.log('proto interval currency trades !!')
+
   const {protoNo, interval, currency} = req.params
   const currencyRateSource = req.query.currencyRateSouce || 'currency_rate';
+  const currencyRateSourceId = currencyRateSource === 'currency_rate'
+    ? 1
+    : 2;
+  
+  console.log('currency rate source id ---->')
+  console.log(currencyRateSourceId)
+
   const dateTimeFilter = req.query.date || '';
   const conditions = {
     proto_no: parseInt(protoNo),
     time_interval: parseInt(interval),
     abbrev: `${currency}/USD`,
     closed: true,
-    currency_rate_source: currencyRateSource
+    currency_rate_src_id: currencyRateSourceId
   }
 
   let trades
@@ -58,20 +67,19 @@ exports.getProtoIntervalCurrencyTrades = async (req, res) => {
 
 
 exports.getProtoIntervalTrades = async (req, res) => {
+  console.log('get proto interval trades !!')
   
   const {protoNo, interval} = req.params
-  const currencyRateSource = req.query.currencyRateSource === 'Fixer IO'
-  ? 'fixerio_currency_rate'
-  : 'currency_rate'
-  
-  console.log(`get proto interval trades for proto ${protoNo}, with crs ${currencyRateSource}, 
-    interval ${interval}`)
-
+  // const currencyRateSource = req.query.currencyRateSource === 'Fixer IO'
+  //   ? 'fixerio_currency_rate'
+  //   : 'currency_rate'
+  // const currencyRateSourceId = currencyRateSource === 'currency_rate'
+  //   ? 1
+  //   : 2;
   const conditions = {
     proto_no: parseInt(protoNo),
     time_interval: parseInt(interval),
     closed: true,
-    currency_rate_source: currencyRateSource
   }
   const dateTimeFilter = req.query.date || '';
 

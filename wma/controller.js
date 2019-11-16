@@ -29,8 +29,6 @@ exports.getWMADataPointsStartDate = async (req, res) => {
  * Get Weighted moving average data
  */
  exports.getWMADataPoints = async (req, res) => {
-  console.log('get WMA data points !!')
-
   const currency = req.params.currency;
   const currencyPairAbbrev = `${currency}/USD`;
   const interval = req.params.interval

@@ -1,3 +1,4 @@
+
 /**
  *
  */
@@ -46,12 +47,15 @@ ALTER TABLE trade_oandatrade ADD COLUMN oanda_closetrade_id NULL;
  */
 CREATE TABLE IF NOT EXISTS currency_wma (
   id INT AUTO_INCREMENT,
+
   abbrev CHAR(7),
-  rate DECIMAL(20,10),
+  INDEX abbrev_ind (abbrev),
   FOREIGN KEY (abbrev)
     REFERENCES currency_pair(abbrev)
     ON DELETE CASCADE,
   date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  rate DECIMAL(20,10),
   wma_data_json LONGTEXT,
   PRIMARY KEY(id)
 );
@@ -71,6 +75,8 @@ CREATE TABLE IF NOT EXISTS fixerio_currency_wma (
   time_interval INT NULL,
   PRIMARY KEY(id)
 );
+
+
 
 
 /**
