@@ -4,6 +4,7 @@ const repo = require('./repository');
 const oandaService = require('../services/oanda')
 const logTrade = require('../services/logTrade')
 const logger = require('../services/logger');
+const { isPublishedAlgorithm } = require('../publishedAlgorithm/service')
 
 
 exports.openTrade = async (
@@ -15,8 +16,6 @@ exports.openTrade = async (
   timeInterval,
   currencyRateSource
 ) => {
-  console.log('OPEN TRADE')
-
   const uuid = uuidGenerator();
   const account = getAccount(protoNo, timeInterval)
   const abbrev = `${currency}/USD`
@@ -36,11 +35,17 @@ exports.openTrade = async (
   } catch (err) {
     throw new Error(`could not create trade >> ${err}`)
   }
-  // logger(`stored paper trade in the DB: ${uuid}`, 'success')
-  // logger(`account type: ${account}`, 'info')
+
+  let publishedAlgorithm
+  try { 
+    publishedAlgorithm = await isPublishedAlgorithm(protoNo, timeInterval)
+  } catch (e) {
+    console.error('Failed to check if algorithm published, for Oanda opening trade')
+    return
+  }
 
   /* only open trade on trading plaform for selected prototype on selected interval */
-  if (account === 'demo' || account === 'live') {
+  if (publishedAlgorithm) {
     try {
       await openOandaTrade(uuid, currency)
     } catch (err) {
@@ -115,29 +120,22 @@ exports.closeTrade = async (
     logger('Failed to close paper trade in schema', 'danger')
     throw new Error(`updating trade for ${openTrade.id}: ${err}`)
   }
-  logger(`closed paper trade in schema`, 'success')
 
-  logger(`account: ${account}`, 'info')
+
+  let publishedAlgorithm
+  try { 
+    publishedAlgorithm = await isPublishedAlgorithm(protoNo, timeInterval)
+  } catch (e) {
+    console.error('Failed to check if algorithm published, for Oanda closing trade')
+    return
+  }
 
   /* only open trade on trading plaform for selected prototype on selected interval */
-  if (account === 'demo' || account == 'live') {
-    try {
+  if (publishedAlgorithm) {
+    try {      
       await oandaService.closeTrade(currency, openingTrade.uuid)
-    } catch (e) {
-      logger('failed to close oanda trade', 'danger')
-      throw new Error(`Failed to close Oanda trade`)
+    } catch (err) {
+      logger(`Failed to open oanda trade`, 'danger')
     }
   }
-
-}
-
-/**
- * Get the type of account trade is to be made on; paper, oanda demo of oanda live account
- */
-const getAccount = (prototypeNo, timeInterval) => {
-  if (prototypeNo === 1) {
-    if (timeInterval === 15) return 'demo'
-  }
-
-  return 'paper'
 }

@@ -412,11 +412,10 @@ exports.getLastTrade = (protoNo, timeInterval, abbrev, currencyRateSource) =>
       uuid: results[0].uuid
     };
 
-
-  const e = new Date()
-  const diff = e.getTime() - s.getTime()
-  const secondsDiff = diff / 1000
-  console.log(`getting last trade took --> ${secondsDiff}`)
+    const e = new Date()
+    const diff = e.getTime() - s.getTime()
+    const secondsDiff = diff / 1000
+    console.log(`getting last trade took --> ${secondsDiff}`)
 
     resolve(mappedResult);
   });
