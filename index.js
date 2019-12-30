@@ -5,7 +5,14 @@ const cors = require('cors')
 app.use(cors());
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded())
-const cron = require('node-cron')
+
+/**
+ * Mongo db connection
+ */
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/stelitafx', {useNewUrlParser: true});
+
+
 const port = 8686
 const routes = require('./routes');
 
@@ -13,11 +20,6 @@ const routes = require('./routes');
  *
  */
 routes(app);
-
-
-cron.schedule('*/5 * * * *', async () => {
-  require('./oandaTransactionCacher')()
-})
 
 
 require('./crons')

@@ -13,7 +13,11 @@ exports.TIME_INTERVALS = [
   3,
   5,
   15,
-  30
+  30,
+]
+
+exports.HOUR_INTERVALS = [
+  1
 ]
 
 exports.WMA_LENGTHS = [

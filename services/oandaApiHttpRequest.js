@@ -1,8 +1,11 @@
 const axios = require('axios')
 const env = require('../env.js');
-const apiSecret = env.OANDA_API_SECRET;
-const demoAccountUrl = 'accounts/101-004-11651761-001'
-const apiDemoUrl = `https://api-fxpractice.oanda.com/v3/${demoAccountUrl}/`
+
+const apiSecret = env.OANDA_LIVE_API_SECRET;
+const accountId = env.OANDA_LIVE_ACCOUNT_ID;
+
+const demoAccountUrl = `accounts/${accountId}`
+const apiDemoUrl = `https://api-fxtrade.oanda.com/v3/${demoAccountUrl}/`
 const headers = {
   'Content-Type': 'application/json',
   Authorization: `Bearer ${apiSecret}`

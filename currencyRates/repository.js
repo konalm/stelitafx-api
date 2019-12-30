@@ -3,6 +3,8 @@ const db = require('../dbInstance');
 const getIntervalMins = require('../services/intervalMins')
 
 exports.getMultiRates = () => new Promise((resolve, reject) => {
+  const dbConn = db()
+
   const query = `
     SELECT 
       abbrev, 
@@ -13,11 +15,12 @@ exports.getMultiRates = () => new Promise((resolve, reject) => {
     FROM multi_rate
     ORDER BY date DESC
   `
-  conn.query(query, (err, results) => {
+  dbConn.query(query, (err, results) => {
+    
     if (err) return reject('Error getting multi rates')
-
     resolve(results)
   })
+  dbConn.end()
 })
 
 
@@ -29,6 +32,8 @@ exports.getMultiRates = () => new Promise((resolve, reject) => {
 exports.getCurrencyRatesBetweenDateRange = (abbrev, startDate, endDate, buffer) =>
   new Promise((resolve, reject) =>
 {
+  const dbConn = db()
+
   const query = `
     SELECT date, exchange_rate
     FROM currency_rate
@@ -38,9 +43,10 @@ exports.getCurrencyRatesBetweenDateRange = (abbrev, startDate, endDate, buffer) 
     ORDER BY date DESC`;
   const queryValues = [abbrev, startDate, buffer, endDate, buffer];
 
-  conn.query(query, queryValues, (err, results) => {
-    if (err) return reject('Error getting currency rates between dates');
+  dbConn.query(query, queryValues, (err, results) => {
+    dbConn.end()
 
+    if (err) return reject('Error getting currency rates between dates');
     resolve(results);
   });
 });
@@ -54,18 +60,14 @@ exports.GetCurrencyLatestRates = (
   ratesAmount, 
   historicalCount, 
   timeInterval,
-  currencyRateTable
+  conn
 ) =>
   new Promise((resolve, reject) =>
 {
-  console.log('get currency latest rates !!!!!!')
-  const dbConn = db()
-
   const intervalMins = getIntervalMins(timeInterval)
- 
   const query = `
     SELECT date, exchange_rate
-    FROM ${currencyRateTable}
+    FROM currency_rate
     WHERE abbrev = ?
      AND MINUTE(date) IN (${intervalMins})
     ORDER BY date DESC
@@ -73,16 +75,12 @@ exports.GetCurrencyLatestRates = (
   `
   const limit = ratesAmount + historicalCount
 
-  dbConn.query(query, [currencyAbbrev, limit], (err, results) => {
-    if (err) {
-      reject('Failed Getting currency latest rates');
-      dbConn.end()
-      return
-    }
+  conn.query(query, [currencyAbbrev, limit], (e, results) => {
+    if (e) return reject('Failed Getting currency latest rates');
 
     resolve(results);
-    dbConn.end()
   });
+  if (!conn) dbConn.end()
 });
 
 
@@ -92,18 +90,21 @@ exports.GetCurrencyLatestRates = (
 exports.getCurrencyRatesAtDate = (abbrev, date, historic) =>
   new Promise((resolve, reject) =>
 {
+  const dbConn = db()
   const query = `
     SELECT date, exchange_rate
     FROM currency_rate
     WHERE abbrev = ?
       AND date <= ?
       ORDER BY date DESC
-    LIMIT ?`;
+    LIMIT ?
+  `
   const queryValues = [abbrev, date, historic];
 
-  conn.query(query, queryValues, (err, results) => {
-    if (err) return reject('Error getting currency rates by date');
+  dbConn.query(query, queryValues, (err, results) => {
+    dbConn.end()
 
+    if (err) return reject('Error getting currency rates by date');
     resolve(results);
   });
 });
@@ -113,16 +114,19 @@ exports.getCurrencyRatesAtDate = (abbrev, date, historic) =>
  *
  */
 exports.getCurrencyRate = (abbrev) => new Promise((resolve, reject) => {
+  const dbConn = db()
+
   const query = `
     SELECT abbrev, exchange_rate
     FROM currency_rate
     WHERE abbrev = ?
     ORDER BY date DESC
-    LIMIT 1`;
+    LIMIT 1
+  `
+  dbConn.query(query, [abbrev], (err, results) => {
+    dbConn.end()
 
-  conn.query(query, [abbrev], (err, results) => {
     if (err) return reject(err);
-
     if (results.length === 0) return;
 
     const mappedResult = {
@@ -137,19 +141,63 @@ exports.getCurrencyRate = (abbrev) => new Promise((resolve, reject) => {
 /**
  * get rates for a currency (current and previous)
  */
-exports.getCurrenciesRates = (abbrev, count = 100) =>
-  new Promise((resolve, reject) =>
-{
+exports.getCurrenciesRates = (abbrev, count = 100) => new Promise((resolve, reject) => {
+  const dbConn = db()
+
   const query = `
     SELECT abbrev, exchange_rate, date
     FROM currency_rate
     WHERE abbrev = ?
     ORDER BY date DESC
-    LIMIT ?`;
-
-  conn.query(query, [abbrev, count], (err, results) => {
+    LIMIT ?
+  `
+  dbConn.query(query, [abbrev, count], (err, results) => {
     if (err) return reject(err);
 
     resolve(results);
   })
+  dbConn.end()
+})
+
+
+exports.getAbbrevLatestRates = () => new Promise((resolve, reject) => {
+  const dbConn = db()
+
+  const query = `
+    SELECT 
+      c.abbrev, 
+      c.date, 
+      c.exchange_rate AS exchangeRate
+    FROM currency_rate c
+    INNER JOIN (
+      SELECT abbrev, MAX(date) date
+      FROM stelita.currency_rate
+      GROUP BY abbrev
+    ) b ON b.abbrev = c.abbrev  AND b.date = c.date 
+  `
+  dbConn.query(query, (e, results) => {
+    if (e) return reject(e)
+
+    resolve(results)
+  })
+  dbConn.end()
+})
+
+
+exports.getAbbrevLatestRate = (abbrev) => new Promise((resolve, reject) => {
+  const conn = db()
+
+  const query = `
+    SELECT exchange_rate AS rate
+    FROM currency_rate
+    WHERE abbrev = ?
+    ORDER BY date DESC
+    LIMIT 1
+  `
+  conn.query(query, [abbrev], (e, results) => {
+    if (e) return reject(e)
+
+    resolve(results.rate)
+  })
+  conn.end()
 })

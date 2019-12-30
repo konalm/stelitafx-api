@@ -1,15 +1,20 @@
 const config = require('../config');
 const wmaRepo = require('../wma/repository')
+const movingAverageRepo = require('../movingAverage/repository')
 const tradeRepo = require('../trade/repository');
 const calculatePip = require('../services/calculatePip')
 const calculateVolatility = require('../services/calculateVolatility')
+const dbConnections = require('../dbConnections')
+
 
 exports.getCurrentAndPrevWMAs = async (
   abbrev, 
   timeInterval = 1, 
-  currencyRateSource
+  currencyRateSource = ''
 ) => {
   const s = new Date() 
+
+  // dbConnections('get current and prev WMA')
 
   let wmaDataPoints;
   try {
@@ -28,6 +33,30 @@ exports.getCurrentAndPrevWMAs = async (
 
   return {WMA, prevWMA};
 }
+
+exports.getMovingAverages = async (
+  abbrev, 
+  interval, 
+  currencyRateSrc = 'currency_rate'
+) => {
+  const s = new Date()
+
+  let movingAverageDataPoints
+  try {
+    movingAverageDataPoints = await movingAverageRepo.getMovingAverages(
+      abbrev,
+      interval,
+      1,
+      0,
+      currencyRateSrc
+    )
+  } catch (e) {
+    throw new Error('Could not get moving averages: ' + e)
+  }
+
+  return movingAverageDataPoints[0]
+}
+
 
 exports.currentRateUnderShortWMA = (currentRate, WMAs, shortLength) => {
   const WMA = WMAs.WMA.WMAs;

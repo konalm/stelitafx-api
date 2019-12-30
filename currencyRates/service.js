@@ -1,5 +1,5 @@
 /**
- * calculate the weighted moving average of a currency rate
+ * Calculate the weighted moving average of a currency rate
  */
 exports.calcWeightedMovingAverage = (currencyRates) => {
   const movingAverage = currencyRates.length;
@@ -18,7 +18,7 @@ exports.calcWeightedMovingAverage = (currencyRates) => {
 }
 
 /**
- * calculate weight strength and multiple it by the rate
+ * Calculate weight strength and multiple it by the rate
  */
 const calcRateByWeight = (rate, weightIndex, weightFactor) => {
   const weightPower = weightIndex / weightFactor;

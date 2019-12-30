@@ -1,12 +1,14 @@
 const conn = require('../db');
 const retrieveCurrencyRates = require('./retrieveCurrencyRates');
 const config = require('../config');
+const db = require('../dbInstance')
+const dbConnections = require('../dbConnections')
 
 
 module.exports = () => new Promise(async (resolve, _) => {
   Promise.all([
     uploadOandaFXAccountCurrencyRates(), 
-    uploadFixerioCurrencyRates()
+    // uploadFixerioCurrencyRates()
   ])
     .then(() => { resolve() })
     .catch(() => { resolve() })
@@ -61,6 +63,8 @@ const uploadFixerioCurrencyRates = () => new Promise(async (resolve, reject) => 
 const insertCurrencyRates = (currencyRates, tableName) => 
   new Promise(async (resolve, reject) => 
 {
+  // await dbConnections('before inserting currency rates')
+
   const query = `INSERT INTO ${tableName} (abbrev, exchange_rate) VALUES ?`
   const queryValues = []
 
@@ -70,11 +74,14 @@ const insertCurrencyRates = (currencyRates, tableName) =>
     queryValues.push([abbrev, value]);
   }
 
-  conn.query(query, [queryValues], (err, result) => {
+
+  const dbConn = db()
+  dbConn.query(query, [queryValues], (err, result) => {
     if (err) return reject(err);
 
     resolve()
   })
+  dbConn.end()
 })
 
 
@@ -109,11 +116,11 @@ const insertMultiRates = (currencyRates) => new Promise(async (resolve, reject) 
     ])
   })
 
-  conn.query(query, [queryValues], (err, result) => {
-    if (err) return reject(err);
-
-    console.log('insertted multi')
+  const dbConn = db()
+  dbConn.query(query, [queryValues], (e) => {
+    if (e) return reject(err);
 
     resolve();
-  });
+  })
+  dbConn.end()
 })

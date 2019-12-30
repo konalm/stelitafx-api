@@ -4,43 +4,36 @@ const getIntervalMins = require('../services/intervalMins')
 const formatMysqlDate = require('../services/formatMysqlDate')
 
 
-
-exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, currencyRateSrc) =>
+exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, conn) =>
   new Promise((resolve, reject) =>
 {
-  const dbConn = db()
-
   const wmaDataJSON = JSON.stringify(wmaData);
-
-  let table = 'currency_wma'
-  if (currencyRateSrc === 'fixerio_currency_rate') table = 'fixerio_currency_wma'
-
+  
   const query = `
-    INSERT INTO ${table}
+    INSERT INTO currency_wma
     (abbrev, rate, wma_data_json, time_interval)
     VALUES ?
   `
   const queryValues = [
     [currencyAbbrev, rate, wmaDataJSON, timeInterval]
   ]
-
-  dbConn.query(query, [queryValues], (err) => {
-    console.log('close connection !!')
-    dbConn.end();
-
+  
+  conn.query(query, [queryValues], (err) => {
     if (err) {
       reject('Error storing currency WMA data');
       return 
     }
-
+    
     resolve('Stored WMA data')
-  });
+  })
 });
 
 
+let x = 0;
 exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSource) =>
   new Promise((resolve, reject) =>
 {
+  x ++
   let table = 'currency_wma'
   if (currencyRateSource === 'fixerio_currency_rate') table = 'fixerio_currency_wma'
 
@@ -55,10 +48,15 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
   `
   const queryValues = [currencyAbbrev, interval, amount, offset];
 
-  conn.query(query, queryValues, (e, results) => {
+  const dbConn = db()
+  // console.log(`getting WMAs .... abbrev: ${currencyAbbrev}, interval: ${interval}`)
+
+  dbConn.query(query, queryValues, (e, results) => {
+    x --;
+    
     if (e) return reject(e);
 
-    if (!results || results.length === 0) return [];
+    if (!results || results.length === 0) return resolve([]);
 
     const dataPoints = [];
     results.forEach((result) => {
@@ -76,11 +74,12 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
     });
 
     resolve(dataPoints);
-  });
-});
+  })
+  dbConn.end()
+})
 
 
-exports.getWMAFromDate = (abbrev, timeInterval, startDate) => 
+exports.getWMAFromDate = (abbrev, timeInterval, startDate, toDate) => 
   new Promise((resolve, reject) => 
 {
   const query = `
@@ -89,11 +88,18 @@ exports.getWMAFromDate = (abbrev, timeInterval, startDate) =>
     WHERE abbrev = ?
       AND time_interval = ?
       AND date >= ?
+      AND date <= ?
     ORDER BY date DESC
   `
-  const queryValues = [abbrev, timeInterval, formatMysqlDate(startDate)]
+  const queryValues = [
+    abbrev, 
+    timeInterval, 
+    formatMysqlDate(startDate),
+    formatMysqlDate(toDate)
+  ]
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) reject(err)
 
     if (!results) return []
@@ -115,6 +121,7 @@ exports.getWMAFromDate = (abbrev, timeInterval, startDate) =>
 
     resolve(dataPoints)
   })
+  dbConn.end()
 })
 
 exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer) =>
@@ -128,10 +135,12 @@ exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer
      AND time_interval = ?
      AND date >= (? - INTERVAL ? MINUTE)
      AND date <= (? + INTERVAL ? MINUTE)
-    ORDER BY date DESC`;
+    ORDER BY date DESC
+  `
   const queryValues = [abbrev, timeInterval, startDate, buffer, endDate, buffer];
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) reject(err);
 
     if (!results) return [];
@@ -149,8 +158,9 @@ exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer
       });
 
       dataPoints.push(dataPoint);
-    });
+    })
 
     resolve(dataPoints);
-  });
-});
+  })
+  dbConn.end()
+})

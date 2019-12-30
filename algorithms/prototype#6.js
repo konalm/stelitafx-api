@@ -1,12 +1,14 @@
 const prototypeFramework = require('./prototypeFrameworkV2');
 
-module.exports = (timeInterval, currencyRateSource) =>
+module.exports = (timeInterval, currency, currencyRateSrc, intervalCurrencyData) =>
   prototypeFramework(
-    protoNo,
-    openConditions,
-    closeConditions,
-    timeInterval,
-    currencyRateSource
+    protoNo, 
+    currency,
+    openConditions, 
+    closeConditions, 
+    timeInterval, 
+    currencyRateSrc,
+    intervalCurrencyData
   );
 
 const protoNo = 6

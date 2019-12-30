@@ -2,9 +2,12 @@ const axios = require('axios');
 const tradeRepo = require('../trade/repository')
 const logger = require('../services/logger');
 const env = require('../env.js');
+
 const apiSecret = env.OANDA_LIVE_API_SECRET;
-const apiUrl = 'https://api-fxpractice.oanda.com/v3/'
-const demoAccountUrl = `${apiUrl}accounts/101-004-11651761-001`
+const accountId = env.OANDA_LIVE_ACCOUNT_ID;
+
+const apiUrl = 'https://api-fxtrade.oanda.com/v3/'
+const demoAccountUrl = `${apiUrl}accounts/${accountId}`
 const options = {
   headers: {
     'Content-Type': 'application/json',
@@ -25,29 +28,34 @@ exports.openTrade = async (currency) => {
     }
   }
 
-  logger('made order request to oanda, waiting for response ...', 'info')
+  // logger('made order request to oanda, waiting for response ...', 'info')
 
   let openTradeResponse
   try {
     openTradeResponse = await axios.post(`${demoAccountUrl}/orders`, payload, options)
   } catch (e) {
+    console.log(e.response)
     logger('request to open order on oanda failed', 'danger');
     throw new Error(e)
   } finally {
-    logger('got response back from oanda for order request', 'info')
+    // logger('got response back from oanda for order request', 'info')
   }
 
   if (!openTradeResponse.data.hasOwnProperty("orderFillTransaction")) {
     logger('failed to get order filled response from Oanda', 'warning');
     throw new Error('Failed to get order filled')
   } else {
-    logger('Have order filled response', 'success')
+    // logger('Have order filled response', 'success')
   }
 
   return openTradeResponse.data.orderFillTransaction.id
 }
 
 exports.closeTrade = async (currency, openingTradeUUID) => {
+  console.log('CLOSE TRADE ON OANDA')
+
+  // logger('close trade on Oanda', 'info');
+
   let oandaOpeningTrade
   try {
     oandaOpeningTrade = await tradeRepo.getOandaTradeRel(
@@ -58,10 +66,11 @@ exports.closeTrade = async (currency, openingTradeUUID) => {
     logger('failed to get Oanda opening trade', 'danger')
     throw new Error(`Failed to get Oanda opening trade ${e}`)
   }
-  const oandaOpeningTradeId = oandaOpeningTrade.oanda_opentrade_id;
-  logger(`got oanda opening trade from schema: ${oandaOpeningTradeId}`, 'success')
 
-  logger(`waiting for close trade response from oanda`, 'info')
+  const oandaOpeningTradeId = oandaOpeningTrade.oanda_opentrade_id;
+  // logger(`got oanda opening trade from schema: ${oandaOpeningTradeId}`, 'success')
+
+  // logger(`waiting for close trade response from oanda`, 'info')
   const path = `/trades/${oandaOpeningTradeId}/close`
   const payload = { units: 'ALL' }
   let closeTradeResponse;
@@ -69,20 +78,21 @@ exports.closeTrade = async (currency, openingTradeUUID) => {
     closeTradeResponse = await axios.put(`${demoAccountUrl}${path}`, payload, options)
   } catch (e) {
     logger('request to close trade in oanda failed', 'danger')
+    logTra
     throw new Error(`Failed to close Oanda trade`)
   } finally {
-    logger('got response back from oanda to close trade', 'info')
+    // logger('got response back from oanda to close trade', 'info')
   }
 
   if (!closeTradeResponse.data.hasOwnProperty('orderFillTransaction')) {
     logger ('Failed to get request to close filled', 'danger')
     throw new Error('Failed to get close trade filled')
   } else {
-    logger('Have order to close trade filled response', 'success')
+    // logger('Have order to close trade filled response', 'success')
   }
 
   const closeTradeId = closeTradeResponse.data.orderFillTransaction.id;
-  logger(`close trade, transaction id: ${closeTradeId}`, 'info')
+  // logger(`close trade, transaction id: ${closeTradeId}`, 'info')
 
   try {
     const data = { oanda_closetrade_id: closeTradeId }
@@ -91,7 +101,7 @@ exports.closeTrade = async (currency, openingTradeUUID) => {
     logger('Failed to update oanda trade relationship with close trade', 'danger')
     throw new Error(`Failed to update oanda trade rel with close id: ${e}`)
   }
-  logger('updated oanda trade relationshp schema with close id', 'success')
+  // logger('updated oanda trade relationshp schema with close id', 'success')
 }
 
 const getAbbrevOpenTrades = async (instrument) => {

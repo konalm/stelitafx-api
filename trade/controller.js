@@ -1,9 +1,11 @@
-const repo = require('./repository.js');
+const repo = require('./repository.js')
+const mongoRepo = require('./mongoRepository')
 const oandaService = require('../services/oanda')
 
 
 exports.getOandaTradeTransactions  = async (req, res) => {
   const tradeId = req.params.id; 
+  
   // if account not demo, return 
   let oandaTrade
   try {
@@ -33,25 +35,29 @@ exports.getOandaTradeTransactions  = async (req, res) => {
 
 
 exports.getProtoIntervalCurrencyTrades = async (req, res) => {
-  const {protoNo, interval, currency} = req.params
-  // const currencyRateSource = req.query.currencyRateSouce || 'currency_rate';
-  // const currencyRateSourceId = currencyRateSource === 'currency_rate'
-  //   ? 1
-  //   : 2;
-  
+  console.log('prototype interval trades')
+
+  const {protoNo, interval, currency} = req.params  
   const dateTimeFilter = req.query.date || '';
   const conditions = {
     proto_no: parseInt(protoNo),
     time_interval: parseInt(interval),
     abbrev: `${currency}/USD`,
     closed: true,
-    // currency_rate_src_id: currencyRateSourceId
   }
 
-  let trades
+  // let trades
+  // try {
+  //   trades = await repo.getTrades(conditions, dateTimeFilter)
+  // } catch (err) {
+  //   return res.status(500).send('Failed to get trades')
+  // }
+
+  let trades 
   try {
-    trades = await repo.getTrades(conditions, dateTimeFilter)
-  } catch (err) {
+    trades = await mongoRepo.getPrototypeIntervalTrades(protoNo, parseInt(interval), currency)
+  } catch (e) {
+    console.log(e)
     return res.status(500).send('Failed to get trades')
   }
 
@@ -62,15 +68,7 @@ exports.getProtoIntervalCurrencyTrades = async (req, res) => {
 
 
 exports.getProtoIntervalTrades = async (req, res) => {
-  console.log('get proto interval trades !!')
-
   const {protoNo, interval} = req.params
-  // const currencyRateSource = req.query.currencyRateSource === 'Fixer IO'
-  //   ? 'fixerio_currency_rate'
-  //   : 'currency_rate'
-  // const currencyRateSourceId = currencyRateSource === 'currency_rate'
-  //   ? 1
-  //   : 2;
   const conditions = {
     proto_no: parseInt(protoNo),
     time_interval: parseInt(interval),
@@ -78,12 +76,25 @@ exports.getProtoIntervalTrades = async (req, res) => {
   }
   const dateTimeFilter = req.query.date || '';
 
-  let trades
+
+  // let trades
+  // try {
+  //   trades = await repo.getTrades(conditions, dateTimeFilter)
+  // } catch (err) {
+  //   console.log(err)
+  //   return res.status(500).send(`Failed to get trades`)
+  // }
+
+  let trades 
   try {
-    trades = await repo.getTrades(conditions, dateTimeFilter)
-  } catch (err) {
-    console.log(err)
-    return res.status(500).send(`Failed to get trades`)
+    trades = await mongoRepo.getPrototypeIntervalTrades(
+      protoNo, 
+      parseInt(interval), 
+      dateTimeFilter
+    )
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to get trades')
   }
 
   if (!trades.length) return res.status(204).send('No trades!')
@@ -137,16 +148,33 @@ exports.getNextTrade = async (req, res) => {
 
 
 exports.getTrade = async (req, res) => {
-  const tradeId = req.params.tradeId;
-  const protoNo = req.params.protoNo;
-  const abbrev = `${req.params.currency}/USD`
+  console.log('get trade !!')
 
-  let trade;
+  const { protoNo, interval, currency, tradeUUID } = req.params;
+  const abbrev = `${currency}/USD`
+  const abbrevInstrument = `${req.params.currency}_USD`
+
+  // let trade;
+  // try {
+  //   trade = await repo.getTrade(protoNo, abbrev, tradeUUID);
+  // } catch (e) {
+  //   return res.status(500).send('Failed to get trade');
+  // }
+
+  let trade
   try {
-    trade = await repo.getTrade(protoNo, abbrev, tradeId);
+    trade = await mongoRepo.getPrototypeIntervalCurrencyTrade(
+      protoNo, 
+      parseInt(interval), 
+      abbrevInstrument,
+      tradeUUID
+    )
   } catch (e) {
-    return res.status(500).send('Failed to get trade');
+    console.log(e)
+    return res.status(500).send('Failed to get trade')
   }
+
+
 
   if (!trade) return res.status(404).send('Trade not found');
 

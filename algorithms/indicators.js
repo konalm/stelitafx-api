@@ -1,6 +1,6 @@
 const service = require('./service');
 const tradeRepo = require('../trade/repository');
-const { getLatestStochastic } = require('../stochastic/repository')
+// const { getLatestStochastic } = require('../stochastic/repository')
 const calculatePip = require('../services/calculatePip');
 
 /**
@@ -60,7 +60,8 @@ exports.indicators = (data) => {
       ? service.minsSinceOpeningTrade(data.openingTrade.openDate) >= 45
       : 0,
     stochasticBelowTwenty: data.stochastic <= 20,
-    stochasticOverEighty: data.stochastic >= 80
+    stochasticOverEighty: data.stochastic >= 80,
+    currentRateUnderNineMovingAverage: data.currentRate <= data.movingAverages.movingAverages['9']
   }
 }
 
@@ -71,59 +72,22 @@ exports.indicators = (data) => {
  * opening trade
  * abbrev rate when trade was opened
  */
-exports.dataForIndicators = async (
-  protoNo, 
-  abbrev, 
-  timeInterval, 
-  currencyRateSource
-) => {
+exports.dataForIndicators = ( abbrev, intervalCurrencyData, openingTrade ) => {
   const s = new Date()
+  const { movingAverages, WMAs, currentRate, stochastic } = intervalCurrencyData
 
-  let WMAs
-  try {
-    WMAs = await service.getCurrentAndPrevWMAs(
-      abbrev, 
-      timeInterval, 
-      currencyRateSource
-    )
-  } catch (e) {
-    console.error(`Failed to get current and prev WMAs: ${e}`)
-  }
-
-  const currentRate = WMAs.WMA ? WMAs.WMA.rate : null
-
-  let stochastic
-  try {
-    stochastic = await getLatestStochastic(abbrev, timeInterval)
-  } catch (e) {
-    console.error(`Failed to get latest stochastic: ${e}`)
-  }
-
-  let openingTrade
-  try  {
-    openingTrade = await tradeRepo.getLastTrade(
-      protoNo, 
-      timeInterval, 
-      abbrev, 
-      currencyRateSource
-    )
-  } catch (err) {
-    console.error(err)
-  }
+  // const openingTrade = lastTrades.find(x => x.prototypeNo === protoNo)
 
   const openingRate = openingTrade && !openingTrade.closed
     ? openingTrade.openRate
     : null
+  
   const pip = openingTrade && currentRate
     ? calculatePip(openingRate, currentRate, abbrev)
     : 0
 
-    const e = new Date()
-    const diff = e.getTime() - s.getTime()
-    const secondsDiff = diff / 1000
-    // console.log(`getting data for indicators took ${secondsDiff}`)
-
   return {
+    movingAverages,
     WMAs,
     currentRate,
     openingTrade,

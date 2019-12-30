@@ -15,8 +15,11 @@ module.exports = (app) => {
     
   app.route('/proto/:proto_no/currency/:currency')
      .get(controller.getProtoCurrencyClosedTrades);
-  app.route('/proto/:protoNo/currency/:currency/trade/:tradeId')
+
+  /* Prototype interval currency trade */
+  app.route('/proto/:protoNo/interval/:interval/currency/:currency/trade/:tradeUUID')
     .get(controller.getTrade);
+
   app.route('/protos/:protoNo/intervals/:interval/currencies/:currency/trades/:tradeId')
     .get(controller.getTradeV2);
   app.route('/next-trade/:tradeId').get(controller.getNextTrade);

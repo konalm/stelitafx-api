@@ -3,6 +3,9 @@ const config = require('../config');
 const env = require('../env.js');
 const oandaFXAccountHttp = require('../services/oandaFXAccountHttpRequest')
 
+const ACCOUNTID = env.OANDA_LIVE_ACCOUNT_ID;
+
+
 /**
  *
  */
@@ -96,7 +99,7 @@ exports.oandaFXAccountRate = async () => {
     instruments.push(`${currency}_${config.QUOTE_CURRENCY}`)
   })
 
-  const url = `accounts/101-004-11651761-001/pricing?instruments=${instruments.join()}`
+  const url = `accounts/${ACCOUNTID}/pricing?instruments=${instruments.join()}`
 
   let response
   try {

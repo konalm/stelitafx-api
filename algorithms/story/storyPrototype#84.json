@@ -1,0 +1,62 @@
+{
+  "prototype": 84,
+  
+  "openSteps": [
+    {
+      "step": 1,
+      "indicators": [
+        {
+          "name": "stochasticBelow",
+          "param": 20
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "indicators": [
+        {
+          "name": "stochasticRemained"
+        },
+        {
+          "name": "stochasticIncreased"
+        }
+      ],
+      "action": "open"
+    }
+  ],
+
+  "closeSteps": [
+    {
+      "step": 3,
+      "indicators": [
+        {
+          "name": "stochasticAbove",
+          "param": 20
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "indicators": [
+        {
+          "name": "stochasticRemained"
+        },
+        {
+          "name": "stochasticDecreased"
+        }
+      ],
+      "action": "close"
+    }
+  ],
+
+  "exitOpen": [
+    {
+      "indicators": [
+        {
+          "name": "stochasticAbove",
+          "param": 20
+        }
+      ]
+    }
+  ]
+}

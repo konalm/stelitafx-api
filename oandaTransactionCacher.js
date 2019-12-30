@@ -1,4 +1,5 @@
 const conn = require('./db')
+const db = require('./dbInstance')
 const Promise = require('bluebird')
 const oandaHttp = require('./services/oandaApiHttpRequest')
 
@@ -55,11 +56,14 @@ const storeTransaction = (tradeId, transaction) =>
     trade_id: tradeId, 
     json: JSON.stringify(transaction)
   }
-  conn.query(query, data, (e) => {
+
+  const dbConn = db()
+  dbConn.query(query, data, (e) => {
     if (e) return reject('Failed to store transaction')
 
     resolve()
   })
+  dbConn.end()
 })
 
 const getUncachedTransactions = () => new Promise(async(resolve, reject) => {
@@ -72,11 +76,13 @@ const getUncachedTransactions = () => new Promise(async(resolve, reject) => {
     WHERE transaction.json IS NULL;
   `
   const x = (query) => new Promise((resolve) => {
-    conn.query(query, (e, results) => {
+    const dbConn = db()
+    dbConn.query(query, (e, results) => {
       if (e) return reject(e)
 
       resolve(results)
     })
+    dbConn.end()
   })
 
   let results = []

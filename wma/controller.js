@@ -5,17 +5,26 @@ const groupWMADataPoints = require('../services/groupWMADataPoints');
 const calculateWMAs = require('../services/calculateWMAs');
 const service = require('./service');
 const repo = require('./repository');
+const tradeMongoRepo = require('../trade/mongoRepository');
 
 /**
  * Get WMA data points start from passed date until now
  */
 exports.getWMADataPointsStartDate = async (req, res) => {
+  console.log('get wma data ports start date')
+
   const currencyPairAbbrev = `${req.params.currency}/USD`
   const {interval, startDate}  = req.params
+  const toDate = req.query.toDate ? req.query.toDate : new Date()
 
   let WMADataPoints
   try {
-    WMADataPoints = await repo.getWMAFromDate(currencyPairAbbrev, interval, startDate)
+    WMADataPoints = await repo.getWMAFromDate(
+      currencyPairAbbrev, 
+      interval, 
+      startDate, 
+      toDate
+    )
   } catch (e) {
     console.log(e)
     return res.status(500).send('Error getting WMAs from date')
@@ -37,8 +46,6 @@ exports.getWMADataPointsStartDate = async (req, res) => {
    const currencyRateSource = req.query.currencyRateSource === 'Fixer IO'
      ? 'fixerio_currency_rate'
      : 'currency_rate'
-    
-   console.log(`currency rate src -> ${currencyRateSource}`)
 
   let WMADataPoints;
   try {
@@ -94,25 +101,43 @@ exports.getWMAs = async (req, res) => {
  * (including buffer)
  */
 exports.getWMAsForTrade = async (req, res) => {
-  const abbrev = `${req.params.currency}/USD`;
-  const tradeId = req.params.tradeId;
+  console.log('get wmas for trade')
 
-  let trade;
+  const { prototypeNumber, currency, tradeUUID } = req.params
+  const interval = parseInt(req.params.interval)
+  const abbrev = `${currency}/USD`;
+  const abbrevInstrument = `${currency}_USD`
+
+  // let trade;
+  // try {
+  //   trade = await tradeRepo.getTradeV2(abbrev, tradeId)
+  // } catch (err) {
+  //   return res.status(500).send('could not get trade');
+  // }
+  // if (!trade) return res.status(404).send('could not find trade');
+
+  let trade 
   try {
-    trade = await tradeRepo.getTradeV2(abbrev, tradeId)
-  } catch (err) {
-    return res.status(500).send('could not get trade');
+    trade = await tradeMongoRepo.getPrototypeIntervalCurrencyTrade(
+      prototypeNumber,
+      parseInt(interval),
+      abbrevInstrument,
+      tradeUUID
+    )
+  } catch (e) {
+    return res.status(500).send('Failed to get trade')
   }
-  if (!trade) return res.status(404).send('could not find trade');
+
+  console.log(trade)
 
   let WMADataPoints;
   try {
     WMADataPoints =
       await repo.getWMAsBetweenDates(
         abbrev, 
-        trade.openDate, 
+        trade.date, 
         trade.closeDate, 
-        trade.timeInterval,
+        interval,
         40
       );
   } catch (err) {

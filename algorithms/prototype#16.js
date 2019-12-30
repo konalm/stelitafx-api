@@ -1,4 +1,4 @@
-const prototypeFramework = require('./prototypeFrameworkV2');
+const prototypeFramework = require('./prototypeFrameworkV2')
 const protoNo = 16
 const openConditions = [
   'currentRateOverOneHundredWMA',
@@ -9,16 +9,19 @@ const closeConditions = [
 ]
 
 
-module.exports = (timeInterval, currencyRateSource) => new Promise((resolve, _) => {
+module.exports = (timeInterval, currency, currencyRateSrc, intervalCurrencyData) => 
+  new Promise((resolve, _) => 
+{
   prototypeFramework(
     protoNo, 
+    currency,
     openConditions, 
     closeConditions, 
     timeInterval, 
-    currencyRateSource
+    currencyRateSrc,
+    intervalCurrencyData
   )
     .then(() => {
-      // console.log('prototype 1 complete !!!')
       resolve()
     })
     .catch(e => {

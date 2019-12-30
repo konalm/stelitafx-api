@@ -1,8 +1,8 @@
 const axios = require('axios')
 
-const token = '8b69239f0dbc7b823b761ec7cf12a9bb-f0d0168e117e760969d38baf7285bccb'
+const token = '6055be6e312a7e1c1b81bea7112be439-654862adcd6dfa22e70cb90b4ce9ab78'
 const authHeader = `Bearer ${token}`
-const url = 'https://api-fxpractice.oanda.com/v3/'
+const url = 'https://api-fxtrade.oanda.com/v3/'
 
 const headers = {Authorization: authHeader}
 

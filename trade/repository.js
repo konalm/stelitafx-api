@@ -1,12 +1,13 @@
-const conn = require('../db');
-const calculatePip = require('../services/calculatePip');
+const conn = require('../db')
+const mysql = require('mysql')
+const db = require('../dbInstance')
+const calculatePip = require('../services/calculatePip')
 const calcOandaPipsFromTransactions = require('../services/calcOandaPipsFromTransactions')
+const formatMysqlDate = require('../services/formatMysqlDate')
 
 
 exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reject) => {
-  console.log('get trades')
-  console.log(conditions)
-
+  const dbConn = db()
   let query = `
     SELECT
       t.id,
@@ -20,11 +21,13 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
       t.time_interval AS timeInterval,
       t.account,
       t.viewed,
+      
       ot.oanda_opentrade_id AS oandaOpenTradeId,
       ot.oanda_closetrade_id AS oandaCloseTradeId,
       open_ott.json AS openTradeTransactionJson,
       close_ott.json AS closeTradeTransactionJson
     FROM tradeV2 t
+
     LEFT JOIN trade_oandatrade ot
       ON ot.trade_uuid = t.uuid
     LEFT JOIN oanda_trade_transactions open_ott
@@ -52,8 +55,7 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
 
   query += ' ORDER BY close_date DESC'
 
-
-  conn.query(query, queryValues, (err, results) => {
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err)
 
     results.forEach((r) => {
@@ -70,6 +72,7 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
 
     resolve(results)
   })
+  dbConn.end()
 })
 
 
@@ -88,14 +91,17 @@ exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
       AND close_date > ?
       AND closed = true
     ORDER BY date ASC
-    LIMIT 1`;
+    LIMIT 1
+  `
   const queryValues = [trade.proto_no, trade.abbrev, trade.closeDate];
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
     return results.length > 0 ? resolve(results[0].id) : resolve();
   })
+  dbConn.end()
 })
 
 
@@ -117,15 +123,18 @@ exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
     LIMIT 1`;
   const queryValues = [trade.proto_no, trade.abbrev, trade.closeDate];
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
     return results.length > 0 ? resolve(results[0].id) : resolve();
   })
+  dbConn.end()
 })
 
 
 exports.getTradeById = (id) => new Promise((resolve, reject) => {
+  const dbConn = db()
   const query = `
     SELECT abbrev, proto_no, date, close_date AS closeDate
     FROM tradeV2
@@ -133,12 +142,13 @@ exports.getTradeById = (id) => new Promise((resolve, reject) => {
       AND closed = true
     LIMIT 1`;
 
-  conn.query(query, [id], (err, results) => {
+  dbConn.query(query, [id], (err, results) => {
     if (err) return reject(err);
 
     return results ? resolve(results[0]) : resolve();
-  });
-});
+  })
+  dbConn.end()
+})
 
 
 exports.getTradesProto = (protoNo, dateFilter) =>
@@ -166,7 +176,8 @@ exports.getTradesProto = (protoNo, dateFilter) =>
 
   query += ` ORDER BY closeDate DESC`;
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject('Failed to trades for proto from DB')
 
     results.forEach((result) => {
@@ -175,6 +186,7 @@ exports.getTradesProto = (protoNo, dateFilter) =>
 
     resolve(results)
   })
+  dbConn.end()
 })
 
 
@@ -203,7 +215,8 @@ exports.getProtoCurrencyClosedTrades = (protoNo, abbrev, dateFilter) =>
 
   query += ` ORDER BY closeDate DESC`;
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
     results.forEach((result) => {
@@ -211,8 +224,9 @@ exports.getProtoCurrencyClosedTrades = (protoNo, abbrev, dateFilter) =>
     })
 
     resolve(results)
-  });
-});
+  })
+  dbConn.end()
+})
 
 
 const insertTrade = (transaction, abbrev, rate, algoProtoNo) =>
@@ -224,12 +238,14 @@ const insertTrade = (transaction, abbrev, rate, algoProtoNo) =>
     [abbrev, transaction, algoProtoNo, rate]
   ];
 
-  conn.query(query, [queryValues], function(err, result) {
+  const dbConn = db()
+  dbConn.query(query, [queryValues], function(err, result) {
     if (err) return reject(err);
 
     resolve(result);
-  });
-});
+  })
+  dbConn.end()
+})
 exports.insertBuyTrade = insertTrade('buy');
 exports.insertSellTrade = insertTrade('sell');
 
@@ -251,12 +267,14 @@ exports.getCurrencyTrades = (algoId, abbrev, dateTimeFilter) =>
 
   query += ` ORDER BY date DESC`;
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
     resolve(results);
-  });
-});
+  })
+  dbConn.end()
+})
 
 
 exports.getAlgoCurrencyTrade = (algoId, abbrev, tradeId) =>
@@ -270,12 +288,14 @@ exports.getAlgoCurrencyTrade = (algoId, abbrev, tradeId) =>
       AND id = ?`;
   let queryValues = [algoId, abbrev, tradeId];
 
-  conn.query(query, queryValues, (err, result) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, result) => {
     if (err) return reject(err);
 
     return resolve(result[0]);
-  });
-});
+  })
+  dbConn.end()
+})
 
 
 /**
@@ -293,15 +313,17 @@ exports.getTradeTransactions = (abbrev, buyTradeId, sellTradeId) =>
     ORDER BY date`;
   const queryValues = [abbrev, buyTradeId, sellTradeId];
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
     if (results.length < 2) return reject('unable to get both buy and sell trade');
 
     if (results[0].transaction !== 'buy') return reject('buy trade should be before sell trade');
 
     return resolve(results);
-  });
-});
+  })
+  dbConn.end()
+})
 
 
 exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =>
@@ -321,7 +343,8 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
     AND id = ?`;
   const queryValues = [protoNo, abbrev, tradeId];
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
     if (results.length === 0) return resolve()
 
@@ -338,8 +361,9 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
     }
 
     return resolve(mappedResult);
-  });
-});
+  })
+  dbConn.end()
+})
 
 
 exports.getTradeV2 = (abbrev, tradeId) => new Promise((resolve, reject) => {
@@ -355,11 +379,13 @@ exports.getTradeV2 = (abbrev, tradeId) => new Promise((resolve, reject) => {
       AND id = ?`;
   const queryValues = [abbrev, tradeId];
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err)
 
     return resolve(results[0])
-  });
+  })
+  dbConn.end()
 });
 
 
@@ -371,23 +397,19 @@ exports.getProtoTrades = (protoNo) => new Promise((resolve, reject) => {
   `
   const queryValues = [protoNo]
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err)
 
     resolve(results);
-  });
-});
+  })
+  dbConn.end()
+})
 
 
-exports.getLastTrade = (protoNo, timeInterval, abbrev, currencyRateSource) =>
+exports.getLastTrade = (protoNo, timeInterval, abbrev, conn) => 
   new Promise((resolve, reject) =>
 {
-  const s = new Date()
-
-  const currencyRateSrcId = currencyRateSource === 'currency_rate'
-    ? 1
-    : 2;
-
   const query = `
     SELECT id, date, open_rate, closed, uuid
     FROM tradeV2
@@ -399,7 +421,8 @@ exports.getLastTrade = (protoNo, timeInterval, abbrev, currencyRateSource) =>
   `
   const queryValues = [protoNo, abbrev, timeInterval];
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = conn ? conn : db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
     if (!results || results.length === 0) return resolve();
@@ -411,34 +434,29 @@ exports.getLastTrade = (protoNo, timeInterval, abbrev, currencyRateSource) =>
       closed: results[0].closed,
       uuid: results[0].uuid
     };
-
-    const e = new Date()
-    const diff = e.getTime() - s.getTime()
-    const secondsDiff = diff / 1000
-    console.log(`getting last trade took --> ${secondsDiff}`)
-
     resolve(mappedResult);
-  });
-});
+  })
+  dbConn.end()
+})
 
 
-exports.createTrade = (data) => new Promise((resolve, reject) => {
+exports.createTrade = (data, conn = db()) => new Promise((resolve, reject) => {
   if (!data) return;
 
   let query = "INSERT INTO tradeV2 SET ?";
-  conn.query(query, data, (err, results) => {
-    if (err) {
+
+  const dbConn = conn
+  dbConn.query(query, data, (e, _) => {
+    if (e) {
       console.log('FAILED TO CREATE TRADE')
-      return reject(err);
+      console.log(e)
+      return reject(e);
     }
 
-    console.log('created trade ...... ')
-    console.log(data)
-
-
     resolve('created trade');
-  });
-});
+  })
+  dbConn.end()
+})
 
 
 exports.createTradeOandaTradeRel = (tradeUUID, oandaTradeId) => 
@@ -449,30 +467,46 @@ exports.createTradeOandaTradeRel = (tradeUUID, oandaTradeId) =>
     oanda_opentrade_id: oandaTradeId
   }
   let query = "INSERT INTO trade_oandatrade SET ?";
-  conn.query(query, data, (e) => {
-    if (e) return reject(e)
 
-    resolve('Created trade and Oanda trade relationship');
-  });
-});
-
-
-exports.updateTrade = (id, data) => new Promise((resolve, reject) => {
-  if (!data) return;
-
-  let query = 'UPDATE tradeV2 SET ? WHERE id = ?';
-
-  conn.query(query, [data, id], (err, result) => {
-    if (err) {
-      console.log('FAILED TO CLOSE TRADE')
-      return reject(err);
+  const dbConn = db()
+  dbConn.query(query, data, (e) => {
+    if (e) {
+      console.log('failed to create oanda trade relationship ??')
+      return reject(e)
     }
 
-    console.log('closed trade')
-    console.log(data)
+    resolve('Created trade and Oanda trade relationship');
+  })
+  dbConn.end()
+})
 
+
+exports.updateTrade = (uuid, data) => new Promise((resolve, reject) => {
+  if (!data) return;
+
+  let query = 'UPDATE tradeV2 SET ? WHERE uuid = ?';
+
+  const dbConn = db()
+  dbConn.query(query, [data, uuid], (err) => {
+    if (err) {
+      console.log(err)
+      console.log('FAILED TO CLOSE TRADE')
+
+      console.log('query >>')
+      console.log(query)
+
+      console.log('data >>>')
+      console.log(data)
+
+      console.log('uuid >>')
+      console.log(uuid)
+
+      
+      return reject(err);
+    }
     resolve('updated trade');
   })
+  dbConn.end()
 })
 
 exports.getOandaTradeRel = (select, where) => new Promise((resolve, reject) => {
@@ -480,7 +514,7 @@ exports.getOandaTradeRel = (select, where) => new Promise((resolve, reject) => {
 
   let query = `SELECT ${select.join()} FROM trade_oandatrade`;
   const queryValues = [];
-  let i=0
+  let i = 0
   for (let [k, v] of Object.entries(where)) {
     if (i === 0) query += ' WHERE'
     else query += ' AND'
@@ -489,13 +523,14 @@ exports.getOandaTradeRel = (select, where) => new Promise((resolve, reject) => {
     queryValues.push(v)
   }
 
-  conn.query(query, queryValues, (err, results) => {
+  const dbConn = db()
+  dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err)
 
     if (results.length === 1) return resolve(results[0])
-
     resolve(results)
   })
+  dbConn.end()
 })
 
 exports.getTradeJoinOandaTrade = (id) => new Promise((resolve, reject) => {
@@ -505,13 +540,15 @@ exports.getTradeJoinOandaTrade = (id) => new Promise((resolve, reject) => {
     FROM tradeV2
     INNER JOIN trade_oandatrade oandaTrade
       ON oandaTrade.trade_uuid = tradeV2.uuid
-    WHERE tradeV2.id = ?`
-  
-  conn.query(query, [id], (e, results) => {
+    WHERE tradeV2.id = ?
+  `
+  const dbConn = db()
+  dbConn.query(query, [id], (e, results) => {
     if (e) return reject(e)
 
     resolve(results[0])
   })
+  dbConn.end()
 })
 
 exports.updateOandaTradeRel = (data, uuid) => new Promise((resolve, reject) => {
@@ -519,9 +556,116 @@ exports.updateOandaTradeRel = (data, uuid) => new Promise((resolve, reject) => {
 
   const query = "UPDATE trade_oandatrade SET ? WHERE trade_uuid = ?"
   
-  conn.query(query, [data, uuid], (e) => {
+  const dbConn = db()
+  dbConn.query(query, [data, uuid], (e) => {
     if (e) return reject(e)
 
     resolve('updated trade_oandatrade')
   })
+  dbConn.end()
+})
+
+
+exports.getPrototypeAbbrevLatestTrades = (abbrev, interval) => 
+  new Promise((resolve, reject) => 
+{
+  const query = `
+    SELECT 
+      t.id, 
+      t.uuid,
+      t.proto_no AS prototypeNo, 
+      t.abbrev, 
+      t.date, 
+      t.closed, 
+      t.open_rate AS openRate, 
+      t.time_interval AS timeInterval
+    FROM stelita.tradeV2 t
+    INNER JOIN (
+      SELECT proto_no, abbrev, MAX(date) date
+      FROM stelita.tradeV2
+      GROUP BY proto_no, abbrev
+    ) b ON b.proto_no = t.proto_no AND b.abbrev = t.abbrev AND b.date = t.date 
+    WHERE t.time_interval = ?
+		AND t.abbrev = ?
+    ORDER BY t.proto_no ASC;
+  `
+  const queryValues = [interval, abbrev]
+
+  const dbConn = db()
+  dbConn.query(query, queryValues, (e, results) => {
+    if (e) return reject(e)
+
+    resolve(results)
+  })
+  dbConn.end()
+})
+
+
+exports.updateTradesToClosed = (trades, abbrevRates) => 
+  new Promise((resolve, reject) => 
+{
+  const closeDate = formatMysqlDate(new Date())
+  const preparedTrades = trades.map((x) => ({
+    id: x.id,
+    data: {
+      closed: true,
+      close_rate:  abbrevRates.find(y => y.abbrev === x.abbrev).exchangeRate,
+      close_date: closeDate,
+    }
+  }))
+
+  let queries = ''
+  preparedTrades.forEach((trade, i) => {
+    queries += mysql.format('UPDATE tradeV2 SET ? WHERE id = ?; ', [trade.data, trade.id])
+  })
+
+  const dbConn = db()
+  dbConn.query(queries, (e) => {
+    if (e) {
+      console.error(e)
+      return reject()
+    }
+
+    resolve()
+  })
+  dbConn.end()
+})
+
+
+exports.getOandaTrades = (UUIDs) => new Promise((resolve, reject) => {
+  const query = `
+    SELECT ot.trade_uuid AS uuid,
+      ot.oanda_opentrade_id AS oandaOpenTradeId,
+      ot.oanda_closetrade_id AS oandaCloseTradeId,
+      open_ott.json AS openTradeTransactionJson,
+      close_ott.json AS closeTradeTransactionJson
+    FROM trade_oandatrade ot
+
+    LEFT JOIN oanda_trade_transactions open_ott
+      ON open_ott.trade_id = ot.oanda_opentrade_id
+
+    LEFT JOIN oanda_trade_transactions close_ott
+      ON close_ott.trade_id = ot.oanda_closetrade_id
+    
+    WHERE ot.trade_uuid in (?)
+  `
+  const dbConn = db()
+  dbConn.query(query, [UUIDs], (e, results) => {
+    if (e) return reject(e)
+
+    results.forEach((r) => {
+      r.oandaPips = calcOandaPipsFromTransactions(
+        r.openTradeTransactionJson, 
+        r.closeTradeTransactionJson
+      )
+
+      const openTransaction = JSON.parse(r.openTradeTransactionJson)
+      const bid = openTransaction.fullPrice.bids[0].price
+      const ask = openTransaction.fullPrice.asks[0].price
+      r.oandaBidAskSpread = calculatePip(bid, ask)
+    })
+
+    resolve(results)
+  })
+  dbConn.end()
 })

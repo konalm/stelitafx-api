@@ -1,49 +1,46 @@
-console.log('process interval file !!!')
-
 const wmaService = require('./wma/service')
+const movingAverageService = require('./movingAverage/service')
 const prototypeIni = require('./algorithms/ini')
-const { TIME_INTERVALS } = require('./config')
+const { TIME_INTERVALS, HOUR_INTERVALS  } = require('./config')
 const { storeStochastic } = require('./stochastic/service')
+const secondsBetweenDates = require('./services/secondsBetweenDates')
+// const dbConnections = require('./dbConnections')
 
-const currencyRateSource = [
-  'currency_rate',
-  // 'fixerio_currency_rate'
-]
-
-const intervalArg = process.argv.slice(2, 3)[0];
+const intervalArg = process.argv.slice(2, 3)[0]
 const interval = parseInt(intervalArg)
 
 if (isNaN(interval)) throw new Error('Interval must be a number')
 
-if (!TIME_INTERVALS.includes(interval)) throw new Error(`${interval}, is not a valid interval`)
+if (!TIME_INTERVALS.includes(interval) && !HOUR_INTERVALS.includes(interval / 60)) {
+  throw new Error(`${interval}, is not a valid interval`)
+}
 
+// dbConnections('process interval ' + interval)
 
 const startDate = new Date()
 
-console.log(`PROCESS INTERVAL ... ${interval}`)
+
+console.log('PROCESS INTERVAL ' + interval)
 
 
 Promise.all([
   wmaService.storeWMAData(interval, 'currency_rate'),
+  movingAverageService.storeMovingAverageData(interval, 'currency_rate'),
   storeStochastic(interval)
 ])
   .then(() => {
-    console.log('THEN >> store wma, store stochastic COMPLETE')
+    prototypeIni(interval)
+      .then(() => {   
+        console.log(`interval ${interval} .. took ${secondsBetweenDates(startDate)}`)
+        // mongoose.connection.close()
+        process.exit(interval)
+      })
+      .catch(() => {
+        console.error('prototype INI FAIL !!!')
+        // mongoose.connection.close()
 
-    currencyRateSource.forEach((src) => {
-      prototypeIni(interval, src)
-        .then(() => {
-          const endDate = new Date()
-          const diff = endDate.getTime() - startDate.getTime()
-          const secondsDiff = diff / 1000
-          console.log(`interval ${interval} process took ${secondsDiff}`)
-          process.exit(interval)
-        })
-        .catch(() => {
-          console.error('protype INI FAIL !!!')
-          process.exit(`fail for ${interval}`)
-        })
-    })
+        process.exit(`fail for ${interval}`)
+      })
   })
   .catch(e => {
     console.log(e)
