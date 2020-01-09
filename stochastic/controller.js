@@ -33,36 +33,34 @@ exports.getStochasticForTrade = async (req, res) => {
   const abbrev = `${currency}/USD`
   const abbrevInstrument = `${currency}_USD`
 
-  // let trade
-  // try {
-  //   trade = await getTradeV2(abbrev, tradeId)
-  // } catch (e) {
-  //   return res.status(500).send('Failed to get trade')
-  // }
-  // if (!trade) return res.status(404).send('could not find trade')
-
-
-  let trade 
+  let trade
   try {
-    trade = await tradeMongoRepo.getPrototypeIntervalCurrencyTrade(
-      prototypeNumber,
-      parseInt(interval),
-      abbrevInstrument,
-      tradeUUID
-    )
+    trade = await getTradeV2(abbrev, tradeUUID)
   } catch (e) {
     return res.status(500).send('Failed to get trade')
   }
+  if (!trade) return res.status(404).send('could not find trade')
 
-  console.log('trade >>>')
-  console.log(trade)
+
+  // let trade 
+  // try {
+  //   trade = await tradeMongoRepo.getPrototypeIntervalCurrencyTrade(
+  //     prototypeNumber,
+  //     parseInt(interval),
+  //     abbrevInstrument,
+  //     tradeUUID
+  //   )
+  // } catch (e) {
+  //   return res.status(500).send('Failed to get trade')
+  // }
+
 
   let stochastics
   try {
     stochastics = await repository.getStochasticsBetweenDates(
       abbrev,
       interval,
-      trade.date,
+      trade.openDate,
       trade.closeDate,
       40
     )

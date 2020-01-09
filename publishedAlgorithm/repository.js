@@ -8,11 +8,11 @@ exports.getAll = () => new Promise((resolve, reject) => {
     FROM published_algorithm
   `
   dbConn.query(query, (e, results) => {
+    dbConn.end()
     if (e) return reject(e)
 
     resolve(results)
   })
-  dbConn.end()
 })
 
 exports.get = (prototypeNo, timeInterval) => new Promise((resolve, reject) => {
@@ -26,11 +26,10 @@ exports.get = (prototypeNo, timeInterval) => new Promise((resolve, reject) => {
   `
   const queryValues = [prototypeNo, timeInterval]
 
-
   dbConn.query(query, queryValues, (e, results) => {
+    dbConn.end()
     if (e) return reject(e)
 
     resolve (results)
   })
-  dbConn.end()
 })

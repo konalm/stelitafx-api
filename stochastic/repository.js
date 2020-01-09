@@ -13,7 +13,11 @@ exports.saveStochastic = (abbrev, timeInterval, stochastic, conn) =>
     stochastic
   }
   conn.query(query, data, (e) =>  {
-    if (e) return reject(`Failed to save stochastic oscilator: ${e}`)
+    if (e) {
+      console.log('Failed to save stochastic')
+      return reject(`Failed to save stochastic oscilator: ${e}`)
+    }
+
     resolve()
   })
 })
@@ -34,11 +38,36 @@ exports.getStochastics = (abbrev, timeInterval, count, offset) =>
   const queryValues = [abbrev, timeInterval, parseInt(count), parseInt(offset)]
 
   dbConn.query(query, queryValues, (e, results) => {
+    dbConn.end()
     if (e) return reject(`Failed to get stochastics`)
 
     resolve(results)
   })
-  dbConn.end()
+})
+
+
+exports.getStochastics = (abbrev, interval, amount, offset = 1) =>
+  new Promise((resolve, reject) => 
+{
+  let query = `
+    SELECT stochastic, date 
+    FROM stochastic_oscilator 
+    WHERE abbrev = ?
+    AND time_interval = ?
+    ORDER BY date DESC
+    LIMIT ?
+    OFFSET ?
+  `
+  const queryValues = [abbrev, interval, amount, offset]
+
+  const conn = db()
+  conn.query(query, queryValues, (e, results) => {
+    if (e) return reject(e)
+
+    if (amount === 1) return resolve(results[0])
+
+    resolve(results)
+  })
 })
 
 
@@ -59,12 +88,12 @@ exports.getLatestStochastic = (abbrev, interval, limit = 1) =>
   const queryValues = [abbrev, interval, limit]
 
   dbConn.query(query, queryValues, (e, results) => {
+    dbConn.end()
     if (e) return reject(`Failed to get latest stochastic`)
 
     if (limit === 1) return resolve(results[0].stochastic)
     resolve(results.map(x => x.stochastic))
   })
-  dbConn.end()
 })
 
 
@@ -85,9 +114,9 @@ exports.getStochasticsBetweenDates = (abbrev, interval, startDate, endDate, buff
   const queryValues = [abbrev, interval, startDate, intervalBuffer, endDate, intervalBuffer]
 
   dbConn.query(query, queryValues, (e, results) => {
+    dbConn.end()
     if (e) return reject(e)
 
     resolve(results)
   })
-  dbConn.end()
 })

@@ -2,12 +2,9 @@ const config = require('../config');
 const majorCurrencies = config.MAJOR_CURRENCIES
 const quoteCurrency = config.QUOTE_CURRENCY;
 const tradeService = require('../trade/service');
-const tradeMongoRepo = require('../trade/mongoRepository')
+// const tradeMongoRepo = require('../trade/mongoRepository')
 const tradeRepo = require('../trade/repository')
 const indicators = require('./indicators')
-const service = require('./service')
-const secondsBetweenDates = require('../services/secondsBetweenDates')
-const dbConnections = require('../dbConnections')
 
 
 module.exports = async (
@@ -23,7 +20,6 @@ module.exports = async (
 {
   const abbrev = `${currency}/${quoteCurrency}`
 
-  // await dbConnections('getting opening trade')
   let s = new Date()
 
   /* opening trade */
@@ -31,8 +27,6 @@ module.exports = async (
 
   let openingTrade;
   try {
-    // openingTrade = await tradeMongoRepo.getLastTrade(protoNo, abbrev, timeInterval)
-    // openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev, conn)
     openingTrade = await tradeService.getCachedLastTrade(protoNo, abbrev, timeInterval)
   } catch (e) {
     // console.log(e)
@@ -42,19 +36,15 @@ module.exports = async (
   }
 
   if (!gotCachedLastTrade) {
-    console.log('No cached last trade :(')
-
     try {
-      // openingTrade = await tradeMongoRepo.getLastTrade(protoNo, abbrev, timeInterval)
       openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev, conn)
     } catch (e) {
       gotCachedLastTrade = false 
       console.error(`Failed to get last trade for prototype ${protoNo}, 
         abbrev ${abbrev}, interval ${timeInterval}`)
     }
-  } else {
-    console.log('Got cached last trade :)')
   }
+
 
   const data = indicators.dataForIndicators(
     abbrev, 
@@ -65,22 +55,10 @@ module.exports = async (
   
   if (!openingTrade || openingTrade.closed) {
     const openConditionsMet = indicators.indicatorsTriggered(data, openConditions)
-    
+
     if (openConditionsMet) {
       s = new Date()
-
-      let openStats
-      try {
-        openStats = await service.stats(data, abbrev)
-      } catch (e) {
-        console.log(`Failed to get open starts: ${e}`)
-      }
-
-      console.log(`getting open stats ... ${secondsBetweenDates(s)}`)
-
-      s = new Date()
-
-      // await dbConnections('opening trade')
+      let openStats = ''
 
       try {
         await tradeService.openTrade(
@@ -97,9 +75,8 @@ module.exports = async (
         console.error(e)
         return reject(`Failed to open trade`)
       }
-
-      console.log(`opening trade took ... ${secondsBetweenDates(s)}`)
     }
+
     return resolve()
   } 
 
@@ -108,12 +85,6 @@ module.exports = async (
   if (closeConditionsMet) {
     const indicatorStateOnClose = indicators.indicators(data);
     const closeNotes = { data, indicatorState: indicatorStateOnClose }
-
-    let s = new Date()
-
-    // await dbConnections('closing trade')
-
-    s = new Date()
 
     await tradeService.closeTrade(
       protoNo, 
@@ -124,8 +95,6 @@ module.exports = async (
       openingTrade,
       currencyRateSource
     );
-
-    console.log(`closing trade took ... ${secondsBetweenDates(s) }`)
   }
 
   return resolve()

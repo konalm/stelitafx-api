@@ -59,9 +59,12 @@ exports.indicators = (data) => {
     fortyFiveMinsSinceTrade: data.openingTrade
       ? service.minsSinceOpeningTrade(data.openingTrade.openDate) >= 45
       : 0,
-    stochasticBelowTwenty: data.stochastic <= 20,
-    stochasticOverEighty: data.stochastic >= 80,
-    currentRateUnderNineMovingAverage: data.currentRate <= data.movingAverages.movingAverages['9']
+    stochasticBelowTwenty: data.stochastic.current <= 20,
+    stochasticOverEighty: data.stochastic.current >= 80,
+    prevStochasticBelowTwenty: data.stochastic.prev <= 20,
+    stochasticIncreased: data.stochastic.current > data.stochastic.prev,
+    currentRateUnderNineMovingAverage: service.currentRateUnderShortWMA(data.currentRate, data.WMAs, 9),
+    prevStochasticAboveTwentyCurrentBelow: data.stochastic.prev >= 20 && data.stochastic.current < 20
   }
 }
 

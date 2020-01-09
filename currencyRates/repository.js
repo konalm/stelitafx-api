@@ -1,6 +1,8 @@
 const conn = require('../db');
 const db = require('../dbInstance');
 const getIntervalMins = require('../services/intervalMins')
+const secondsBetweenDates = require('../services/secondsBetweenDates')
+
 
 exports.getMultiRates = () => new Promise((resolve, reject) => {
   const dbConn = db()
@@ -74,6 +76,8 @@ exports.GetCurrencyLatestRates = (
     LIMIT ?
   `
   const limit = ratesAmount + historicalCount
+
+  const s = new Date()
 
   conn.query(query, [currencyAbbrev, limit], (e, results) => {
     if (e) return reject('Failed Getting currency latest rates');
@@ -152,15 +156,17 @@ exports.getCurrenciesRates = (abbrev, count = 100) => new Promise((resolve, reje
     LIMIT ?
   `
   dbConn.query(query, [abbrev, count], (err, results) => {
+    dbConn.end()
     if (err) return reject(err);
 
     resolve(results);
   })
-  dbConn.end()
 })
 
 
 exports.getAbbrevLatestRates = () => new Promise((resolve, reject) => {
+  console.log('get abbrev latest rates')
+
   const dbConn = db()
 
   const query = `
@@ -176,11 +182,18 @@ exports.getAbbrevLatestRates = () => new Promise((resolve, reject) => {
     ) b ON b.abbrev = c.abbrev  AND b.date = c.date 
   `
   dbConn.query(query, (e, results) => {
-    if (e) return reject(e)
+    console.log('got abbrev latest rates :)')
+    
+    dbConn.end()
+
+    if (e) {
+      console.log('Failed to get abbrev lates rates')
+      console.log(e)
+      return reject(e)
+    }
 
     resolve(results)
   })
-  dbConn.end()
 })
 
 
@@ -195,9 +208,9 @@ exports.getAbbrevLatestRate = (abbrev) => new Promise((resolve, reject) => {
     LIMIT 1
   `
   conn.query(query, [abbrev], (e, results) => {
+    conn.end()
     if (e) return reject(e)
 
     resolve(results.rate)
   })
-  conn.end()
 })

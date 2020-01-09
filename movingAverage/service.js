@@ -8,6 +8,8 @@ const MALengths = [9]
 exports.storeMovingAverageData = (interval, currencyRateSrc = 'currency_rate') => 
   new Promise((resolve, reject) => 
 {
+  console.log('store moving average')
+
   const currencies = config.MAJOR_CURRENCIES
   const quoteCurrency = config.QUOTE_CURRENCY
 
@@ -23,10 +25,12 @@ exports.storeMovingAverageData = (interval, currencyRateSrc = 'currency_rate') =
 
   Promise.all(storeCurrencyPromises)
   .then(() => {
+    console.log('store moving average .. success')
     conn.end()
     resolve('sucessfully stored currencies');
   })
   .catch(e => {
+    console.log('store moving average .. fail')
     console.log(e)
     conn.end()
     console.log('FAILED TO STORE MA DATA')
@@ -41,7 +45,7 @@ exports.storeMovingAverageData = (interval, currencyRateSrc = 'currency_rate') =
 const storeCurrencyMovingAverageData = (abbrev, interval, conn) => 
   new Promise(async (resolve, reject) => 
 {
-  console.log('store currency MA data')
+  // console.log('store currency MA data')
 
   let rateData
   try {
@@ -65,9 +69,6 @@ const storeCurrencyMovingAverageData = (abbrev, interval, conn) =>
 
   Promise.all(movingAveragePromises)
     .then(async (values) => {
-      console.log('values >>')
-      console.log(values)
-
       const movingAverageData = []
       MALengths.forEach((length, index) => {
         movingAverageData.push({ length, movingAverage: values[index] })
@@ -99,17 +100,15 @@ const storeCurrencyMovingAverageData = (abbrev, interval, conn) =>
  * Calculate moving average for passed length
  */
 const calcMovingAverage = async (abbrev, MALength, interval, conn) => {
-  console.log('calculate moving average')
-
   let rates = [];
   try {
     rates = await currencyRatesRepo.GetCurrencyLatestRates(
-                            abbrev,
-                            MALength,
-                            0,
-                            interval,
-                            conn
-                          );
+                    abbrev,
+                    MALength,
+                    0,
+                    interval,
+                    conn
+                  );
   } catch (err) {
     throw new Error('Error Getting WMA Data points: ' + err);
   }

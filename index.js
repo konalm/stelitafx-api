@@ -9,8 +9,8 @@ app.use(bodyParser.urlencoded())
 /**
  * Mongo db connection
  */
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/stelitafx', {useNewUrlParser: true});
+// const mongoose = require('mongoose');
+// mongoose.connect('mongodb://localhost:27017/stelitafx', {useNewUrlParser: true});
 
 
 const port = 8686

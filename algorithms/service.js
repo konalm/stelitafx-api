@@ -5,6 +5,7 @@ const tradeRepo = require('../trade/repository');
 const calculatePip = require('../services/calculatePip')
 const calculateVolatility = require('../services/calculateVolatility')
 const dbConnections = require('../dbConnections')
+const stochasticsRepo = require('../stochastic/repository')
 
 
 exports.getCurrentAndPrevWMAs = async (
@@ -26,12 +27,19 @@ exports.getCurrentAndPrevWMAs = async (
   const WMA = wmaDataPoints[0];
   const prevWMA = wmaDataPoints.length > 1 ? wmaDataPoints[1] : null;
 
-  const e = new Date()
-  const diff = e.getTime() - s.getTime()
-  const secondsDiff = diff / 1000
-  // console.log(`getting current & prev WMAs took --> ${secondsDiff}`)
 
   return {WMA, prevWMA};
+}
+
+exports.getCurrentAndPrevStochastic = async (abbrev, interval) => {
+  let stochastics
+  try {
+    stochastics = await stochasticsRepo.getStochastics(abbrev, interval, 2, 0)
+  } catch (e) {
+    throw new Error(`Could not get stochastics: ${e}`)
+  }
+
+  return { current: stochastics[0].stochastic, prev: stochastics[1].stochastic }
 }
 
 exports.getMovingAverages = async (

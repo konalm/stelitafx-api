@@ -11,11 +11,11 @@ exports.getProtos = new Promise((resolve, reject) => {
     FROM algorithm
   `
   dbConn.query(query, (err, results) => {
+    dbConn.end()
     if (err) return reject('Error getting algorithms');
 
     resolve(results);
   })
-  dbConn.end()
 })
 
 
@@ -32,9 +32,9 @@ exports.getProto = (protoNo) => new Promise((resolve, reject) => {
   const queryValues = [protoNo];
 
   dbConn.query(query, queryValues, (err, results) => {
+    dbConn.end()
     if (err) return reject(err);
 
     resolve(results[0]);
   })
-  dbConn.end()
 })

@@ -24,13 +24,15 @@ exports.openTrade = async (
   currencyRateSource,
   conn = db()
 ) => {
+  // console.log('TRADE SERVICE .. OPEN TRADE')
+
   const uuid = uuidGenerator();
   const abbrev = `${currency}/USD`
   const trade = {
     proto_no: protoNo,
     abbrev,
     open_rate: rate,
-    open_notes: notes,
+    open_notes: '',
     open_stats: stats,
     time_interval: timeInterval,
     account: null,
@@ -54,7 +56,7 @@ exports.openTrade = async (
   }
 
 
-  console.log('store last trade to json file')
+  // console.log('store last trade to json file')
   try {
     await cacheLastTrade(trade)
   } catch (e) {
@@ -135,7 +137,7 @@ exports.closeTrade = async (
   const trade = {
     close_rate: rate,
     close_date: moment(now.toISOString()).format('YYYY-MM-DD HH:mm:ss'),
-    close_notes: notes,
+    close_notes: '',
     closed: true,
     account: null
   }
@@ -307,7 +309,7 @@ exports.getCachedLastTrade = async (prototypeNo, abbrev, interval) => {
 
   let trade 
   try {
-    trade = await JSON.parse(await fs.readFileSync(path, 'utf8'))
+    trade = JSON.parse(await fs.readFileSync(path, 'utf8'))
   } catch (e) {
     // console.log(e)
     throw new Error('Failed to read cached last trade')

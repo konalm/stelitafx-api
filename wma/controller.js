@@ -108,25 +108,25 @@ exports.getWMAsForTrade = async (req, res) => {
   const abbrev = `${currency}/USD`;
   const abbrevInstrument = `${currency}_USD`
 
-  // let trade;
-  // try {
-  //   trade = await tradeRepo.getTradeV2(abbrev, tradeId)
-  // } catch (err) {
-  //   return res.status(500).send('could not get trade');
-  // }
-  // if (!trade) return res.status(404).send('could not find trade');
-
-  let trade 
+  let trade;
   try {
-    trade = await tradeMongoRepo.getPrototypeIntervalCurrencyTrade(
-      prototypeNumber,
-      parseInt(interval),
-      abbrevInstrument,
-      tradeUUID
-    )
-  } catch (e) {
-    return res.status(500).send('Failed to get trade')
+    trade = await tradeRepo.getTradeV2(abbrev, tradeUUID)
+  } catch (err) {
+    return res.status(500).send('could not get trade');
   }
+  if (!trade) return res.status(404).send('could not find trade');
+
+  // let trade 
+  // try {
+  //   trade = await tradeMongoRepo.getPrototypeIntervalCurrencyTrade(
+  //     prototypeNumber,
+  //     parseInt(interval),
+  //     abbrevInstrument,
+  //     tradeUUID
+  //   )
+  // } catch (e) {
+  //   return res.status(500).send('Failed to get trade')
+  // }
 
   console.log(trade)
 
@@ -135,7 +135,7 @@ exports.getWMAsForTrade = async (req, res) => {
     WMADataPoints =
       await repo.getWMAsBetweenDates(
         abbrev, 
-        trade.date, 
+        trade.openDate, 
         trade.closeDate, 
         interval,
         40

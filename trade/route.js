@@ -22,8 +22,8 @@ module.exports = (app) => {
 
   app.route('/protos/:protoNo/intervals/:interval/currencies/:currency/trades/:tradeId')
     .get(controller.getTradeV2);
-  app.route('/next-trade/:tradeId').get(controller.getNextTrade);
-  app.route('/prev-trade/:tradeId').get(controller.getPrevTrade);
+  app.route('/next-trade/:tradeUUID').get(controller.getNextTrade);
+  app.route('/prev-trade/:tradeUUID').get(controller.getPrevTrade);
   app.route('/trade/:tradeId/viewed').get(controller.updateTradeToViewed);
   app.route('/proto/:protoNo/interval/:interval/currency/:currency/last-trade')
     .get(controller.getLastProtoIntervalCurrencyTrade);

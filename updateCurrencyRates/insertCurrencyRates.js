@@ -6,6 +6,8 @@ const dbConnections = require('../dbConnections')
 
 
 module.exports = () => new Promise(async (resolve, _) => {
+  console.log('insert currency rate')
+
   Promise.all([
     uploadOandaFXAccountCurrencyRates(), 
     // uploadFixerioCurrencyRates()
@@ -74,14 +76,19 @@ const insertCurrencyRates = (currencyRates, tableName) =>
     queryValues.push([abbrev, value]);
   }
 
+  // console.log('query values >>>>')
+  // console.log(queryValues)
 
   const dbConn = db()
   dbConn.query(query, [queryValues], (err, result) => {
-    if (err) return reject(err);
+    dbConn.end()
+    if (err) {
+      console.log('Failed to insert currency rate')
+      return reject(err);
+    }
 
     resolve()
   })
-  dbConn.end()
 })
 
 
@@ -118,9 +125,9 @@ const insertMultiRates = (currencyRates) => new Promise(async (resolve, reject) 
 
   const dbConn = db()
   dbConn.query(query, [queryValues], (e) => {
+    dbConn.end()
     if (e) return reject(err);
 
     resolve();
   })
-  dbConn.end()
 })

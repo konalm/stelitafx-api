@@ -34,6 +34,8 @@ exports.calculateStochastic = async (abbrev, timeInterval, conn) => {
 
 
 exports.storeStochastic = (timeInterval) => new Promise(async (resolve, reject) => {
+  // console.log('store stochastic')
+
   const storeStochasticPromises = []
   const conn = db()
 
@@ -45,8 +47,12 @@ exports.storeStochastic = (timeInterval) => new Promise(async (resolve, reject) 
   try {
     await Promise.all(storeStochasticPromises)
   } catch (e) {
+    console.log('failed to store stochastics')
+    console.log(e)
     return reject(`Failed to store stochastic currencies`)
   }
+
+  // console.log('successfully store stochastics')
 
   resolve()
 })
@@ -61,6 +67,7 @@ const storeStochasticForCurrency = (abbrev, timeInterval, conn) =>
   try {
     stochastic = await this.calculateStochastic(abbrev, timeInterval, conn)
   } catch (e) {
+    console.log('Failed to calculate stochastic')
     console.log(e)
     throw new Error(`Failed to get stochastic: ${e}`)
   }

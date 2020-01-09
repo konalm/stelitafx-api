@@ -5,8 +5,10 @@ const getWMA = require('../services/getWMA');
 const currencyRatesRepo = require('../currencyRates/repository');
 const repo = require('./repository');
 const currencyRatesService = require('../currencyRates/service');
+const secondsBetweenDates = require('../services/secondsBetweenDates')
+
 const dbConnections = require('../dbConnections')
-const WMALengths = [5, 12, 15, 36, 200];
+const WMALengths = [5, 9, 12, 15, 36, 200];
 
 
 /**
@@ -80,10 +82,14 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
 exports.storeWMAData = (timeInterval, currencyRateSource = 'currency_rate') => 
   new Promise((resolve, reject) => 
 {
+  // console.log('store wma data')
+
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
 
   const conn = db()
+
+  const s = new Date()
 
   storeCurrencyPromises = [];
   currencies.forEach((currency) => {
@@ -95,10 +101,15 @@ exports.storeWMAData = (timeInterval, currencyRateSource = 'currency_rate') =>
 
   Promise.all(storeCurrencyPromises)
     .then(() => {
+      // console.log('store wma success !!')
+      // console.log( secondsBetweenDates(s) )
+
       conn.end()
       resolve('sucessfully stored currencies');
     })
     .catch(err => {
+      console.log('store wma fail :(')
+
       conn.end()
       console.log('FAILED TO STORE WMA DATA')
       reject(`Failed to store currencies: ${err}`);
@@ -111,8 +122,6 @@ exports.storeWMAData = (timeInterval, currencyRateSource = 'currency_rate') =>
 const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) => 
   new Promise(async (resolve) =>
 {
-  console.log('store currency wma data')
-
   // await dbConnections('get currency latest rates for store WMA data')
 
   let rateData;

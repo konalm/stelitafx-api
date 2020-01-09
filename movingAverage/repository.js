@@ -44,7 +44,12 @@ exports.getMovingAverages = (
 
   const conn = db()
   conn.query(query, queryValues, (e, results) => {
-    if (e) return reject(e)
+    conn.end()
+    
+    if (e) {
+      console.log('failed to get moving averages')
+      return reject(e)
+    }
 
     if (!results || results.length === 0) return resolve([]);
 
@@ -65,5 +70,4 @@ exports.getMovingAverages = (
 
     resolve(dataPoints)
   })
-  conn.end()
 })

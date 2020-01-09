@@ -8,7 +8,6 @@ const uuidGen = require('uuid/v1')
 
 module.exports = async (algorithm, data) => {
   console.log('Story Framework !!')
-  console.log(data)
 
   /* 1. Read prototype */
   let storyPrototype
@@ -17,7 +16,7 @@ module.exports = async (algorithm, data) => {
       fs.readFileSync(`${__dirname}/storyPrototype#${algorithm.prototype}.json`, 'utf8')
     )
   } catch (e) {
-   throw new Error(`Failed to read story prototype #${algorithm.prototype}`)
+   return console.error(`Failed to read story prototype #${algorithm.prototype}`)
  }
 
   /* 2. Get the prototype current step */
@@ -25,8 +24,7 @@ module.exports = async (algorithm, data) => {
   try {
     prototypeStep = await getPrototypeCurrentStep(storyPrototype, algorithm)
   } catch (e) {
-    console.log(e)
-    throw new Error('Failed to get prototype step')
+    return console.error('Failed to get prototype step')
   }
 
   /* 3. Check if prototype completed current step */
@@ -34,13 +32,11 @@ module.exports = async (algorithm, data) => {
   if (!currentStepComplete) return
   // console.log('3. current step is complete')
 
-  console.log('completed a step :)')
-
   /* 4. Step complete? audit the completed step */
   try {
     createTradeStoryStep(algorithm, prototypeStep.storyId, prototypeStep.step, false)
   } catch (e) {
-    throw new Error(`Failed to create trade story step: ${e}`)
+    return console.error(`Failed to create trade story step: ${e}`)
   }
 
   /* 5. Action ? open or close trade */ 
@@ -48,8 +44,7 @@ module.exports = async (algorithm, data) => {
   try {
     await actOnPrototypeStep(prototypeStep.stepType, algorithm, data, prototypeStep.storyId)
   } catch (e) {
-    console.log(e)
-    throw new Error('Failed to act on prototype step')
+    return console.error('Failed to act on prototype step')
   }
 }
 

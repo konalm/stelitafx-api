@@ -4,20 +4,21 @@ const db = require('../dbInstance')
 const calculatePip = require('../services/calculatePip')
 const calcOandaPipsFromTransactions = require('../services/calcOandaPipsFromTransactions')
 const formatMysqlDate = require('../services/formatMysqlDate')
+const secondsBetweenDates = require('../services/secondsBetweenDates')
 
 
 exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reject) => {
+  const s = new Date()
   const dbConn = db()
   let query = `
     SELECT
       t.id,
       t.abbrev,
+      t.uuid,
       t.open_rate AS openRate,
       t.date AS openDate,
       t.close_rate AS closeRate,
       t.close_date AS closeDate,
-      t.open_notes AS openNotes,
-      t.close_notes AS closeNotes,
       t.time_interval AS timeInterval,
       t.account,
       t.viewed,
@@ -55,8 +56,13 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
 
   query += ' ORDER BY close_date DESC'
 
-  dbConn.query(query, queryValues, (err, results) => {
-    if (err) return reject(err)
+  conn.query(query, queryValues, (err, results) => {
+    dbConn.end()
+
+    if (err) {
+      console.log('Failed to get trades')
+      return reject(err)
+    }
 
     results.forEach((r) => {
       r.pips = calculatePip(r.openRate, r.closeRate, conditions.abbrev)
@@ -72,20 +78,23 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
 
     resolve(results)
   })
-  dbConn.end()
 })
 
 
-exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
+exports.getNextTrade = (tradeUUID) => new Promise(async (resolve, reject) => {
   let trade;
   try {
-    trade = await this.getTradeById(tradeId);
+    trade = await this.getTradeByUUID(tradeUUID);
   } catch (err) {
     return reject('Could not get trade');
   }
 
+  console.log(trade)
+  
+  if (!trade) return reject(`Could not find trade with UUID: ${tradeUUID} `)  
+
   const query = `
-    SELECT id FROM tradeV2
+    SELECT uuid FROM tradeV2
     WHERE proto_no = ?
       AND abbrev = ?
       AND close_date > ?
@@ -99,22 +108,24 @@ exports.getNextTrade = (tradeId) => new Promise(async (resolve, reject) => {
   dbConn.query(query, queryValues, (err, results) => {
     if (err) return reject(err);
 
-    return results.length > 0 ? resolve(results[0].id) : resolve();
+    return results.length > 0 ? resolve(results[0].uuid) : resolve();
   })
   dbConn.end()
 })
 
 
-exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
+exports.getPrevTrade = (tradeUUID) => new Promise(async (resolve, reject) => {
+console.log('get prev trade')
+
  let trade;
  try {
-   trade = await this.getTradeById(tradeId);
+   trade = await this.getTradeByUUID(tradeUUID);
   } catch (err) {
     return reject('Could not get trade');
   }
 
   const query = `
-    SELECT id FROM tradeV2
+    SELECT uuid FROM tradeV2
     WHERE proto_no = ?
       AND abbrev = ?
       AND close_date < ?
@@ -125,11 +136,12 @@ exports.getPrevTrade = (tradeId) => new Promise(async (resolve, reject) => {
 
   const dbConn = db()
   dbConn.query(query, queryValues, (err, results) => {
+    dbConn.end()
+
     if (err) return reject(err);
 
-    return results.length > 0 ? resolve(results[0].id) : resolve();
+    return results.length > 0 ? resolve(results[0].uuid) : resolve();
   })
-  dbConn.end()
 })
 
 
@@ -148,6 +160,27 @@ exports.getTradeById = (id) => new Promise((resolve, reject) => {
     return results ? resolve(results[0]) : resolve();
   })
   dbConn.end()
+})
+
+
+exports.getTradeByUUID = (UUID) => new Promise((resolve, reject) => {
+  console.log('get trade by UUID')
+
+  const dbConn = db()
+  const query = `
+    SELECT abbrev, proto_no, date, close_date AS closeDate
+    FROM tradeV2
+    WHERE uuid = ?
+      AND closed = true
+    LIMIT 1`;
+
+  dbConn.query(query, [UUID], (err, results) => {
+    dbConn.end()
+
+    if (err) return reject(err);
+
+    return results ? resolve(results[0]) : resolve();
+  })
 })
 
 
@@ -340,8 +373,9 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
     FROM tradeV2
     WHERE proto_no = ?
     AND abbrev = ?
-    AND id = ?`;
-  const queryValues = [protoNo, abbrev, tradeId];
+    AND uuid = ?
+  `
+  const queryValues = [protoNo, abbrev, tradeId]
 
   const dbConn = db()
   dbConn.query(query, queryValues, (err, results) => {
@@ -376,7 +410,7 @@ exports.getTradeV2 = (abbrev, tradeId) => new Promise((resolve, reject) => {
       closed
     FROM tradeV2
     WHERE abbrev = ?
-      AND id = ?`;
+      AND uuid = ?`;
   const queryValues = [abbrev, tradeId];
 
   const dbConn = db()
@@ -490,24 +524,14 @@ exports.updateTrade = (uuid, data) => new Promise((resolve, reject) => {
   dbConn.query(query, [data, uuid], (err) => {
     if (err) {
       console.log(err)
-      console.log('FAILED TO CLOSE TRADE')
-
-      console.log('query >>')
-      console.log(query)
-
-      console.log('data >>>')
-      console.log(data)
-
-      console.log('uuid >>')
-      console.log(uuid)
-
-      
+    
       return reject(err);
     }
     resolve('updated trade');
   })
   dbConn.end()
 })
+
 
 exports.getOandaTradeRel = (select, where) => new Promise((resolve, reject) => {
   if (!select) return 

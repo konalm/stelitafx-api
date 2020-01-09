@@ -18,10 +18,11 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, conn) =>
     [currencyAbbrev, rate, wmaDataJSON, timeInterval]
   ]
   
-  conn.query(query, [queryValues], (err) => {
-    if (err) {
-      reject('Error storing currency WMA data');
-      return 
+  conn.query(query, [queryValues], (e) => {
+    if (e) {
+      console.log('Failed to store wma data')
+      console.log(e)
+      return reject('Error storing currency WMA data');
     }
     
     resolve('Stored WMA data')
@@ -52,6 +53,7 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
   // console.log(`getting WMAs .... abbrev: ${currencyAbbrev}, interval: ${interval}`)
 
   dbConn.query(query, queryValues, (e, results) => {
+    dbConn.end()
     x --;
     
     if (e) return reject(e);
@@ -75,7 +77,6 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
 
     resolve(dataPoints);
   })
-  dbConn.end()
 })
 
 
@@ -100,6 +101,7 @@ exports.getWMAFromDate = (abbrev, timeInterval, startDate, toDate) =>
 
   const dbConn = db()
   dbConn.query(query, queryValues, (err, results) => {
+    dbConn.end()
     if (err) reject(err)
 
     if (!results) return []
@@ -121,8 +123,8 @@ exports.getWMAFromDate = (abbrev, timeInterval, startDate, toDate) =>
 
     resolve(dataPoints)
   })
-  dbConn.end()
 })
+
 
 exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer) =>
   new Promise((resolve, reject) =>
@@ -141,6 +143,7 @@ exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer
 
   const dbConn = db()
   dbConn.query(query, queryValues, (err, results) => {
+    dbConn.end()
     if (err) reject(err);
 
     if (!results) return [];
@@ -162,5 +165,4 @@ exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer
 
     resolve(dataPoints);
   })
-  dbConn.end()
 })

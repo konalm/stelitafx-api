@@ -46,20 +46,20 @@ exports.getProtoIntervalCurrencyTrades = async (req, res) => {
     closed: true,
   }
 
-  // let trades
-  // try {
-  //   trades = await repo.getTrades(conditions, dateTimeFilter)
-  // } catch (err) {
-  //   return res.status(500).send('Failed to get trades')
-  // }
-
-  let trades 
+  let trades
   try {
-    trades = await mongoRepo.getPrototypeIntervalTrades(protoNo, parseInt(interval), currency)
-  } catch (e) {
-    console.log(e)
+    trades = await repo.getTrades(conditions, dateTimeFilter)
+  } catch (err) {
     return res.status(500).send('Failed to get trades')
   }
+
+  // let trades 
+  // try {
+  //   trades = await mongoRepo.getPrototypeIntervalTrades(protoNo, parseInt(interval), currency)
+  // } catch (e) {
+  //   console.log(e)
+  //   return res.status(500).send('Failed to get trades')
+  // }
 
   if (!trades.length) return res.status(204).send('No trades')
 
@@ -77,25 +77,25 @@ exports.getProtoIntervalTrades = async (req, res) => {
   const dateTimeFilter = req.query.date || '';
 
 
-  // let trades
-  // try {
-  //   trades = await repo.getTrades(conditions, dateTimeFilter)
-  // } catch (err) {
-  //   console.log(err)
-  //   return res.status(500).send(`Failed to get trades`)
-  // }
-
-  let trades 
+  let trades
   try {
-    trades = await mongoRepo.getPrototypeIntervalTrades(
-      protoNo, 
-      parseInt(interval), 
-      dateTimeFilter
-    )
-  } catch (e) {
-    console.log(e)
-    return res.status(500).send('Failed to get trades')
+    trades = await repo.getTrades(conditions, dateTimeFilter)
+  } catch (err) {
+    console.log(err)
+    return res.status(500).send(`Failed to get trades`)
   }
+
+  // let trades 
+  // try {
+  //   trades = await mongoRepo.getPrototypeIntervalTrades(
+  //     protoNo, 
+  //     parseInt(interval), 
+  //     dateTimeFilter
+  //   )
+  // } catch (e) {
+  //   console.log(e)
+  //   return res.status(500).send('Failed to get trades')
+  // }
 
   if (!trades.length) return res.status(204).send('No trades!')
 
@@ -104,8 +104,12 @@ exports.getProtoIntervalTrades = async (req, res) => {
 
 
 exports.updateTradeToViewed = async (req, res) => {
+  console.log('updated trade to veiwed')
+
   const tradeId = req.params.tradeId;
   const trade = { viewed: true };
+
+  console.log(`trade id ... ${tradeId}`)
 
   try {
     await repo.updateTrade(tradeId, trade);
@@ -118,63 +122,59 @@ exports.updateTradeToViewed = async (req, res) => {
 
 
 exports.getPrevTrade = async (req, res) => {
-  const tradeId = req.params.tradeId;
+  const tradeUUID = req.params.tradeUUID;
 
   let prevTrade;
   try {
-    prevTrade = await repo.getPrevTrade(tradeId);
+    prevTrade = await repo.getPrevTrade(tradeUUID);
   } catch (err) {
     return res.status(500).send('Unable to get prev trade');
   }
 
   if (!prevTrade) return res.status(404).send('prev trade not found')
 
-  return res.send({tradeId: prevTrade});
+  return res.send({UUID: prevTrade});
 }
 
 
 exports.getNextTrade = async (req, res) => {
-  const tradeId = req.params.tradeId;
+  const tradeUUID = req.params.tradeUUID;
 
   let nextTrade;
   try {
-    nextTrade = await repo.getNextTrade(tradeId);
+    nextTrade = await repo.getNextTrade(tradeUUID);
   } catch (err) {
     return res.status(500).send('Unable to get next trade');
   }
 
-  return res.send({tradeId: nextTrade});
+  return res.send({UUID: nextTrade});
 }
 
 
 exports.getTrade = async (req, res) => {
-  console.log('get trade !!')
-
   const { protoNo, interval, currency, tradeUUID } = req.params;
   const abbrev = `${currency}/USD`
-  const abbrevInstrument = `${req.params.currency}_USD`
+  // const abbrevInstrument = `${req.params.currency}_USD`
 
-  // let trade;
-  // try {
-  //   trade = await repo.getTrade(protoNo, abbrev, tradeUUID);
-  // } catch (e) {
-  //   return res.status(500).send('Failed to get trade');
-  // }
-
-  let trade
+  let trade;
   try {
-    trade = await mongoRepo.getPrototypeIntervalCurrencyTrade(
-      protoNo, 
-      parseInt(interval), 
-      abbrevInstrument,
-      tradeUUID
-    )
+    trade = await repo.getTrade(protoNo, abbrev, tradeUUID);
   } catch (e) {
-    console.log(e)
-    return res.status(500).send('Failed to get trade')
+    return res.status(500).send('Failed to get trade');
   }
 
-
+  // let trade
+  // try {
+  //   trade = await mongoRepo.getPrototypeIntervalCurrencyTrade(
+  //     protoNo, 
+  //     parseInt(interval), 
+  //     abbrevInstrument,
+  //     tradeUUID
+  //   )
+  // } catch (e) {
+  //   console.log(e)
+  //   return res.status(500).send('Failed to get trade')
+  // }
 
   if (!trade) return res.status(404).send('Trade not found');
 

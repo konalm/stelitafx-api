@@ -1,21 +1,24 @@
 const fs = require('fs')
 const { getTrades, updateTradesToClosed } = require('../trade/repository')
 const { getPrototypeOpenTrades } = require('../trade/mongoRepository')
+const tradeService = require('../trade/service')
 const { getAbbrevLatestRates } = require('../currencyRates/repository')
 const calculatePip = require('../services/calculatePip')
 const dbConnections = require('../dbConnections')
+const { MAJOR_CURRENCIES } = require('../config')
 
 
 /**
  * Implement stop loss for prototypes that have a stop loss on the stop loss config JSON file
  */
 module.exports = () => new Promise(async (resolve, _) => {
+  console.log('stop loss')
+
   let stopLossesJSON
   try {
     stopLossesJSON = fs.readFileSync(`${__dirname}/stopLossConfig.JSON`, 'utf8')
   } catch (e) {
-    console.error('Failed to get stop losses from config')
-    return 
+    return console.error('Failed to get stop losses from config')
   }
   const stopLosses = JSON.parse(stopLossesJSON)
 
@@ -23,9 +26,13 @@ module.exports = () => new Promise(async (resolve, _) => {
   try {
     abbrevRates = await getAbbrevLatestRates()
   } catch (e) {
-    throw new Error(e)
+    console.error('failed to get abbrev latest rates')
+    reject(e)
+    // throw new Error(e)
   }
   // await dbConnections('get abbrev latest rates for stop loss')
+
+  console.log('got abbrev latest rates :)')
 
   const implementStopLossPromises = []
   stopLosses.forEach((x) => {
@@ -34,11 +41,12 @@ module.exports = () => new Promise(async (resolve, _) => {
 
   Promise.all(implementStopLossPromises)
     .then(() => {
+      console.log('IMPLEMENTED STOP LOSS PROMISES :)')
       resolve()
     })
     .catch((e) => {
-      console.log(`implementing stop losses failed: ${e}`)
-      resolve()
+      console.error(`implementing stop losses failed: ${e}`)
+      reject()
     })
 })
 
@@ -54,28 +62,29 @@ module.exports = () => new Promise(async (resolve, _) => {
  * @param {*} abbrevRates - latest rates for each abbrev
  */
 const prototypeImplementStopLoss = async (prototypeStopLossConfig, abbrevRates) => {
+  console.log('prototype implement stop loss')
+
   const prototypeNo = prototypeStopLossConfig.prototypeNo
   const intervalStopLosses = prototypeStopLossConfig.stopLosses
 
-  // let openTrades
-  // try {
-  //   const conditions = {
-  //     proto_no: prototypeNo,
-  //     closed: false
-  //   }
-  //   openTrades = await getTrades(conditions, null) 
-  // } catch (e) {
-  //   console.error(e)
-  //   throw new Error(`Failed to get open trades for ${prototypeNo}`)
-  // }
+
+  console.log('get open trades')
 
   let openTrades
   try {
-    openTrades = await getPrototypeOpenTrades(prototypeNo)
+    const conditions = {
+      proto_no: prototypeNo,
+      closed: false
+    }
+    openTrades = await getTrades(conditions, null) 
   } catch (e) {
-    console.log(e)
-    throw new Error(`Failed to get open trades in mongo`)
+    console.error(e)
+    return console.error('failed to get open trades for prototype implement stop loss')
+    // throw new Error(`Failed to get open trades for ${prototypeNo}`)
   }
+
+  console.log('got response from open trades :)')
+
 
   const tradesTriggeredStopLoss = []
   intervalStopLosses.forEach((intervalStopLoss) => {
@@ -83,18 +92,23 @@ const prototypeImplementStopLoss = async (prototypeStopLossConfig, abbrevRates) 
       x => x.timeInterval === intervalStopLoss.interval
     )
 
-    intervalOpenTrades.forEach((trade) => {
+    intervalOpenTrades.forEach((trade, i) => {
       if (tradeTriggeredStopLoss(trade, abbrevRates, intervalStopLoss.stopLoss)) {
         tradesTriggeredStopLoss.push(trade)
       }
     })
   })
 
+  console.log('trades triggering stop loss .....' + tradesTriggeredStopLoss.length)
+
   if (!tradesTriggeredStopLoss.length) return
 
+  console.log('close trades for prototype implement stop loss')
   try {
     await closeTrades(tradesTriggeredStopLoss, abbrevRates)
   } catch (e) {
+    console.log('failed to close trades for implement stop loss')
+    console.log(e)
     throw new Error('Failed to close trades that triggered stop loss')
   }
 }

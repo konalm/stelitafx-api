@@ -85,5 +85,34 @@
         "stopLoss": 7
       }
     ]
+  },
+  {
+    "prototypeNo": 88,
+    "stopLosses": [
+      {
+        "interval": 1,
+        "stopLoss": 5
+      },
+      {
+        "interval": 2,
+        "stopLoss": 8
+      },
+      {
+        "interval": 3,
+        "stopLoss": 12
+      },
+      {
+        "interval": 5,
+        "stopLoss": 15
+      },
+      {
+        "interval": 15,
+        "stopLoss": 20
+      },
+      {
+        "interval": 30,
+        "stopLoss": 20
+      }
+    ]
   }
 ]
