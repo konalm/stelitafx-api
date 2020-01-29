@@ -3,13 +3,18 @@ const retrieveCurrencyRates = require('./retrieveCurrencyRates');
 const config = require('../config');
 const db = require('../dbInstance')
 const dbConnections = require('../dbConnections')
+const xtbService = require('../xtb/service')
+const { insertCurrencyRateData } = require('../currencyRates/repository')
+const { cacheRates } = require('../currencyRates/service')
+const cacheCurrencyRates = require('../currencyRates/cacheCurrencyRates')
 
 
-module.exports = () => new Promise(async (resolve, _) => {
+module.exports = (date) => new Promise(async (resolve, _) => {
   console.log('insert currency rate')
 
   Promise.all([
-    uploadOandaFXAccountCurrencyRates(), 
+    uploadXTBAccountCurrencyRates(date)
+    // uploadOandaFXAccountCurrencyRates(), 
     // uploadFixerioCurrencyRates()
   ])
     .then(() => { resolve() })
@@ -29,11 +34,62 @@ const uploadOandaFXAccountCurrencyRates = () => new Promise(async (resolve, reje
     return reject ('Unable to retrieve currency rates')
   }
 
+  console.log('oanda currency rates >>>>')
+  console.log(currencyRates)
+
   try {
     await insertCurrencyRates(currencyRates, 'currency_rate')
   } catch (e) {
     console.error(e)
     return reject ('Failed to insert oandafx account currency rates')
+  }
+
+  resolve()
+})
+
+
+/**
+ * 
+ */
+const uploadXTBAccountCurrencyRates = (date) => new Promise(async (resolve, reject) => {
+  console.log('upload XTB account currency rates !!')
+
+  let xtbCurrencyRates
+  try {
+    xtbCurrencyRates = await xtbService.getCurrencyRates()
+  } catch (e) {
+    return reject('Failed to retrieve currency rates from xtb')
+  }
+
+  let currencyRates = []
+  xtbCurrencyRates.forEach((x) => {
+    const currency = x.symbol.substring(0, 3)
+    const currencyRate = {
+      currency,
+      bid: x.bid,
+      ask: x.ask
+    }
+    currencyRates.push(currencyRate)
+  })
+
+  try {
+    await insertCurrencyRates(currencyRates, 'currency_rate')
+  } catch (e) {
+    return reject('Failed to insert currency rates from xtb account')
+  }
+
+  try {
+    await cacheCurrencyRates(date, currencyRates)
+  } catch (e) {
+    console.log('Failed to cache currency rates')
+  }
+
+
+  try {
+    await insertCurrencyRateData(xtbCurrencyRates)
+  } catch (e) {
+    console.log(e)
+    console.error('Failed to insert currency rate data')
   }
 
   resolve()
@@ -65,19 +121,15 @@ const uploadFixerioCurrencyRates = () => new Promise(async (resolve, reject) => 
 const insertCurrencyRates = (currencyRates, tableName) => 
   new Promise(async (resolve, reject) => 
 {
-  // await dbConnections('before inserting currency rates')
-
-  const query = `INSERT INTO ${tableName} (abbrev, exchange_rate) VALUES ?`
+  const query = `INSERT INTO ${tableName} (abbrev, exchange_rate, bid, ask) VALUES ?`
   const queryValues = []
 
   /* build row of data in sql query */
-  for (let [key, value] of Object.entries(currencyRates)) {
-    const abbrev = `${key}/USD`;
-    queryValues.push([abbrev, value]);
-  }
-
-  // console.log('query values >>>>')
-  // console.log(queryValues)
+  currencyRates.forEach((x) => {
+    const abbrev = `${x.currency}/USD`;
+    const row = [abbrev, x.bid,x.bid, x.ask]
+    queryValues.push(row);
+  })
 
   const dbConn = db()
   dbConn.query(query, [queryValues], (err, result) => {

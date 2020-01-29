@@ -4,6 +4,8 @@ const tradeMongoRepo = require('../trade/mongoRepository');
 
 
 exports.getStochastics = async (req, res) => {
+  console.log('get stochastics !!')
+
   const { abbrev, interval } = req.params
   const currencyPairAbbrev = `${abbrev}/USD`
   const { count } = req.query || 50
@@ -14,10 +16,11 @@ exports.getStochastics = async (req, res) => {
     stochastics = await repository.getStochastics(
       currencyPairAbbrev, 
       interval, 
-      count, 
-      offset
+      parseInt(count), 
+      parseInt(offset)
     )
   } catch (e) {
+    // console.log(e)
     return res.status(500).send('Failed to get stochastics')
   }
 

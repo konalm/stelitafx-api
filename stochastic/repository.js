@@ -22,28 +22,33 @@ exports.saveStochastic = (abbrev, timeInterval, stochastic, conn) =>
   })
 })
 
-exports.getStochastics = (abbrev, timeInterval, count, offset) => 
-  new Promise((resolve, reject) => 
-{
-  const dbConn = db()
-  const query = `
-    SELECT stochastic, date 
-    FROM stochastic_oscilator 
-    WHERE abbrev = ?
-    AND time_interval = ?
-    ORDER BY date DESC
-    LIMIT ?
-    OFFSET ?
-  `
-  const queryValues = [abbrev, timeInterval, parseInt(count), parseInt(offset)]
+// exports.getStochastics = (abbrev, timeInterval, count, offset) => 
+//   new Promise((resolve, reject) => 
+// {
+//   console.log('A')
 
-  dbConn.query(query, queryValues, (e, results) => {
-    dbConn.end()
-    if (e) return reject(`Failed to get stochastics`)
+//   const dbConn = db()
+//   const query = `
+//     SELECT stochastic, date 
+//     FROM stochastic_oscilator 
+//     WHERE abbrev = ?
+//     AND time_interval = ?
+//     ORDER BY date DESC
+//     LIMIT ?
+//     OFFSET ?
+//   `
+//   const queryValues = [abbrev, timeInterval, parseInt(count), parseInt(offset)]
 
-    resolve(results)
-  })
-})
+//   console.log(query)
+//   console.log(queryValues)
+
+//   dbConn.query(query, queryValues, (e, results) => {
+//     dbConn.end()
+//     if (e) return reject(`Failed to get stochastics`)
+
+//     resolve(results)
+//   })
+// })
 
 
 exports.getStochastics = (abbrev, interval, amount, offset = 1) =>
@@ -74,8 +79,6 @@ exports.getStochastics = (abbrev, interval, amount, offset = 1) =>
 exports.getLatestStochastic = (abbrev, interval, limit = 1) => 
   new Promise(async(resolve, reject) => 
 {
-  // await dbConnections('get latest stochastic')
-
   const dbConn = db()
   const query = `
     SELECT stochastic 

@@ -13,6 +13,9 @@ const { isPublishedAlgorithm } = require('../publishedAlgorithm/service')
 const logTransaction = require('../services/publishedTransactionLogger')
 const prototypeTrades = require('../schema/prototypeTrades')
 const db = require('../dbInstance')
+const calculatePip = require('../services/calculatePip')
+const xtbService = require('../xtb/service')
+
 
 exports.openTrade = async (
   protoNo, 
@@ -21,11 +24,9 @@ exports.openTrade = async (
   notes, 
   stats, 
   timeInterval,
-  currencyRateSource,
-  conn = db()
+  conn = db(),
+  transactionType = 'long'
 ) => {
-  // console.log('TRADE SERVICE .. OPEN TRADE')
-
   const uuid = uuidGenerator();
   const abbrev = `${currency}/USD`
   const trade = {
@@ -36,7 +37,8 @@ exports.openTrade = async (
     open_stats: stats,
     time_interval: timeInterval,
     account: null,
-    uuid
+    uuid,
+    transaction_type: transactionType
   }
 
   let publishedAlgorithm
@@ -50,39 +52,42 @@ exports.openTrade = async (
 
   /* create trade in MYSQL */ 
   try {
-    await repo.createTrade(trade, conn)
+    await repo.createTrade(trade)
   } catch (err) {
+    console.log('failed to create trade.' + err)
     throw new Error(`could not create trade in MYSQL: ${err}`)
   }
 
-
-  // console.log('store last trade to json file')
   try {
     await cacheLastTrade(trade)
   } catch (e) {
     console.log(e)
+    console.log('failed to cache last trade')
     throw new Error(`Failed to cache last trade`)
   }
 
-  /* create trade in MongoDB */ 
-  // try {
-  //   await mongoRepo.createTrade(trade)
-  // } catch (e) {
-  //   throw new Error(`Failed to create trade in MongoDB: ${e}`)
-  // }
   
   if (publishedAlgorithm) {
-    logTransaction('success', 'open', 'paper', abbrev, uuid)
+    console.log('published algorithm')
+
+    /* open trade on xtb for published alogorithms */ 
+    try {
+      await xtbService.openTrade(uuid, abbrev, rate)
+    } catch (e) {
+      console.log(e)
+      throw new Error('Failed to open trade on xtb')
+    }
 
     /* only open trade on trading plaform for selected prototype on selected interval */
-    try {
-      await openOandaTrade(uuid, currency)
-    } catch (err) {
-      logger(`Failed to open oanda trade`, 'danger')
-      logTransaction('failure', 'open', 'paper', abbrev, uuid)
-    }
+    // try {
+    //   await openOandaTrade(uuid, currency)
+    // } catch (err) {
+    //   logger(`Failed to open oanda trade`, 'danger')
+    //   logTransaction('failure', 'open', 'paper', abbrev, uuid)
+    // }
   }
 }
+
 
 const openOandaTrade = async (uuid, currency) => {
   console.log('open oanda trade')
@@ -114,18 +119,10 @@ exports.closeTrade = async (
   notes, 
   timeInterval, 
   openingTrade,
-  currencyRateSource
 ) => {
-  // console.log('TRADE SERVICE .. CLOSE TRADE')
-
   const abbrev = `${currency}/USD`
 
-  // let openingTrade
-  // try {
-  //   openingTrade = await mongoRepo.getLastTrade(protoNo, abbrev, timeInterval)
-  // } catch (e) {
-  //   throw new Error('failed to get opening trade')
-  // }
+  // console.log('closing trade @:' + new Date())
 
   if (openingTrade && openingTrade.closed) {
     logger('opening trade is closed', 'warning')
@@ -144,7 +141,7 @@ exports.closeTrade = async (
   try {
     await repo.updateTrade(openingTrade.uuid, trade);
   } catch (err) {
-    logger('Failed to close paper tArade', 'danger')
+    logger('Failed to close paper trade', 'danger')
     throw new Error(`updating trade for ${openTrade.id}: ${err}`)
   }
 
@@ -155,13 +152,6 @@ exports.closeTrade = async (
     throw new Error('Failed to close cached trade')
   }
 
-  /* update to close in MongoDB */ 
-  // try {
-  //   await mongoRepo.closeTrade(protoNo, abbrev, timeInterval, rate, notes)
-  // } catch (e) {
-  //   console.log(e)
-  //   throw new Error('Failed to close trade in MongoDB')
-  // }
 
   let publishedAlgorithm
   try { 
@@ -173,17 +163,24 @@ exports.closeTrade = async (
 
   /* only open trade on trading plaform for selected prototype on selected interval */
   if (publishedAlgorithm) {
-    logTransaction('success', 'close', 'paper', abbrev, openingTrade.uuid)
+    // logTransaction('success', 'close', 'paper', abbrev, openingTrade.uuid)
 
-    try {      
-      await oandaService.closeTrade(currency, openingTrade.uuid)
-    } catch (err) {
-      // logger(`Failed to open oanda trade`, 'danger')
-      logTransaction('failure', 'close', 'oanda', abbrev, openingTrade.uuid)
-      throw new Error(`Failed to close trade on OANDA`)
+    try {
+      await xtbService.closeTrade(openingTrade.uuid, abbrev)
+    } catch (e) {
+      console.log(e)
+      throw new Error('Failed to close trade on xtb')
     }
 
-    logTransaction('success', 'close', 'oanda', abbrev, openingTrade.uuid)
+
+    // try {      
+    //   await oandaService.closeTrade(currency, openingTrade.uuid)
+    // } catch (err) {
+    //   logTransaction('failure', 'close', 'oanda', abbrev, openingTrade.uuid)
+    //   throw new Error(`Failed to close trade on OANDA`)
+    // }
+
+    // logTransaction('success', 'close', 'oanda', abbrev, openingTrade.uuid)
   }
 }
 
@@ -205,6 +202,7 @@ exports.mapAbbrevSlash = (abbrevInstrument) => {
 
   return `${baseCurrency}/${quoteCurrency}`
 }
+
 
 /**
  * map interval number to key value in Mongo Schema for interval trades
@@ -235,6 +233,7 @@ exports.mapIntervalToString = (interval) => {
   return `int${intervalString}Trades`
 }
 
+
 exports.mapStringToInterval = (string) => {
   let interval;
 
@@ -261,6 +260,7 @@ exports.mapStringToInterval = (string) => {
   return interval
 }
 
+
 const cacheLastTrade = async (trade) => {
   const dir = 'cache/lastTrade'
 
@@ -281,6 +281,7 @@ const cacheLastTrade = async (trade) => {
   }
 }
 
+
 const closeCachedLastTrade = async (prototypeNo, abbrev, interval, closedTrade) => {
   const dir = 'cache/lastTrade'
   const abbrevUnderscore = this.mapAbbrevUnderscore(abbrev)
@@ -290,6 +291,7 @@ const closeCachedLastTrade = async (prototypeNo, abbrev, interval, closedTrade) 
   try {
     lastTrade = JSON.parse(await fs.readFileSync(path, 'utf8'))
   } catch (e) {
+    console.log(e)
     throw new Error('Failed to read last trade from cache')
   }
 
@@ -301,6 +303,7 @@ const closeCachedLastTrade = async (prototypeNo, abbrev, interval, closedTrade) 
     console.error('Failed to closed cached last trade')
   }
 }
+
 
 exports.getCachedLastTrade = async (prototypeNo, abbrev, interval) => {
   const dir = 'cache/lastTrade'
@@ -316,4 +319,79 @@ exports.getCachedLastTrade = async (prototypeNo, abbrev, interval) => {
   }
 
   return trade
+}
+
+
+exports.abstractTradePerformance = (trade, wmaData) => {
+  if (!wmaData.length) return
+
+  const lowestRateInTrade = wmaData.reduce((prev, curr) => 
+    prev.rate < curr.rate ? prev : curr
+  )
+  const highestRateInTrade = wmaData.reduce((prev, curr) =>  
+    prev.rate > curr.rate ? prev : curr
+  )
+
+  const low = trade.transactionType === 'short' ? 'high' : 'low'
+  const high = trade.transactionType === 'short' ? 'low' : 'high'
+
+  return {
+    [low]: { 
+      date: lowestRateInTrade.date, 
+      rate: lowestRateInTrade.rate,
+      pips: calculatePip(trade.openRate, lowestRateInTrade.rate) 
+    },
+    [high]: {
+      date: highestRateInTrade.date,
+      rate: highestRateInTrade.rate,
+      pips: calculatePip(trade.openRate, highestRateInTrade.rate)
+    }
+
+  }
+}
+
+
+exports.xtbTransactionStats = (trade) => {
+  const openTransaction = JSON.parse(trade.openTradeTransactionJson)
+  const closeTransaction = JSON.parse(trade.closeTradeTransactionJson)
+  const closeState = closeTransaction.state
+  const closeStatus = closeTransaction.status
+  const latestRate = trade.openNotes ? JSON.parse(trade.openNotes) : null
+  const rateOnClose = trade.closeNotes ? JSON.parse(trade.closeNotes) : null
+
+  return {
+    paperPips: trade.pips,
+    brokerPips:  calculatePip(openTransaction.ask, closeStatus.bid),
+    openRate: {
+      paperBid: trade.openRate,
+      brokerAsk: openTransaction.ask,
+      askDifference: calculatePip(trade.openRate, openTransaction.ask),
+      brokerBid: openTransaction.bid,
+      bidDifference: calculatePip(trade.openRate, openTransaction.bid),      
+      paperOpenDate: moment(trade.openDate).format('HH : mm : ss'),
+      brokerOpenDate: closeState.open_timeString,
+      latestBid: latestRate.bid,
+      latestBidDifference: calculatePip(openTransaction.bid, latestRate.bid),
+      latestAsk: latestRate.ask,
+      latestAskDifference: calculatePip(openTransaction.ask, latestRate.ask)
+    },
+    closeRate: {
+      paper: trade.closeRate,
+      brokerAsk: closeStatus.ask,
+      askDifference: calculatePip(trade.closeRate, closeStatus.ask),
+      brokerBid: closeStatus.bid,
+      bidDifference: calculatePip(trade.closeRate, closeStatus.bid),
+      lastestBid: rateOnClose ? rateOnClose.bid : null,
+      lastestBidDifference: rateOnClose ? calculatePip(latestRate.bid, rateOnClose.bid) : null,
+      latestAsk: rateOnClose ? rateOnClose.ask : null,
+      latestAskDifference: rateOnClose ? calculatePip(latestRate.ask, rateOnClose.ask) : null
+    },
+    tradeState: {
+      profit: closeState.profit,
+      openRate: closeState.open_price,
+      openDifference: calculatePip(trade.openRate, closeState.open_price),
+      closeRate: closeState.close_price,
+      closeDifference: calculatePip(trade.closeRate, closeState.close_price)
+    },
+  }
 }

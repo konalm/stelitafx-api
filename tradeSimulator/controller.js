@@ -2,19 +2,27 @@ const service = require('../services/oanda');
 const tradeService = require('../trade/service');
 const logger = require('../services/logger');
 const tradeRepo = require('../trade/repository');
+const currencyRateRepo = require('../currencyRates/repository')
 
 
 exports.simulateTrade = async (req, res) => {
   const { transaction, currency } = req.params
   const protoNo = 99
   const interval = 1
-  const rate = 1.000
+ 
+  let rate 
+  try {
+    rate = await currencyRateRepo.getCurrencyRate('EUR/USD')
+  } catch (e) {
+    throw new Error('Failed to get latest currency rate')
+  }
+
 
   logger(`simulate ${transaction} trade`, 'info')
   
   if (transaction === 'open') {
     try {
-      await tradeService.openTrade(protoNo, currency, rate, '', '', interval)
+      await tradeService.openTrade(protoNo, currency, rate.rate, '', '', interval, null, 'short')
     } catch (e) {
       console.log(e)
       logger('Failed to open paper trade', 'danger')
@@ -38,7 +46,7 @@ exports.simulateTrade = async (req, res) => {
 
   if (transaction === 'close') {
     try {
-      await tradeService.closeTrade(protoNo, currency, rate, '', interval, openingTrade)
+      await tradeService.closeTrade(protoNo, currency, rate.rate, '', interval, openingTrade)
     } catch (e) {
       console.log(e)
       logger('failed to close trade', 'danger')

@@ -3,12 +3,13 @@ const mysql = require('mysql')
 const db = require('../dbInstance')
 const calculatePip = require('../services/calculatePip')
 const calcOandaPipsFromTransactions = require('../services/calcOandaPipsFromTransactions')
+const calcXTBPipsFromTransaction = require('../services/calcXTBPipsFromTransaction')
 const formatMysqlDate = require('../services/formatMysqlDate')
 const secondsBetweenDates = require('../services/secondsBetweenDates')
+const service = require('./service')
 
 
 exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reject) => {
-  const s = new Date()
   const dbConn = db()
   let query = `
     SELECT
@@ -22,20 +23,26 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
       t.time_interval AS timeInterval,
       t.account,
       t.viewed,
+      t.closed,
+      t.proto_no AS prototypeNo,
+      t.transaction_type AS transactionType,
+      t.open_notes AS openNotes,
+      t.close_notes AS closeNotes,
       
-      ot.oanda_opentrade_id AS oandaOpenTradeId,
-      ot.oanda_closetrade_id AS oandaCloseTradeId,
-      open_ott.json AS openTradeTransactionJson,
-      close_ott.json AS closeTradeTransactionJson
+      t_xtb_rel.xtb_opentrade_id AS xtbOpenTradeId,
+      t_xtb_rel.xtb_closetrade_id AS xtbCloseTradeId,
+      xtb_trans_open.json AS openTradeTransactionJson,
+      xtb_trans_close.json AS closeTradeTransactionJson
     FROM tradeV2 t
 
-    LEFT JOIN trade_oandatrade ot
-      ON ot.trade_uuid = t.uuid
-    LEFT JOIN oanda_trade_transactions open_ott
-      ON open_ott.trade_id = ot.oanda_opentrade_id
-    LEFT JOIN oanda_trade_transactions close_ott
-      ON close_ott.trade_id = ot.oanda_closetrade_id
+    LEFT JOIN trade_xtbtrade_rel t_xtb_rel
+      ON t_xtb_rel.trade_uuid = t.uuid
+    LEFT JOIN xtb_trade_transactions xtb_trans_open
+      ON xtb_trans_open.trade_id = t_xtb_rel.xtb_opentrade_id
+    LEFT JOIN xtb_trade_transactions xtb_trans_close
+      ON xtb_trans_close.trade_id = t_xtb_rel.xtb_closetrade_id
   `
+
   let i = 0
   let queryValues = []
   for (const [key, value] of Object.entries(conditions)) {
@@ -65,14 +72,29 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
     }
 
     results.forEach((r) => {
-      r.pips = calculatePip(r.openRate, r.closeRate, conditions.abbrev)
+      r.pips = r.closed 
+        ? r.transactionType !== 'short' 
+          ? calculatePip(r.openRate, r.closeRate, conditions.abbrev) 
+          : calculatePip(r.openRate, r.closeRate, conditions.abbrev)  * -1
+        : null
   
-      /* calculate oanda pips for demo account trades */ 
-      if (r.account === 'demo') {
-        r.oandaPips = calcOandaPipsFromTransactions(
-          r.openTradeTransactionJson, 
-          r.closeTradeTransactionJson
-        )
+      /* calculate XTB pips for trades executed on broker */ 
+      if (r.xtbOpenTradeId && r.xtbCloseTradeId) {
+        r.xtbStats = service.xtbTransactionStats(r)
+      
+        delete r.openTradeTransactionJson;
+        delete r.closeTradeTransactionJson;
+        delete r.openNotes;
+
+        if (r.closeTradeTransactionJson) {
+          // r.xtbPips = calcXTBPipsFromTransaction(r.openTradeTransactionJson, r.closeTradeTransactionJson)
+
+          // const xtbCloseTransaction = JSON.parse(r.closeTradeTransactionJson)
+          // if (xtbCloseTransaction.hasOwnProperty('state')) {
+          //   r.xtbTradeState = xtbCloseTransaction.state
+          //   r.xtbCloseTradeStatus = xtbCloseTransaction.status
+          // }
+        }
       }
     })
 
@@ -90,7 +112,7 @@ exports.getNextTrade = (tradeUUID) => new Promise(async (resolve, reject) => {
   }
 
   console.log(trade)
-  
+
   if (!trade) return reject(`Could not find trade with UUID: ${tradeUUID} `)  
 
   const query = `
@@ -343,7 +365,8 @@ exports.getTradeTransactions = (abbrev, buyTradeId, sellTradeId) =>
     WHERE abbrev = ?
     AND (transaction = 'buy' AND id = ?)
       OR (transaction = 'sell' AND id = ?)
-    ORDER BY date`;
+    ORDER BY date
+  `
   const queryValues = [abbrev, buyTradeId, sellTradeId];
 
   const dbConn = db()

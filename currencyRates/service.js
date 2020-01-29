@@ -1,3 +1,6 @@
+const config = require('../config');
+const fs = require('fs');
+
 /**
  * Calculate the weighted moving average of a currency rate
  */
@@ -38,3 +41,7 @@ const calcWeightFactor = (movingAverage) => {
 
   return weightFactor;
 }
+
+
+
+

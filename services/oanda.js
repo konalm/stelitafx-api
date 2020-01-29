@@ -28,8 +28,6 @@ exports.openTrade = async (currency) => {
     }
   }
 
-  // logger('made order request to oanda, waiting for response ...', 'info')
-
   let openTradeResponse
   try {
     openTradeResponse = await axios.post(`${demoAccountUrl}/orders`, payload, options)
@@ -38,24 +36,18 @@ exports.openTrade = async (currency) => {
     logger('request to open order on oanda failed', 'danger');
     throw new Error(e)
   } finally {
-    // logger('got response back from oanda for order request', 'info')
   }
 
   if (!openTradeResponse.data.hasOwnProperty("orderFillTransaction")) {
     logger('failed to get order filled response from Oanda', 'warning');
     throw new Error('Failed to get order filled')
-  } else {
-    // logger('Have order filled response', 'success')
-  }
+  } 
 
   return openTradeResponse.data.orderFillTransaction.id
 }
 
+
 exports.closeTrade = async (currency, openingTradeUUID) => {
-  console.log('CLOSE TRADE ON OANDA')
-
-  // logger('close trade on Oanda', 'info');
-
   let oandaOpeningTrade
   try {
     oandaOpeningTrade = await tradeRepo.getOandaTradeRel(
@@ -68,10 +60,8 @@ exports.closeTrade = async (currency, openingTradeUUID) => {
   }
 
   const oandaOpeningTradeId = oandaOpeningTrade.oanda_opentrade_id;
-  // logger(`got oanda opening trade from schema: ${oandaOpeningTradeId}`, 'success')
-
-  // logger(`waiting for close trade response from oanda`, 'info')
   const path = `/trades/${oandaOpeningTradeId}/close`
+
   const payload = { units: 'ALL' }
   let closeTradeResponse;
   try {
@@ -80,19 +70,14 @@ exports.closeTrade = async (currency, openingTradeUUID) => {
     logger('request to close trade in oanda failed', 'danger')
     logTra
     throw new Error(`Failed to close Oanda trade`)
-  } finally {
-    // logger('got response back from oanda to close trade', 'info')
   }
 
   if (!closeTradeResponse.data.hasOwnProperty('orderFillTransaction')) {
     logger ('Failed to get request to close filled', 'danger')
     throw new Error('Failed to get close trade filled')
-  } else {
-    // logger('Have order to close trade filled response', 'success')
   }
 
   const closeTradeId = closeTradeResponse.data.orderFillTransaction.id;
-  // logger(`close trade, transaction id: ${closeTradeId}`, 'info')
 
   try {
     const data = { oanda_closetrade_id: closeTradeId }
@@ -101,7 +86,6 @@ exports.closeTrade = async (currency, openingTradeUUID) => {
     logger('Failed to update oanda trade relationship with close trade', 'danger')
     throw new Error(`Failed to update oanda trade rel with close id: ${e}`)
   }
-  // logger('updated oanda trade relationshp schema with close id', 'success')
 }
 
 const getAbbrevOpenTrades = async (instrument) => {

@@ -83,21 +83,19 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
 exports.getWMAFromDate = (abbrev, timeInterval, startDate, toDate) => 
   new Promise((resolve, reject) => 
 {
-  const query = `
-    SELECT date, rate, wma_data_json
+  let query = `
+    SELECT abbrev, date, rate, wma_data_json
     FROM currency_wma
-    WHERE abbrev = ?
-      AND time_interval = ?
+    WHERE time_interval = ?
       AND date >= ?
       AND date <= ?
-    ORDER BY date DESC
   `
-  const queryValues = [
-    abbrev, 
-    timeInterval, 
-    formatMysqlDate(startDate),
-    formatMysqlDate(toDate)
-  ]
+  if (abbrev) query += `AND abbrev = ?`
+  query += `ORDER BY date DESC`
+
+  const queryValues = [timeInterval, formatMysqlDate(startDate), formatMysqlDate(toDate)]
+  
+  if (abbrev) queryValues.push(abbrev)
 
   const dbConn = db()
   dbConn.query(query, queryValues, (err, results) => {
@@ -110,6 +108,7 @@ exports.getWMAFromDate = (abbrev, timeInterval, startDate, toDate) =>
     results.forEach((result) => {
       const wmaData = JSON.parse(result.wma_data_json);
       const dataPoint = {
+        abbrev: result.abbrev,
         date: result.date,
         rate: result.rate,
         WMAs: {}

@@ -7,8 +7,10 @@ const closeConditions = [
   'stochasticOverEighty'
 ]
 
+const transactionType = 'long'
 
-module.exports = (timeInterval, currency, currencyRateSrc, intervalCurrencyData) => 
+
+module.exports = (timeInterval, currency, intervalCurrencyData, conn) => 
   new Promise((resolve, _) => 
 {
   prototypeFramework(
@@ -17,11 +19,11 @@ module.exports = (timeInterval, currency, currencyRateSrc, intervalCurrencyData)
     openConditions, 
     closeConditions, 
     timeInterval, 
-    currencyRateSrc,
-    intervalCurrencyData
+    intervalCurrencyData,
+    conn,
+    transactionType
   )
     .then(() => {
-      // console.log('prototype 1 complete !!!')
       resolve()
     })
     .catch(e => {

@@ -9,6 +9,10 @@ module.exports = (app) => {
   app.route('/protos/:protoNo/intervals/:interval/trades')
     .get(controller.getProtoIntervalTrades);
 
+  /* Prototype trade analyses */ 
+  app.route('/prototypes/:prototypeNo/intervals/:interval/trade-analyses')
+    .get(controller.getPrototypeTradeAnalyses)
+
   /* Prototype Currency trades */
   app.route('/protos/:protoNo/intervals/:interval/currency/:currency/trades')
     .get(controller.getProtoIntervalCurrencyTrades);

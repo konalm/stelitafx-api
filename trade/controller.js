@@ -1,6 +1,7 @@
-const repo = require('./repository.js')
-const mongoRepo = require('./mongoRepository')
+const repo = require('./repository')
+const service = require('./service')
 const oandaService = require('../services/oanda')
+const wmaRepo = require('../wma/repository')
 
 
 exports.getOandaTradeTransactions  = async (req, res) => {
@@ -85,18 +86,6 @@ exports.getProtoIntervalTrades = async (req, res) => {
     return res.status(500).send(`Failed to get trades`)
   }
 
-  // let trades 
-  // try {
-  //   trades = await mongoRepo.getPrototypeIntervalTrades(
-  //     protoNo, 
-  //     parseInt(interval), 
-  //     dateTimeFilter
-  //   )
-  // } catch (e) {
-  //   console.log(e)
-  //   return res.status(500).send('Failed to get trades')
-  // }
-
   if (!trades.length) return res.status(204).send('No trades!')
 
   return res.send(trades)
@@ -152,9 +141,8 @@ exports.getNextTrade = async (req, res) => {
 
 
 exports.getTrade = async (req, res) => {
-  const { protoNo, interval, currency, tradeUUID } = req.params;
+  const { protoNo, currency, tradeUUID } = req.params;
   const abbrev = `${currency}/USD`
-  // const abbrevInstrument = `${req.params.currency}_USD`
 
   let trade;
   try {
@@ -162,19 +150,6 @@ exports.getTrade = async (req, res) => {
   } catch (e) {
     return res.status(500).send('Failed to get trade');
   }
-
-  // let trade
-  // try {
-  //   trade = await mongoRepo.getPrototypeIntervalCurrencyTrade(
-  //     protoNo, 
-  //     parseInt(interval), 
-  //     abbrevInstrument,
-  //     tradeUUID
-  //   )
-  // } catch (e) {
-  //   console.log(e)
-  //   return res.status(500).send('Failed to get trade')
-  // }
 
   if (!trade) return res.status(404).send('Trade not found');
 
@@ -255,6 +230,7 @@ exports.getProtoCurrencyTrades = async (req, res) => {
   return res.send(trades);
 }
 
+
 exports.getLastProtoIntervalCurrencyTrade = async (req, res) => {
   const { protoNo, interval } = req.params;
   const abbrev = `${req.params.currency}/USD`
@@ -267,4 +243,51 @@ exports.getLastProtoIntervalCurrencyTrade = async (req, res) => {
   }
 
   return res.send(trade)
+}
+
+
+exports.getPrototypeTradeAnalyses = async (req, res) => {
+  console.log('get prototype trade analyses !!')
+
+  const dateTimeFilter = req.query.date || '';
+  const interval = req.params.interval;
+  
+  let trades
+  try {
+    const conditions = {
+      proto_no: parseInt(req.params.prototypeNo),
+      time_interval: parseInt(interval),
+      closed: true,
+    }
+    trades = await repo.getTrades(conditions, dateTimeFilter)
+  } catch (e) {
+    return res.status(500).send(`Failed to get trades`)
+  }
+
+  let wmaData
+  try {
+    const earliestDate = trades[trades.length - 1].openDate
+    const latestDate = trades[0].closeDate
+    wmaData = await wmaRepo.getWMAFromDate(null, interval, earliestDate, latestDate)
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to get wma data')
+  }
+
+  const tradePerformances = []
+  trades.forEach((t, i) => {
+    console.log('trade >>')
+    console.log(t)
+
+    const relevantWMAData = wmaData.filter((w) => {
+      return w.abbrev === t.abbrev 
+        && new Date(w.date) >= new Date(t.openDate) 
+        && new Date(w.date) <= new Date(t.closeDate)
+    })
+
+    const tradePerformance = service.abstractTradePerformance(t, relevantWMAData)
+    if (tradePerformance) tradePerformances.push({ ...t, ...tradePerformance })
+  })
+
+  return res.send(tradePerformances)
 }

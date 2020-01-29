@@ -2,49 +2,48 @@ const { spawn } = require('child_process')
 const cron = require('node-cron')
 const config = require('./config')
 const insertCurrencyRates = require('./updateCurrencyRates/insertCurrencyRates')
-const implementStopLosses = require('./algorithms/stopLoss')
+const implementStops= require('./algorithms/stopLoss')
 const dbConnGarbageCollector = require('./dbConnGarbageCollector')
 const algorthmStoryPipeline = require('./algorithms/storyPipeline')
 const dbConnections = require('./dbConnections')
 
 
 cron.schedule('* * * * *', async () => {
+  const d = new Date()
+  const min = d.getMinutes()
 
-
-  console.log('cron schedule ?')
+  console.log('running cron at ' + d)
 
   try {
     await dbConnGarbageCollector()
   } catch (e) {
     console.error(e)
   }
-  // await dbConnections('BEGINNING OF CRON')
 
   try {
-    await insertCurrencyRates()
+    await insertCurrencyRates(d)
   } catch (err) {
-    throw new Error('Error inserting currency rates')
+    console.log(err)
+
+    // throw new Error('Error inserting currency rates')
   }
+
+  console.log('insert currency rates at: ' + new Date())
  
   try {
-    await implementStopLosses()
+    await implementStops()
   } catch (e) {
-    console.error('Failed to implement stop losses')
+    console.error(`Failed to implement stop losses: ${e}`)
   }
 
-  console.log('IMPLEMENT STOP LOSSES COMPLETE')
+  console.log('implemented stops at: ' + new Date())
 
-  const d = new Date()
-  const min = d.getMinutes()
-
-  console.log('min ... ' + min)
 
   const intervalsToRun = []
   config.TIME_INTERVALS.forEach((timeInterval) => {
     if (min % timeInterval === 0) intervalsToRun.push(timeInterval)
   })
 
-  // algorthmStoryPipeline(1)
 
   console.log(`intervals to run ... ${intervalsToRun.length}`)
 
@@ -54,56 +53,8 @@ cron.schedule('* * * * *', async () => {
 
     spawnedProcess.stdout.on('data', (data) => { console.log(data.toString()) })
   })
-
-  // if (min === 0) {
-  //   const hour = d.getHours()
-  //   const hourIntervalsToRun = []
-  //   config.HOUR_INTERVALS.forEach((interval) => {
-  //     if (hour % interval === 0) hourIntervalsToRun.push(interval)
-  //   })
-    
-  //   hourIntervalsToRun.forEach((hourInterval) => {
-  //     const minInterval = hourInterval * 60
-  //     const spawnedProcess = spawn('node', ['processInterval', minInterval])
-
-  //     spawnedProcess.stdout.on('data', (data) => { console.log(data.toString()) })
-  //   })
-  // }
 })
 
-const ini = async () => {
-  console.log('INI')
-
-  try {
-    await implementStopLosses()
-  } catch (e) {
-
-    return console.error('Failed to implement stop losses')
-  }
-}
-// ini()
-
-
-
-// cron.schedule('*/5 * * * *', async () => {
-//   require('./oandaTransactionCacher')()
-// })
-
-
-
-// cron.schedule('*/15 * * * *', async () => {
-//   const sp = spawn('node', ['bidAskSpread'])
-//   sp.stdout.on('data', (data) => {
-//     console.log(data.toString())
-//   })
-//   sp.on('close', async () => {
-//     console.log('insert bid ask spread')
-//   })
-// })
-
-
-
-// dbConnGarbageCollector()
-
-
+// const d = new Date()
+// insertCurrencyRates(d)
 

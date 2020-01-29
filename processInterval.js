@@ -15,10 +15,7 @@ if (!TIME_INTERVALS.includes(interval) && !HOUR_INTERVALS.includes(interval / 60
   return console.error(`${interval}, is not a valid interval`)
 }
 
-// dbConnections('process interval ' + interval)
-
 const startDate = new Date()
-
 
 console.log('PROCESS INTERVAL ' + interval)
 
@@ -28,8 +25,8 @@ Promise.all([
   storeStochastic(interval)
 ])
   .then(() => {
-    console.log('stored data :)')
-    
+    // console.log('stored wma data and stochastic at: ' + new Date())
+
     prototypeIni(interval)
       .then(() => {   
         console.log(`interval ${interval} .. took ${secondsBetweenDates(startDate)}`)

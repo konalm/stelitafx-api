@@ -27,6 +27,12 @@ const prototypeNo85 = require('./prototype#85');
 const prototypeNo86 = require('./prototype#86');
 const prototypeNo87 = require('./prototype#87');
 const prototypeNo88 = require('./prototype#88');
+const prototypeNo89 = require('./prototype#89');
+const prototypeNo90 = require('./prototype#90');
+const prototypeNo91 = require('./prototype#91');
+const prototypeNo92 = require('./prototype#92');
+const prototypeNo93 = require('./prototype#93');
+const prototypeNo94 = require('./prototype#94');
 
 const config = require('../config');
 const majorCurrencies = config.MAJOR_CURRENCIES
@@ -72,7 +78,7 @@ const intervalCurrencyAlgorithm = (timeInterval, currency, currencyRateSrc) =>
     return reject('Failed to get interval currency data')
   }
 
-  runAlgorithms(timeInterval, currency, currencyRateSrc, intervalCurrencyData)
+  runAlgorithms(timeInterval, currency, intervalCurrencyData)
     .then(() => {
       resolve()
     })
@@ -109,40 +115,43 @@ const dataRelevantToIntervalCurrency = (timeInterval, currency, currencyRateSrc)
 })
 
 
-const runAlgorithms = (timeInterval, currency, currencyRateSrc,  intervalCurrencyData) => 
+const runAlgorithms = (timeInterval, currency, intervalCurrencyData) => 
   new Promise((resolve, reject) => 
 {
-  // console.log('interval currency data >>')
-  // console.log(intervalCurrencyData)
-
   const conn = db()
   Promise.all([
-    prototype(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo11(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo12(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo13(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo2(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo3(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo4(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn), 
-    prototypeNo5(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo51(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo6(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo7(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo14(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo15(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo16(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo71(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo72(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo73(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    // prototypeNo74(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo80(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo81(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo82(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo83(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo85(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo86(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo87(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn),
-    prototypeNo88(timeInterval, currency, currencyRateSrc, intervalCurrencyData, conn)
+    prototype(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo11(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo12(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo13(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo2(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo3(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo4(timeInterval, currency, intervalCurrencyData, conn), 
+    prototypeNo5(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo51(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo6(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo7(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo14(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo15(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo16(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo71(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo72(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo73(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo74(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo80(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo81(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo82(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo83(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo85(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo86(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo87(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo88(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo89(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo90(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo91(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo92(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo93(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo94(timeInterval, currency, intervalCurrencyData, conn)
   ])
     .then(() => {
       conn.end()

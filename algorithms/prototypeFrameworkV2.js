@@ -13,9 +13,9 @@ module.exports = async (
   openConditions, 
   closeConditions,
   timeInterval,
-  currencyRateSource,
   dataRelevantToIntervalAndCurrency,
-  conn
+  conn,
+  transactionType
 ) => new Promise(async (resolve, reject) =>   
 {
   const abbrev = `${currency}/${quoteCurrency}`
@@ -29,22 +29,19 @@ module.exports = async (
   try {
     openingTrade = await tradeService.getCachedLastTrade(protoNo, abbrev, timeInterval)
   } catch (e) {
-    // console.log(e)
     gotCachedLastTrade = false 
-    console.error(`Failed to get last trade for prototype ${protoNo}, 
+    console.error(`Failed to get cached last trade for prototype ${protoNo}, 
       abbrev ${abbrev}, interval ${timeInterval}`)
   }
 
   if (!gotCachedLastTrade) {
     try {
-      openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev, conn)
+      openingTrade = await tradeRepo.getLastTrade(protoNo, timeInterval, abbrev, null)
     } catch (e) {
-      gotCachedLastTrade = false 
       console.error(`Failed to get last trade for prototype ${protoNo}, 
         abbrev ${abbrev}, interval ${timeInterval}`)
     }
   }
-
 
   const data = indicators.dataForIndicators(
     abbrev, 
@@ -68,17 +65,22 @@ module.exports = async (
           notes, 
           JSON.stringify(openStats),
           timeInterval,
-          currencyRateSource,
-          conn
+          null,
+          transactionType
         );
       } catch (e) {
+        console.log('open fail reason ---->')
         console.error(e)
+        console.log('<---------')
         return reject(`Failed to open trade`)
       }
     }
 
     return resolve()
   } 
+
+  // console.log('looking at close conditions @ ' + new Date()) 
+
 
   /* close trade */
   const closeConditionsMet = indicators.anIndicatorTriggered(data, closeConditions)    
@@ -93,7 +95,6 @@ module.exports = async (
       JSON.stringify(closeNotes),
       timeInterval,
       openingTrade,
-      currencyRateSource
     );
   }
 

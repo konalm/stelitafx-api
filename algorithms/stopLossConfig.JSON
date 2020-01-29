@@ -1,5 +1,34 @@
 [
   {
+    "prototypeNo": 99,
+    "stopLosses": [
+      {
+        "interval": 1,
+        "stopLoss": 1
+      },
+      {
+        "interval": 2,
+        "stopLoss": 1
+      },
+      {
+        "interval": 3,
+        "stopLoss": 1
+      },
+      {
+        "interval": 5,
+        "stopLoss": 1
+      },
+      {
+        "interval": 15,
+        "stopLoss": 1
+      },
+      {
+        "interval": 30,
+        "stopLoss": 1
+      }
+    ]
+  },
+  {
     "prototypeNo": 80,
     "stopLosses": [
       {

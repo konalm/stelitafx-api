@@ -1,16 +1,17 @@
 const prototypeFramework = require('./prototypeFrameworkV2');
 
-module.exports = (timeInterval, currency, currencyRateSrc, intervalCurrencyData) =>
+module.exports = (timeInterval, currency, intervalCurrencyData, conn) =>
   prototypeFramework(
     protoNo, 
     currency,
     openConditions, 
     closeConditions, 
     timeInterval, 
-    currencyRateSrc,
-    intervalCurrencyData
+    intervalCurrencyData,
+    conn,
+    transactionType
   );
-  
+
 const protoNo = 51
 
 const openConditions = [
@@ -21,3 +22,5 @@ const closeConditions = [
   'pipIncreasedByOne',
   'fiveWMACroseedUnderFifteenWMA'
 ]
+
+const transactionType = 'long'

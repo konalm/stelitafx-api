@@ -3,13 +3,14 @@ const repo = require('./repository')
 const { MAJOR_CURRENCIES } = require('../config');
 const dbConnections = require('../dbConnections')
 const db = require('../dbInstance');
-
+const getCurrencyRates = require('../currencyRates/services/getCurrencyRates')
 
 
 exports.calculateStochastic = async (abbrev, timeInterval, conn) => {
   let latestRates;
   try {
-    latestRates = await GetCurrencyLatestRates(abbrev, 16, 0, timeInterval, conn)
+    // latestRates = await GetCurrencyLatestRates(abbrev, 16, 0, timeInterval, conn)
+    latestRates = await getCurrencyRates(timeInterval, abbrev, 16)
   } catch (e) {
     console.log(e)
     throw new Error(`Failed to get last 14 rates: ${e}`)
@@ -71,8 +72,6 @@ const storeStochasticForCurrency = (abbrev, timeInterval, conn) =>
     console.log(e)
     throw new Error(`Failed to get stochastic: ${e}`)
   }
-
-  // await dbConnections('save stochastic')
 
   repo.saveStochastic(abbrev, timeInterval, stochastic, conn)
     .then(() => {

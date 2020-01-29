@@ -2,7 +2,7 @@ const cron = require('node-cron')
 const getPrices = require('./getPrices')
 const db = require('../dbInstance');
 
-cron.schedule('*/5 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
   console.log('CRON')
   
   let prices

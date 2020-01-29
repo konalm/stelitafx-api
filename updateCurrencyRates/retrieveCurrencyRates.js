@@ -65,7 +65,7 @@ exports.fixerAPI = async () => {
 /**
  * Get latest currency rates from the OANDA currency API quoted against the USD
  */
-exports.oandaCurrencyRateAPI = async () => {
+exports.oandaCurrencyRateAPI = async () => {0
   const url = 'https://www1.oanda.com/rates/api/v2/rates/spot.json'
   const queryParams = {
     params: {
