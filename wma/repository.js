@@ -24,7 +24,7 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, conn) =>
       console.log(e)
       return reject('Error storing currency WMA data');
     }
-    
+
     resolve('Stored WMA data')
   })
 });

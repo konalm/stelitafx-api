@@ -8,6 +8,8 @@ const currencyRatesService = require('../currencyRates/service');
 const secondsBetweenDates = require('../services/secondsBetweenDates')
 const WMALengths = [5, 9, 12, 15, 36, 200];
 const getCurrencyRates = require('../currencyRates/services/getCurrencyRates')
+const cacheWMA = require('./services/cacheWMAs')
+
 
 /**
  *
@@ -80,12 +82,12 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
 exports.storeWMAData = (timeInterval, currencyRateSource = 'currency_rate') => 
   new Promise((resolve, reject) => 
 {
-  // console.log('STORE WMA for ... ' + timeInterval)
+  // console.log('STORE WMA FOR ... ' + timeInterval) 
 
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
 
-  const conn = null
+  const conn = db()
 
   storeCurrencyPromises = [];
   currencies.forEach((currency) => {
@@ -97,24 +99,21 @@ exports.storeWMAData = (timeInterval, currencyRateSource = 'currency_rate') =>
 
   Promise.all(storeCurrencyPromises)
     .then(() => {
-      // console.log('Store currency promises ????')
-      // console.log('store wma success !!')
-      // console.log( secondsBetweenDates(s) )
-
-      // conn.end()
+      conn.end()
       resolve('sucessfully stored currencies');
     })
     .catch(err => {
       console.log('store wma fail :(')
 
-      // conn.end()
+      conn.end()
       console.log('FAILED TO STORE WMA DATA')
       reject(`Failed to store currencies: ${err}`);
     })
 })
 
+
 /**
- *
+ * Store all WMA lengths for currency 
  */
 const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) => 
   new Promise(async (resolve) =>
@@ -123,11 +122,14 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) =>
   try {
     rateData = await getCurrencyRates(timeInterval, currencyAbbrev, 1)
   } catch (e) {
-    console.log(err)
+    console.log(e)
     throw new Error('Error getting currency rate');
   }
+  
+  const rate = rateData[0].exchange_rate
 
-  rate = rateData[0].exchange_rate
+  // console.log('store currency wma data for ' + timeInterval + '.. ' + currencyAbbrev)
+  // console.log(rateData)
 
   wmaPromises = [];
   WMALengths.forEach((length) => {
@@ -145,17 +147,31 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) =>
         WMAData.push(WMADataPoint);
       });
 
+      /* Store WMA data for interval and curreny in MYSQL */
       try {
         await repo.storeWMAData(
           currencyAbbrev, 
           rate, 
           WMAData, 
           timeInterval, 
-          null
+          conn
         )
-      } catch (err) {
-        return resolve('Failed to store WMA data')
+      } catch (e) {
+        console.error('Failed to store WMA data')
       }
+
+      // console.log('store wma fata in cache')
+      // console.log(timeInterval)
+      // console.log(currencyAbbrev)
+      // console.log(rate)
+
+      /* Store WMA data fir interval and currency in cache */ 
+      try {
+        await cacheWMA(timeInterval, currencyAbbrev, WMAData, rate)
+      } catch (e) {
+        console.error('Failed to cache WMA')
+      }
+      
 
       resolve('Stored Currency WMA data')
     })
@@ -187,10 +203,6 @@ const calcWMA = async (abbrev, WMALength, timeInterval, conn) => {
     console.log('Failed to get currency rates')
     throw new Error('Error Getting WMA Data points: ' + err);
   }
-
-  // console.log('currency rates for wma >>>')
-  // console.log(currencyRates.length)
-  // console.log(WMALength)
 
   if (currencyRates.length < WMALength) return '';
 

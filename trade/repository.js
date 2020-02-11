@@ -32,7 +32,10 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
       t_xtb_rel.xtb_opentrade_id AS xtbOpenTradeId,
       t_xtb_rel.xtb_closetrade_id AS xtbCloseTradeId,
       xtb_trans_open.json AS openTradeTransactionJson,
-      xtb_trans_close.json AS closeTradeTransactionJson
+      xtb_trans_close.json AS closeTradeTransactionJson,
+
+      xtb_h_t.json AS xtb_historic_trade_json
+      
     FROM tradeV2 t
 
     LEFT JOIN trade_xtbtrade_rel t_xtb_rel
@@ -41,6 +44,8 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
       ON xtb_trans_open.trade_id = t_xtb_rel.xtb_opentrade_id
     LEFT JOIN xtb_trade_transactions xtb_trans_close
       ON xtb_trans_close.trade_id = t_xtb_rel.xtb_closetrade_id
+    LEFT JOIN xtb_historic_trade xtb_h_t
+      ON xtb_h_t.order2_no = t_xtb_rel.xtb_closetrade_id
   `
 
   let i = 0
@@ -82,9 +87,9 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
       if (r.xtbOpenTradeId && r.xtbCloseTradeId) {
         r.xtbStats = service.xtbTransactionStats(r)
       
-        delete r.openTradeTransactionJson;
-        delete r.closeTradeTransactionJson;
-        delete r.openNotes;
+        // delete r.openTradeTransactionJson;
+        // delete r.closeTradeTransactionJson;
+        // delete r.openNotes;
 
         if (r.closeTradeTransactionJson) {
           // r.xtbPips = calcXTBPipsFromTransaction(r.openTradeTransactionJson, r.closeTradeTransactionJson)

@@ -16,7 +16,6 @@ const protoNo = 91
 
 const openConditions = [
   'twelveWMACrossedUnder36WMA',
-  'currentRateUnderTwelveWMA'
 ]
 
 const closeConditions = [

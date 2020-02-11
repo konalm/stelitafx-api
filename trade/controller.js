@@ -54,14 +54,6 @@ exports.getProtoIntervalCurrencyTrades = async (req, res) => {
     return res.status(500).send('Failed to get trades')
   }
 
-  // let trades 
-  // try {
-  //   trades = await mongoRepo.getPrototypeIntervalTrades(protoNo, parseInt(interval), currency)
-  // } catch (e) {
-  //   console.log(e)
-  //   return res.status(500).send('Failed to get trades')
-  // }
-
   if (!trades.length) return res.status(204).send('No trades')
 
   return res.send(trades)
@@ -69,6 +61,8 @@ exports.getProtoIntervalCurrencyTrades = async (req, res) => {
 
 
 exports.getProtoIntervalTrades = async (req, res) => {
+  console.log('get proto interval trades !!')
+
   const {protoNo, interval} = req.params
   const conditions = {
     proto_no: parseInt(protoNo),
@@ -76,6 +70,12 @@ exports.getProtoIntervalTrades = async (req, res) => {
     closed: true,
   }
   const dateTimeFilter = req.query.date || '';
+
+  console.log('conditions ....')
+  console.log(conditions)
+
+  console.log('date time filter ....')
+  console.log(dateTimeFilter)
 
 
   let trades
@@ -276,8 +276,6 @@ exports.getPrototypeTradeAnalyses = async (req, res) => {
 
   const tradePerformances = []
   trades.forEach((t, i) => {
-    console.log('trade >>')
-    console.log(t)
 
     const relevantWMAData = wmaData.filter((w) => {
       return w.abbrev === t.abbrev 
@@ -285,7 +283,10 @@ exports.getPrototypeTradeAnalyses = async (req, res) => {
         && new Date(w.date) <= new Date(t.closeDate)
     })
 
-    const tradePerformance = service.abstractTradePerformance(t, relevantWMAData)
+    const tradePerformance = t.transactionType === 'short'
+      ? service.abstractShortTradePerformance(t, relevantWMAData)
+      : service.abstractLongTradePerformance(t, relevantWMAData)
+    
     if (tradePerformance) tradePerformances.push({ ...t, ...tradePerformance })
   })
 

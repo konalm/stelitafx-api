@@ -1,7 +1,8 @@
 const fs = require('fs')
 
+
 module.exports = (interval, abbrev, count) => new Promise(async (resolve, reject) => {
-  // console.log(`get cached rates ... ${abbrev}`)
+  // console.log(`get cached rates for ... ${abbrev}`)
 
   const symbol = abbrev.replace("/", "")
   const path = `cache/currencyRate/${interval}/${symbol}.JSON`
@@ -14,11 +15,10 @@ module.exports = (interval, abbrev, count) => new Promise(async (resolve, reject
   }
 
   if (count > currencyRates.length) return resolve(false)
+
   
   currencyRates.sort((a, b) => new Date(b.date) - new Date(a.date))
   currencyRates.splice(count, currencyRates.length)
-
-  if (currencyRates.length > 500) currencyRates.pop()
 
   resolve(currencyRates)
 })

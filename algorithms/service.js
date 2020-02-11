@@ -6,16 +6,32 @@ const calculatePip = require('../services/calculatePip')
 const calculateVolatility = require('../services/calculateVolatility')
 const dbConnections = require('../dbConnections')
 const stochasticsRepo = require('../stochastic/repository')
-
+const secsFromDate = require('../services/secondsBetweenDates')
+const getCachedWMA = require('../wma/services/getCachedWMA')
 
 exports.getCurrentAndPrevWMAs = async (
   abbrev, 
   timeInterval = 1, 
   currencyRateSource = ''
 ) => {
+  // console.log('get current and prev WMA')
+
   const s = new Date() 
 
-  // dbConnections('get current and prev WMA')
+  // TODO .. attempt to get from cache!
+  let cachedWMAs
+  try {
+    cachedWMAs = await getCachedWMA(timeInterval, abbrev, 2)
+  } catch (e) {
+    console.error('Failed to get cached WMAs')
+  }
+
+  if (cachedWMAs) {
+    const WMA = cachedWMAs[0];
+    const prevWMA = cachedWMAs.length > 1 ? cachedWMAs[1] : null;
+
+    return {WMA, prevWMA}
+  }
 
   let wmaDataPoints;
   try {
@@ -27,17 +43,20 @@ exports.getCurrentAndPrevWMAs = async (
   const WMA = wmaDataPoints[0];
   const prevWMA = wmaDataPoints.length > 1 ? wmaDataPoints[1] : null;
 
-
   return {WMA, prevWMA};
 }
 
 exports.getCurrentAndPrevStochastic = async (abbrev, interval) => {
+  const s = new Date()
+
   let stochastics
   try {
     stochastics = await stochasticsRepo.getStochastics(abbrev, interval, 2, 0)
   } catch (e) {
     throw new Error(`Could not get stochastics: ${e}`)
   }
+
+  // console.log(`time taken to get current and prev stochastic ... ${ secsFromDate(s) }`)
 
   return { current: stochastics[0].stochastic, prev: stochastics[1].stochastic }
 }
@@ -61,6 +80,8 @@ exports.getMovingAverages = async (
   } catch (e) {
     throw new Error('Could not get moving averages: ' + e)
   }
+
+  // console.log(`time taken to get moving averages .. ${secsFromDate(s) }`)
 
   return movingAverageDataPoints[0]
 }

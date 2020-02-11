@@ -31,8 +31,6 @@ exports.storeCloseTradeTransaction = (transaction) => new Promise((resolve, reje
 })
 
 
-
-
 exports.storeTradeRel = (tradeUUID, xtbTradeId) => new Promise((resolve, reject) => {
   console.log('xtb repo .. store trade rel')
   console.log(`trade UUID .. ${tradeUUID}`)
@@ -83,5 +81,42 @@ exports.getTradeRel = (tradeUUID) => new Promise((resolve, reject) => {
     if (results.length === 0) reject('Could not find xtb trade relationship')
 
     resolve(results[0])
+  })
+})
+
+
+/**
+ * Get all historic trades
+ */
+exports.getHistoricTrades = () => new Promise((resolve, reject) => {
+  const query = `
+    SELECT id, 
+    order_no AS orderNo,
+    order2_no AS order2No
+    FROM xtb_historic_trade
+  `
+  conn.query(query, (e, results) => {
+    if (e) return reject('Failed to get xtb historic trades')
+
+    return resolve(results)
+  })
+})
+
+
+/**
+ * 
+ */
+exports.storeHistoricTrades = (trades) => new Promise((resolve, reject) => {
+  const query = 'INSERT INTO xtb_historic_trade (order_no, order2_no, json) VALUES ?'
+
+  const queryValues = []
+  trades.forEach((x) => {
+    const row = [x.order, x.order2, JSON.stringify(x)]
+    queryValues.push(row)
+  })
+
+  conn.query(query, [queryValues], (e, results) => {
+    if (e) return reject('Failed to insert historic trades')
+    resolve(results)
   })
 })

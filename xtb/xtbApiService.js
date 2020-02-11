@@ -10,7 +10,9 @@ exports.login = (ws) => new Promise((resolve, _) => {
   }`
 
   ws.send(query,);
-  ws.on('message',  incoming = (data) => resolve( JSON.parse(data) ))
+  ws.on('message',  incoming = (data) => {
+    resolve( JSON.parse(data) )
+  })
 })
 
 
@@ -23,24 +25,27 @@ exports.logout = (ws) => new Promise((resolve, _) => {
 })
 
 
-exports.openTradeTransaction = (ws, symbol, price) => new Promise((resolve, reject) => {
+exports.openTradeTransaction = (ws, symbol, price, cmd) => new Promise((resolve, reject) => {
   const request = `{
     "command": "tradeTransaction",
     "arguments" : {
       "tradeTransInfo": {
-        "cmd": 0,
+        "cmd": ${cmd},
         "type": 0,
         "price": ${price},
         "sl": 0.0,
         "tp": 0.0,
         "symbol": "${symbol}",
-        "volume": 0.1,
+        "volume": 0.02,
         "order": 0,
         "customComment": "Some text",
         "expiration": 0
       }
     }
   }`
+
+  console.log('request >>')
+  console.log(request)
 
   ws.send(request)
   ws.on('message', incoming = (dataS) => {
@@ -164,5 +169,23 @@ exports.getAbbrevPrice = (ws, abbrev) => new Promise((resolve) => {
     else return resolve()
   
     resolve(rates[0])
+  })
+})
+
+
+exports.getTradesHistory = (ws) => new Promise((resolve, reject) => {
+  const request = `{
+    "command": "getTradesHistory",
+    "arguments": {
+      "end": 0,
+      "start": 0
+    }
+  }`
+
+  ws.send(request)
+  ws.on('message', incoming = (dataS) => {
+    const data = JSON.parse(dataS)
+
+    resolve(data.returnData)
   })
 })

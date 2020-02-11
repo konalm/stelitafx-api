@@ -7,15 +7,20 @@ const {
   getOpenTrades, 
   closeTradeTransaction,
   getPrices,
-  getAbbrevPrice
-
+  getAbbrevPrice,
+  getTradesHistory
 } = require('./xtbApiService')
 const repo = require('./repository')
-const ADDRESS = 'wss://ws.xtb.com/demo'
+const ADDRESS = 'wss://ws.xtb.com/real'
 const currencyRateRepo = require('../currencyRates/repository')
 const tradeRepo = require('../trade/repository')
 
-exports.openTrade = (tradeUUID, abbrev, price) => new Promise(async (resolve, reject) => {
+exports.openTrade = (tradeUUID, abbrev, price, transactionType) => new Promise(async (resolve, reject) => {
+  console.log(`transaction type .. ${transactionType}`)
+  const cmd = transactionType === 'short' ? 1 : 0;
+
+  console.log(`cmd ... ${cmd}`)
+
   console.log('XTB SERVICE .. OPEN TRADE')
 
   const ws = new WebSocket(ADDRESS)
@@ -56,16 +61,17 @@ exports.openTrade = (tradeUUID, abbrev, price) => new Promise(async (resolve, re
       console.error('Failed to update trade with abbrev price form XTB')
     }
 
-
     /* Open trade */
     let tradeTransaction 
     try {
       const symbol = abbrev.replace("/", "")
-      tradeTransaction = await openTradeTransaction(ws, symbol, currencyRate.ask)
+      tradeTransaction = await openTradeTransaction(ws, symbol, currencyRate.ask, cmd)
     } catch (e) {
       return reject('Open trade transaction failed')
     }
 
+    console.log('xtb open transaction ....')
+    console.log(tradeTransaction)
 
     /* Get status of the open trade transaction request */
     let tradeStatus
@@ -74,6 +80,9 @@ exports.openTrade = (tradeUUID, abbrev, price) => new Promise(async (resolve, re
     } catch (e) {
       return reject('Failed to get trade status')
     }
+
+    console.log('xtb trade status .....')
+    console.log(tradeStatus)
 
     /* Store the trade transaction information */ 
     try {
@@ -248,6 +257,7 @@ exports.getCurrencyRates = () => new Promise((resolve, reject) => {
       return reject('Failed to get get prices')
     }
 
+  
     /* logout */
     try {
       await logout(ws)
@@ -262,8 +272,6 @@ exports.getCurrencyRates = () => new Promise((resolve, reject) => {
 
 exports.getAbbrevRate = () => new Promise((resolve, reject) => {
   ws.on('open', async function open() {
-    console.log('opened')
-
     /* Login */
     try {
       await login(ws)
@@ -280,7 +288,7 @@ exports.getAbbrevRate = () => new Promise((resolve, reject) => {
       return reject('Failed to get get prices')
     }
 
-    /* logout */
+    /* Logout */
     try {
       await logout(ws)
     } catch (e) {
@@ -288,5 +296,37 @@ exports.getAbbrevRate = () => new Promise((resolve, reject) => {
     }
 
     resolve(prices)
+  })
+})
+
+
+exports.getTradeHistory = () => new Promise((resolve, reject) => {
+  const ws = new WebSocket(ADDRESS)
+
+  ws.on('open', async function open() {
+    /* Login */
+    try {
+      await login(ws)
+    } catch (e) {
+      return reject('Failed to login')
+    }
+
+    /* Fetch trades history */
+    let tradesHistory 
+    try {
+      tradesHistory = await getTradesHistory(ws)
+    } catch (e) {
+      console.log(e)
+      return reject('Failed to fetch trades history')
+    }
+
+    /* Logout */
+    try {
+      await logout(ws)
+    } catch (e) {
+      return reject('Failed to logout')
+    }
+
+    resolve(tradesHistory)
   })
 })

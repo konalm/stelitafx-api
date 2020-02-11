@@ -14,7 +14,7 @@ module.exports = (date) => new Promise(async (resolve, _) => {
 
   Promise.all([
     uploadXTBAccountCurrencyRates(date)
-    // uploadOandaFXAccountCurrencyRates(), 
+    // uploadOandaFXAccountCurrencyRates(date), 
     // uploadFixerioCurrencyRates()
   ])
     .then(() => { resolve() })
@@ -25,23 +25,37 @@ module.exports = (date) => new Promise(async (resolve, _) => {
 /**
  * 
  */
-const uploadOandaFXAccountCurrencyRates = () => new Promise(async (resolve, reject) => {
-  let currencyRates;
+const uploadOandaFXAccountCurrencyRates = (date) => new Promise(async (resolve, reject) => {
+  let oandaCurrencyRates;
   try {
-    currencyRates = await retrieveCurrencyRates.oandaFXAccountRate()
+    oandaCurrencyRates = await retrieveCurrencyRates.oandaFXAccountRate()
   } catch (e) {
     console.error(e)
     return reject ('Unable to retrieve currency rates')
   }
 
-  console.log('oanda currency rates >>>>')
-  console.log(currencyRates)
+  
+  const currencyRates = []
+  for (const key in oandaCurrencyRates) {
+    const currencyRate = {
+      currency: key,
+      bid: oandaCurrencyRates[key],
+      ask: oandaCurrencyRates[key]
+    }
+    currencyRates.push(currencyRate)
+  }
 
   try {
     await insertCurrencyRates(currencyRates, 'currency_rate')
   } catch (e) {
     console.error(e)
     return reject ('Failed to insert oandafx account currency rates')
+  }
+
+  try {
+    await cacheCurrencyRates(date, currencyRates)
+  } catch (e) {
+    console.log('Failed to cache currency rates')
   }
 
   resolve()
@@ -71,6 +85,7 @@ const uploadXTBAccountCurrencyRates = (date) => new Promise(async (resolve, reje
     }
     currencyRates.push(currencyRate)
   })
+
 
   try {
     await insertCurrencyRates(currencyRates, 'currency_rate')

@@ -2,6 +2,7 @@ const fs = require('fs');
 const config = require('../config');
 const DIR = 'cache/currencyRate'
 
+
 module.exports = (date, rates) => new Promise(async (resolve, reject) => {
   console.log(`CACHE RATE @ ... ${date}`)
 
@@ -30,13 +31,12 @@ module.exports = (date, rates) => new Promise(async (resolve, reject) => {
 
 
 const cacheIntervalRates = (interval, rates, date) =>  new Promise(async (resolve, reject) => {
-  console.log(`cache interval .. ${interval}`)
-  console.log(rates)
+  // console.log(`cache interval .. ${interval}`)
+  // console.log(rates)
 
   /* create dir for interval if it does not exist */
   const intervalDir = `${DIR}/${interval}`
   if (!fs.existsSync(intervalDir)) await fs.mkdirSync(intervalDir)
-
 
   const cacheAbbrevRatePromises = []
   rates.forEach((rate) => {
@@ -45,7 +45,7 @@ const cacheIntervalRates = (interval, rates, date) =>  new Promise(async (resolv
 
   Promise.all(cacheAbbrevRatePromises)
     .then(res => {
-      console.log('cached all abbrev rates')
+      // console.log('cached all abbrev rates')
       resolve()
     })
     .catch(e => {
@@ -53,7 +53,6 @@ const cacheIntervalRates = (interval, rates, date) =>  new Promise(async (resolv
     })
 
  
-  // check length of array. Pop id exceeds 500 
 })
 
 
@@ -78,8 +77,8 @@ const cacheIntervalAbbrevRate = (interval, rate, date) =>
     ask: rate.ask
   })
 
-  // console.log(`currency rates length ... ${currencyRates.length}`)
-  
+  if (currencyRates.length > 500) currencyRates.shift()
+
   try {
     await fs.writeFileSync(filename, JSON.stringify(currencyRates))
   } catch (e) {

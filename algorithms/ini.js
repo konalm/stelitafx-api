@@ -78,6 +78,9 @@ const intervalCurrencyAlgorithm = (timeInterval, currency, currencyRateSrc) =>
     return reject('Failed to get interval currency data')
   }
 
+  // console.log(`interval currency data for  ${timeInterval} ${currency} >>>`)
+  // console.log(intervalCurrencyData)
+
   runAlgorithms(timeInterval, currency, intervalCurrencyData)
     .then(() => {
       resolve()
@@ -118,6 +121,7 @@ const dataRelevantToIntervalCurrency = (timeInterval, currency, currencyRateSrc)
 const runAlgorithms = (timeInterval, currency, intervalCurrencyData) => 
   new Promise((resolve, reject) => 
 {
+
   const conn = db()
   Promise.all([
     prototype(timeInterval, currency, intervalCurrencyData, conn),
@@ -133,14 +137,14 @@ const runAlgorithms = (timeInterval, currency, intervalCurrencyData) =>
     prototypeNo7(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo14(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo15(timeInterval, currency, intervalCurrencyData, conn),
-    prototypeNo16(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo16(timeInterval, currency, intervalCurrencyData, conn),
     // prototypeNo71(timeInterval, currency, intervalCurrencyData, conn),
     // prototypeNo72(timeInterval, currency, intervalCurrencyData, conn),
     // prototypeNo73(timeInterval, currency, intervalCurrencyData, conn),
     // prototypeNo74(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo80(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo81(timeInterval, currency, intervalCurrencyData, conn),
-    prototypeNo82(timeInterval, currency, intervalCurrencyData, conn),
+    // prototypeNo82(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo83(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo85(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo86(timeInterval, currency, intervalCurrencyData, conn),

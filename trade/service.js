@@ -27,6 +27,8 @@ exports.openTrade = async (
   conn = db(),
   transactionType = 'long'
 ) => {
+  console.log('OPEN TRADE')
+
   const uuid = uuidGenerator();
   const abbrev = `${currency}/USD`
   const trade = {
@@ -40,6 +42,10 @@ exports.openTrade = async (
     uuid,
     transaction_type: transactionType
   }
+
+  // console.log('trade service open trade ..' + abbrev)
+  // console.log(trade)
+
 
   let publishedAlgorithm
   try { 
@@ -72,7 +78,7 @@ exports.openTrade = async (
 
     /* open trade on xtb for published alogorithms */ 
     try {
-      await xtbService.openTrade(uuid, abbrev, rate)
+      await xtbService.openTrade(uuid, abbrev, rate, transactionType)
     } catch (e) {
       console.log(e)
       throw new Error('Failed to open trade on xtb')
@@ -120,6 +126,8 @@ exports.closeTrade = async (
   timeInterval, 
   openingTrade,
 ) => {
+  console.log('CLOSE TRADE')
+
   const abbrev = `${currency}/USD`
 
   // console.log('closing trade @:' + new Date())
@@ -171,7 +179,6 @@ exports.closeTrade = async (
       console.log(e)
       throw new Error('Failed to close trade on xtb')
     }
-
 
     // try {      
     //   await oandaService.closeTrade(currency, openingTrade.uuid)
@@ -322,31 +329,60 @@ exports.getCachedLastTrade = async (prototypeNo, abbrev, interval) => {
 }
 
 
-exports.abstractTradePerformance = (trade, wmaData) => {
+exports.abstractLongTradePerformance = (trade, wmaData) => {
   if (!wmaData.length) return
 
-  const lowestRateInTrade = wmaData.reduce((prev, curr) => 
-    prev.rate < curr.rate ? prev : curr
-  )
-  const highestRateInTrade = wmaData.reduce((prev, curr) =>  
-    prev.rate > curr.rate ? prev : curr
-  )
+  // const low = null
 
-  const low = trade.transactionType === 'short' ? 'high' : 'low'
-  const high = trade.transactionType === 'short' ? 'low' : 'high'
+  const low = wmaData.reduce((prev, curr) => prev.rate < curr.rate ? prev : curr)
+  const high = wmaData.reduce((prev, curr) => prev.rate > curr.rate ? prev : curr)
+
+  // const rates = wmaData.map(x => x.rate)
+
+  // return { low, high, rates }
 
   return {
-    [low]: { 
-      date: lowestRateInTrade.date, 
-      rate: lowestRateInTrade.rate,
-      pips: calculatePip(trade.openRate, lowestRateInTrade.rate) 
+    low: { 
+      date: low.date, 
+      rate: low.rate,
+      pips: calculatePip(trade.openRate, low.rate) 
     },
-    [high]: {
-      date: highestRateInTrade.date,
-      rate: highestRateInTrade.rate,
-      pips: calculatePip(trade.openRate, highestRateInTrade.rate)
+    high: {
+      date: high.date,
+      rate: high.rate,
+      pips: calculatePip(trade.openRate, high.rate)
     }
+  }
+}
 
+exports.abstractShortTradePerformance = (trade, wmaData) => {
+  if (!wmaData.length) return
+
+  const low = wmaData.reduce((prev, curr) => prev.rate < curr.rate ? prev : curr)
+  const high = wmaData.reduce((prev, curr) => prev.rate > curr.rate ? prev : curr)
+
+  if (trade.id === 438153) {
+    console.log('ANALYSES ME :)')
+
+    console.log('high >>>>>')
+    console.log(high)
+
+    console.log('low >>>>>>')
+    console.log(low)
+  }
+
+
+  return {
+    low: {
+      date: high.rate,
+      rate: high.rate,
+      pips: calculatePip(high.rate, trade.openRate) 
+    },
+    high: {
+      date: low.date,
+      rate: low.rate,
+      pips: calculatePip(low.rate, trade.openRate)
+    }
   }
 }
 
@@ -358,10 +394,17 @@ exports.xtbTransactionStats = (trade) => {
   const closeStatus = closeTransaction.status
   const latestRate = trade.openNotes ? JSON.parse(trade.openNotes) : null
   const rateOnClose = trade.closeNotes ? JSON.parse(trade.closeNotes) : null
+  const historicTrade = trade.xtb_historic_trade_json 
+    ? JSON.parse(trade.xtb_historic_trade_json)
+    : null;
+  const brokerPips =  trade.transactionType === 'short' 
+  ? calculatePip(closeStatus.bid, openTransaction.ask)
+  : calculatePip(openTransaction.ask, closeStatus.bid)
 
+  
   return {
     paperPips: trade.pips,
-    brokerPips:  calculatePip(openTransaction.ask, closeStatus.bid),
+    brokerPips,
     openRate: {
       paperBid: trade.openRate,
       brokerAsk: openTransaction.ask,
@@ -370,10 +413,14 @@ exports.xtbTransactionStats = (trade) => {
       bidDifference: calculatePip(trade.openRate, openTransaction.bid),      
       paperOpenDate: moment(trade.openDate).format('HH : mm : ss'),
       brokerOpenDate: closeState.open_timeString,
-      latestBid: latestRate.bid,
-      latestBidDifference: calculatePip(openTransaction.bid, latestRate.bid),
-      latestAsk: latestRate.ask,
-      latestAskDifference: calculatePip(openTransaction.ask, latestRate.ask)
+      latestBid: latestRate ? latestRate.bid : null,
+      latestBidDifference: latestRate 
+        ? calculatePip(openTransaction.bid, latestRate.bid)
+        : null,
+      latestAsk: latestRate ? latestRate.ask : null,
+      latestAskDifference: latestRate 
+        ? calculatePip(openTransaction.ask, latestRate.ask)
+        : null
     },
     closeRate: {
       paper: trade.closeRate,
@@ -387,11 +434,28 @@ exports.xtbTransactionStats = (trade) => {
       latestAskDifference: rateOnClose ? calculatePip(latestRate.ask, rateOnClose.ask) : null
     },
     tradeState: {
+      brokerPips,
+      bokerPipsOnBid:  calculatePip(closeStatus.bid, openTransaction.bid),
+      openCloseDiff: calculatePip(closeState.open_price, closeState.close_price) * -1,
+      openCheck: calculatePip(openTransaction.ask, closeState.open_price),
+      closeCheck: rateOnClose ? calculatePip(rateOnClose.bid, closeState.close_price) : null,
       profit: closeState.profit,
+      commission: closeState.commission,
+      volume: closeState.volume,
       openRate: closeState.open_price,
       openDifference: calculatePip(trade.openRate, closeState.open_price),
       closeRate: closeState.close_price,
       closeDifference: calculatePip(trade.closeRate, closeState.close_price)
-    },
+    }
+    // historicTrade: {
+    //   profit: historicTrade.profit,
+    //   openRate: historicTrade.open_price,
+    //   closeRate: historicTrade.close_price,
+    //   paperOpenDiff: calculatePip(trade.openRate, historicTrade.close_price),
+    //   brokerBidOpenDiff: calculatePip(openTransaction.bid, historicTrade.close_price),
+    //   brokerAskOpenDiff: calculatePip(openTransaction.ask, historicTrade.close_price),
+    //   bidAskSpread: historicTrade.commission,
+    //   historicOpenCloseDiff: calculatePip(historicTrade.open_price, historicTrade.close_price)
+    // }
   }
 }

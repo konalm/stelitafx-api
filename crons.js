@@ -6,13 +6,12 @@ const implementStops= require('./algorithms/stopLoss')
 const dbConnGarbageCollector = require('./dbConnGarbageCollector')
 const algorthmStoryPipeline = require('./algorithms/storyPipeline')
 const dbConnections = require('./dbConnections')
+const uploadHistoricTrades = require('./xtb/services/uploadHistoricTrades')
 
 
 cron.schedule('* * * * *', async () => {
   const d = new Date()
   const min = d.getMinutes()
-
-  console.log('running cron at ' + d)
 
   try {
     await dbConnGarbageCollector()
@@ -20,24 +19,20 @@ cron.schedule('* * * * *', async () => {
     console.error(e)
   }
 
+  console.log('db conn garbage collector ran')
+
   try {
     await insertCurrencyRates(d)
   } catch (err) {
     console.log(err)
-
-    // throw new Error('Error inserting currency rates')
   }
 
-  console.log('insert currency rates at: ' + new Date())
  
   try {
     await implementStops()
   } catch (e) {
     console.error(`Failed to implement stop losses: ${e}`)
   }
-
-  console.log('implemented stops at: ' + new Date())
-
 
   const intervalsToRun = []
   config.TIME_INTERVALS.forEach((timeInterval) => {
@@ -55,6 +50,6 @@ cron.schedule('* * * * *', async () => {
   })
 })
 
-// const d = new Date()
-// insertCurrencyRates(d)
+
+// uploadHistoricTrades()
 
