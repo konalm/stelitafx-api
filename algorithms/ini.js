@@ -14,14 +14,14 @@ const prototypeNo5 = require('./prototype#5');
 const prototypeNo7 = require('./prototype#7');
 const prototypeNo14 = require('./prototype#14');
 const prototypeNo15 = require('./prototype#15');
-const prototypeNo16 = require('./prototype#16');
+// const prototypeNo16 = require('./prototype#16');
 // const prototypeNo71 = require('./prototype#71');
 // const prototypeNo72 = require('./prototype#72');
 // const prototypeNo73 = require('./prototype#73');
 // const prototypeNo74 = require('./prototype#74');
 const prototypeNo80 = require('./prototype#80');
 const prototypeNo81 = require('./prototype#81');
-const prototypeNo82 = require('./prototype#82');
+// const prototypeNo82 = require('./prototype#82');
 const prototypeNo83 = require('./prototype#83');
 const prototypeNo85 = require('./prototype#85');
 const prototypeNo86 = require('./prototype#86');
@@ -33,6 +33,9 @@ const prototypeNo91 = require('./prototype#91');
 const prototypeNo92 = require('./prototype#92');
 const prototypeNo93 = require('./prototype#93');
 const prototypeNo94 = require('./prototype#94');
+const prototypeNo95 = require('./prototype#95');
+const prototypeNo96 = require('./prototype#96');
+const prototypeNo97 = require('./prototype#97');
 
 const config = require('../config');
 const majorCurrencies = config.MAJOR_CURRENCIES
@@ -155,7 +158,10 @@ const runAlgorithms = (timeInterval, currency, intervalCurrencyData) =>
     prototypeNo91(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo92(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo93(timeInterval, currency, intervalCurrencyData, conn),
-    prototypeNo94(timeInterval, currency, intervalCurrencyData, conn)
+    prototypeNo94(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo95(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo96(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo97(timeInterval, currency, intervalCurrencyData, conn)
   ])
     .then(() => {
       conn.end()

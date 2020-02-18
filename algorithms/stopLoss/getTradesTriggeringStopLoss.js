@@ -89,7 +89,9 @@ const getPrototypeTradesTriggeringStopLoss = async (prototypeStopLossConfig, abb
 const tradeTriggeredStopLoss = (trade, abbrevRates, stopLoss) => {
   const latestRate = abbrevRates.find(x => x.abbrev === trade.abbrev).exchangeRate
   const openRate = trade.openRate
-  const pipDiff = calculatePip(openRate, latestRate)
+  const pipDiff = trade.transactionType !== 'short' 
+    ? calculatePip(openRate, latestRate)
+    : calculatePip(openRate, latestRate) * -1
 
   return pipDiff <= (stopLoss * -1)
 }

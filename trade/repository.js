@@ -85,7 +85,7 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
   
       /* calculate XTB pips for trades executed on broker */ 
       if (r.xtbOpenTradeId && r.xtbCloseTradeId) {
-        r.xtbStats = service.xtbTransactionStats(r)
+        // r.xtbStats = service.xtbTransactionStats(r)
       
         // delete r.openTradeTransactionJson;
         // delete r.closeTradeTransactionJson;
@@ -390,18 +390,29 @@ exports.getTradeTransactions = (abbrev, buyTradeId, sellTradeId) =>
 exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =>
 {
   const query = `
-    SELECT open_rate AS openRate,
-    date AS openDate,
-    close_rate AS closeRate,
-    close_date AS closeDate,
-    open_stats AS openStats,
-    time_interval AS timeInterval,
-    viewed,
-    account
-    FROM tradeV2
-    WHERE proto_no = ?
-    AND abbrev = ?
-    AND uuid = ?
+    SELECT t.open_rate AS openRate,
+      t.date AS openDate,
+      t.close_rate AS closeRate,
+      t.close_date AS closeDate,
+      t.open_stats AS openStats,
+      t.time_interval AS timeInterval,
+      t.viewed,
+      t.account,
+      ov.volatility AS openingVolatility,
+      cv.volatility AS closingVolatility
+    FROM tradeV2 t
+
+    LEFT JOIN volatility ov
+      ON HOUR(ov.date) = HOUR(t.date)
+      AND MINUTE(ov.date) = MINUTE(t.date)
+    
+    LEFT JOIN volatility cv
+      ON HOUR(cv.date) = HOUR(t.close_date)
+      AND MINUTE(cv.date) = MINUTE(t.close_date)
+
+    WHERE t.proto_no = ?
+    AND t.abbrev = ?
+    AND t.uuid = ?
   `
   const queryValues = [protoNo, abbrev, tradeId]
 
@@ -419,7 +430,9 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
       timeInterval: results[0].timeInterval,
       viewed: !results[0].viewed ? false : true,
       account: results[0].account,
-      pips: calculatePip(results[0].openRate, results[0].closeRate, abbrev)
+      pips: calculatePip(results[0].openRate, results[0].closeRate, abbrev),
+      openingVolatility: results[0].openingVolatility || null,
+      closingVolatility: results[0].closingVolatility || null
     }
 
     return resolve(mappedResult);

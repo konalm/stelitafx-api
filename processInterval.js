@@ -3,6 +3,7 @@ const movingAverageService = require('./movingAverage/service')
 const prototypeIni = require('./algorithms/ini')
 const { TIME_INTERVALS, HOUR_INTERVALS  } = require('./config')
 const { storeStochastic } = require('./stochastic/service')
+const { storeVolatility } = require('./volatility/service')
 const secsFromDate = require('./services/secondsBetweenDates')
 // const dbConnections = require('./dbConnections')
 
@@ -22,7 +23,8 @@ console.log('PROCESS INTERVAL ' + interval)
 
 Promise.all([
   wmaService.storeWMAData(interval, 'currency_rate'),
-  storeStochastic(interval)
+  storeStochastic(interval),
+  storeVolatility(interval)
 ])
   .then(() => {
     prototypeIni(interval)

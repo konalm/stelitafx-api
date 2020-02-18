@@ -2,6 +2,7 @@ const repo = require('./repository')
 const service = require('./service')
 const oandaService = require('../services/oanda')
 const wmaRepo = require('../wma/repository')
+const volatilityRepo = require('../volatility/repository')
 
 
 exports.getOandaTradeTransactions  = async (req, res) => {
@@ -141,6 +142,8 @@ exports.getNextTrade = async (req, res) => {
 
 
 exports.getTrade = async (req, res) => {
+  console.log('get trade !!')
+
   const { protoNo, currency, tradeUUID } = req.params;
   const abbrev = `${currency}/USD`
 
@@ -148,8 +151,13 @@ exports.getTrade = async (req, res) => {
   try {
     trade = await repo.getTrade(protoNo, abbrev, tradeUUID);
   } catch (e) {
+    console.log(e)
     return res.status(500).send('Failed to get trade');
   }
+
+  let volatility 
+
+
 
   if (!trade) return res.status(404).send('Trade not found');
 
@@ -157,6 +165,8 @@ exports.getTrade = async (req, res) => {
 }
 
 exports.getTradeV2 = async (req, res) => {
+  console.log('get trade !!');
+
   const {protoNo, interval, currency, tradeId} = req.params
   const conditions = {
     proto_no: protoNo,
@@ -264,14 +274,25 @@ exports.getPrototypeTradeAnalyses = async (req, res) => {
     return res.status(500).send(`Failed to get trades`)
   }
 
+  const earliestDate = trades[trades.length - 1].openDate
+  const latestDate = trades[0].closeDate
+
   let wmaData
   try {
-    const earliestDate = trades[trades.length - 1].openDate
-    const latestDate = trades[0].closeDate
     wmaData = await wmaRepo.getWMAFromDate(null, interval, earliestDate, latestDate)
   } catch (e) {
     console.log(e)
     return res.status(500).send('Failed to get wma data')
+  }
+
+  let volatility
+  try {
+    volatility = await volatilityRepo.getVolatilityBetweenDates(
+      interval, earliestDate, latestDate
+    )
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to get volatility data')
   }
 
   const tradePerformances = []
@@ -282,6 +303,18 @@ exports.getPrototypeTradeAnalyses = async (req, res) => {
         && new Date(w.date) >= new Date(t.openDate) 
         && new Date(w.date) <= new Date(t.closeDate)
     })
+
+    const openingVolatility = volatility.find((x) => t.abbrev === x.abbrev 
+      && new Date(t.openDate).getHours() === new Date(x.date).getHours()
+      && new Date(t.openDate).getMinutes() === new Date(x.date).getMinutes()
+    )
+    t.openingVolatility = openingVolatility ? openingVolatility.volatility : null
+
+    const closingVolatility = volatility.find((x) => t.abbrev === x.abbrev
+      && new Date(t.closeDate).getHours() === new Date(x.date).getHours()
+      && new Date(t.closeDate).getMinutes() === new Date(x.date).getMinutes()
+    )
+    t.closingVolatility = closingVolatility ? closingVolatility.volatility : null
 
     const tradePerformance = t.transactionType === 'short'
       ? service.abstractShortTradePerformance(t, relevantWMAData)
