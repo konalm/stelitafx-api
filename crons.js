@@ -4,9 +4,10 @@ const config = require('./config')
 const insertCurrencyRates = require('./updateCurrencyRates/insertCurrencyRates')
 const implementStops= require('./algorithms/stopLoss')
 const dbConnGarbageCollector = require('./dbConnGarbageCollector')
-const algorthmStoryPipeline = require('./algorithms/storyPipeline')
-const dbConnections = require('./dbConnections')
-const uploadHistoricTrades = require('./xtb/services/uploadHistoricTrades')
+// const algorthmStoryPipeline = require('./algorithms/storyPipeline')
+// const dbConnections = require('./dbConnections')
+// const uploadHistoricTrades = require('./xtb/services/uploadHistoricTrades')
+const uploadCandles = require('@/candle/service/populateCandles')
 
 
 cron.schedule('* * * * *', async () => {
@@ -19,15 +20,18 @@ cron.schedule('* * * * *', async () => {
     console.error(e)
   }
 
-  console.log('db conn garbage collector ran')
-
   try {
     await insertCurrencyRates(d)
   } catch (err) {
     console.log(err)
   }
 
- 
+  try {
+    await uploadCandles(min)
+  } catch (e) {
+    console.log(`Failed to upload candle on ${min}: e`)
+  }
+
   try {
     await implementStops()
   } catch (e) {
@@ -49,7 +53,3 @@ cron.schedule('* * * * *', async () => {
     spawnedProcess.stdout.on('data', (data) => { console.log(data.toString()) })
   })
 })
-
-
-// uploadHistoricTrades()
-

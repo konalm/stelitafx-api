@@ -13,6 +13,7 @@ module.exports = (interval, abbrev, count) => new Promise(async (resolve, reject
 
   if (currencyRates) {
     currencyRates.forEach((x) => x.exchange_rate = x.bid )
+    currencyRates.forEach((x) => x.close = x.bid )
     return resolve(currencyRates)
   }
 
@@ -29,6 +30,10 @@ module.exports = (interval, abbrev, count) => new Promise(async (resolve, reject
     console.log(e)
     return reject('Failed to get currency rates from MYSQL')
   } 
+
+  currencyRates.forEach((x) => {
+    x.close = x.exchange_rate
+  })
 
   resolve(currencyRates)
 })

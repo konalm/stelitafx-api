@@ -82,8 +82,6 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
 exports.storeWMAData = (timeInterval, currencyRateSource = 'currency_rate') => 
   new Promise((resolve, reject) => 
 {
-  // console.log('STORE WMA FOR ... ' + timeInterval) 
-
   const currencies = config.MAJOR_CURRENCIES;
   const quoteCurrency = config.QUOTE_CURRENCY;
 
@@ -127,9 +125,6 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) =>
   }
   
   const rate = rateData[0].exchange_rate
-
-  // console.log('store currency wma data for ' + timeInterval + '.. ' + currencyAbbrev)
-  // console.log(rateData)
 
   wmaPromises = [];
   WMALengths.forEach((length) => {

@@ -6,11 +6,7 @@ app.use(cors());
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded())
 
-/**
- * Mongo db connection
- */
-// const mongoose = require('mongoose');
-// mongoose.connect('mongodb://localhost:27017/stelitafx', {useNewUrlParser: true});
+require('module-alias/register')
 
 
 const port = 8686

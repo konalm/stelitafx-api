@@ -2,8 +2,6 @@ const fs = require('fs')
 
 
 module.exports = (interval, abbrev, count) => new Promise(async (resolve, reject) => {
-  // console.log(`get cached rates for ... ${abbrev}`)
-
   const symbol = abbrev.replace("/", "")
   const path = `cache/currencyRate/${interval}/${symbol}.JSON`
 

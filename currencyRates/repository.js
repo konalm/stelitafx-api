@@ -67,17 +67,11 @@ exports.GetCurrencyLatestRates = (
 ) =>
   new Promise((resolve, reject) =>
 {
-  // console.log(`MYSQL .. get currency latest rates`)
-  // console.log(`currencyAbbrev .. ${currencyAbbrev}`)
-  // console.log(`rates amount .. ${ratesAmount}`)
-  // console.log(`hist count ... ${historicalCount}`)
-  // console.log(`interval ... ${timeInterval}`)
-
   const dbConn = conn ? conn : db()
 
   const intervalMins = getIntervalMins(timeInterval)
   const query = `
-    SELECT date, exchange_rate
+    SELECT date, exchange_rate, bid, ask, high, low
     FROM currency_rate
     WHERE abbrev = ?
      AND MINUTE(date) IN (${intervalMins})

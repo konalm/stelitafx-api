@@ -34,7 +34,6 @@ const uploadOandaFXAccountCurrencyRates = (date) => new Promise(async (resolve, 
     return reject ('Unable to retrieve currency rates')
   }
 
-  
   const currencyRates = []
   for (const key in oandaCurrencyRates) {
     const currencyRate = {
@@ -66,8 +65,6 @@ const uploadOandaFXAccountCurrencyRates = (date) => new Promise(async (resolve, 
  * 
  */
 const uploadXTBAccountCurrencyRates = (date) => new Promise(async (resolve, reject) => {
-  console.log('upload XTB account currency rates !!')
-
   let xtbCurrencyRates
   try {
     xtbCurrencyRates = await xtbService.getCurrencyRates()
@@ -81,11 +78,12 @@ const uploadXTBAccountCurrencyRates = (date) => new Promise(async (resolve, reje
     const currencyRate = {
       currency,
       bid: x.bid,
-      ask: x.ask
+      ask: x.ask,
+      high: x.high,
+      low: x.low
     }
     currencyRates.push(currencyRate)
   })
-
 
   try {
     await insertCurrencyRates(currencyRates, 'currency_rate')
@@ -97,14 +95,6 @@ const uploadXTBAccountCurrencyRates = (date) => new Promise(async (resolve, reje
     await cacheCurrencyRates(date, currencyRates)
   } catch (e) {
     console.log('Failed to cache currency rates')
-  }
-
-
-  try {
-    await insertCurrencyRateData(xtbCurrencyRates)
-  } catch (e) {
-    console.log(e)
-    console.error('Failed to insert currency rate data')
   }
 
   resolve()
@@ -136,13 +126,13 @@ const uploadFixerioCurrencyRates = () => new Promise(async (resolve, reject) => 
 const insertCurrencyRates = (currencyRates, tableName) => 
   new Promise(async (resolve, reject) => 
 {
-  const query = `INSERT INTO ${tableName} (abbrev, exchange_rate, bid, ask) VALUES ?`
+  const query = `INSERT INTO ${tableName} (abbrev, exchange_rate, bid, ask, high, low) VALUES ?`
   const queryValues = []
 
   /* build row of data in sql query */
   currencyRates.forEach((x) => {
     const abbrev = `${x.currency}/USD`;
-    const row = [abbrev, x.bid,x.bid, x.ask]
+    const row = [abbrev, x.bid,x.bid, x.ask, x.high, x.low]
     queryValues.push(row);
   })
 

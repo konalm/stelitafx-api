@@ -4,8 +4,6 @@ const DIR = 'cache/currencyRate'
 
 
 module.exports = (date, rates) => new Promise(async (resolve, reject) => {
-  console.log(`CACHE RATE @ ... ${date}`)
-
   const min = date.getMinutes()
   const intervalsToCacheRate = []
   config.TIME_INTERVALS.forEach((interval) => {
@@ -19,7 +17,6 @@ module.exports = (date, rates) => new Promise(async (resolve, reject) => {
 
   Promise.all(intervalRatesCachePromises)
     .then(() => {
-      console.log('RATES CACHED FOR ALL INTERVALS')
       resolve()
     })
     .catch(e => {
@@ -74,7 +71,9 @@ const cacheIntervalAbbrevRate = (interval, rate, date) =>
   currencyRates.push({
     date,
     bid: rate.bid,
-    ask: rate.ask
+    ask: rate.ask,
+    high: rate.high,
+    low: rate.low
   })
 
   if (currencyRates.length > 500) currencyRates.shift()

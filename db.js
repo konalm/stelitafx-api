@@ -2,7 +2,6 @@ const mysql = require('mysql');
 const env = require('./env.js');
 const dbConf = env.DB;
 
-// console.log('use db conn')
 
 const connection = mysql.createConnection({
   host: dbConf.host,

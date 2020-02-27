@@ -1,13 +1,10 @@
 const fs = require('fs')
-const config = require('../../config')
 const DIR = 'cache/WMA'
 
 
 module.exports = (interval, abbrev, WMAData, rate) => 
   new Promise(async (resolve, reject) => 
 {
-  // console.log('cache wma for .. ' + abbrev + ' .. ' + rate)
-
   /* create dir for interval if it does not exists */
   const intervalDir = `${DIR}/${interval}`
   if (!fs.existsSync(intervalDir)) await fs.mkdirSync(intervalDir)

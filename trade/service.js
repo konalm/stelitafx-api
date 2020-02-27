@@ -27,8 +27,6 @@ exports.openTrade = async (
   conn = db(),
   transactionType = 'long'
 ) => {
-  console.log('OPEN TRADE')
-
   const uuid = uuidGenerator();
   const abbrev = `${currency}/USD`
   const trade = {
@@ -126,11 +124,7 @@ exports.closeTrade = async (
   timeInterval, 
   openingTrade,
 ) => {
-  console.log('CLOSE TRADE')
-
   const abbrev = `${currency}/USD`
-
-  // console.log('closing trade @:' + new Date())
 
   if (openingTrade && openingTrade.closed) {
     logger('opening trade is closed', 'warning')
