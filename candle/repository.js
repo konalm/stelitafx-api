@@ -1,3 +1,5 @@
+const db = require('@/dbInstance')
+
 exports.insertCandle = (interval, abbrev, candle, conn) => 
   new Promise((resolve, reject) => 
 {
@@ -16,5 +18,44 @@ exports.insertCandle = (interval, abbrev, candle, conn) =>
     if (e) return reject('Failed to insert candle into MYSQL')
     
     resolve()
+  })
+})
+
+
+exports.getCandles = async (interval, abbrev, count, offset) => 
+  new Promise((resolve, reject) => 
+{
+  console.log('get candles')
+  console.log(interval)
+  console.log(abbrev)
+  console.log(count)
+  console.log(offset)
+
+  const query = `
+    SELECT time_interval AS timeInterval,
+      abbrev,
+      date,
+      open,
+      low,
+      high,
+      close
+    FROM candle
+    WHERE time_interval = ?
+      AND abbrev = ?
+    ORDER BY date DESC
+    LIMIT ?
+    OFFSET ?
+  `
+  const queryValues = [interval, abbrev, count, offset]
+
+  const conn = db()
+  conn.query(query, queryValues, (e, results) => {
+    conn.end()
+    if (e) return reject(e)
+
+    console.log('results >>>>')
+    console.log(results)
+
+    resolve(results)
   })
 })

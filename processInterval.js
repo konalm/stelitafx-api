@@ -20,13 +20,10 @@ if (!TIME_INTERVALS.includes(interval) && !HOUR_INTERVALS.includes(interval / 60
 
 let sDate = new Date()
 
-console.log('PROCESS INTERVAL ' + interval)
-
 
 Promise.all([
   wmaService.storeWMAData(interval, 'currency_rate'),
   storeStochastic(interval),
-  storeVolatility(interval),
   storeMacd(interval),
   storeAdx(interval)
 ])
@@ -34,7 +31,6 @@ Promise.all([
     prototypeIni(interval)
       .then(() => {   
         console.log(`PROCESS INTERVAL ${interval} .. took ${secsFromDate(sDate)}`)
-        // mongoose.connection.close()
         process.exit(interval)
       })
       .catch(() => {

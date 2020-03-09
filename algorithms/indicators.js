@@ -39,6 +39,13 @@ exports.anIndicatorTriggered = (data, prototypeIndicators) => {
  */
 exports.indicators = (data) => {
   return {
+    macdHistogramAbovePointFifteen: data.macd.current.macdHistogram >= 0.00015,
+    macdCrossedOver: service.macdCrossedOver(data.macd.current, data.macd.prior),
+    macdCrossedUnder: service.macdCrossedUnder(data.macd.current, data.macd.prior),
+    macdUnderLag: service.macdUnderLag(data.macd.current),
+    macdOverLag: !service.macdUnderLag(data.macd.current),
+    macdHistogramDecreased: service.macdHistogramDecreased(data.macd.current, data.macd.prior),
+    macdHistogramIncreased: service.macdHistogramIncreased(data.macd.current, data.macd.prior),
     twelveWMACrossedOver36WMA: service.shortWMACrossedOver(data.WMAs, 12, 36),
     twelveWMACrossedUnder36WMA: service.shortWMACrossedUnder(data.WMAs, 12, 36),
     pipIncreasedByOne: data.pip >= 1,
@@ -77,7 +84,7 @@ exports.indicators = (data) => {
  */
 exports.dataForIndicators = ( abbrev, intervalCurrencyData, openingTrade ) => {
   const s = new Date()
-  const { movingAverages, WMAs, currentRate, stochastic } = intervalCurrencyData
+  const { movingAverages, WMAs, currentRate, stochastic, macd } = intervalCurrencyData
 
   // const openingTrade = lastTrades.find(x => x.prototypeNo === protoNo)
 
@@ -95,6 +102,7 @@ exports.dataForIndicators = ( abbrev, intervalCurrencyData, openingTrade ) => {
     currentRate,
     openingTrade,
     pip,
-    stochastic
+    stochastic,
+    macd
   }
 }

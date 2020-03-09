@@ -63,6 +63,7 @@ exports.getWMADataPointsStartDate = async (req, res) => {
   return res.send(WMADataPoints);
 }
 
+
 /**
  * Get latest weighted moving averages
  */
@@ -116,19 +117,6 @@ exports.getWMAsForTrade = async (req, res) => {
   }
   if (!trade) return res.status(404).send('could not find trade');
 
-  // let trade 
-  // try {
-  //   trade = await tradeMongoRepo.getPrototypeIntervalCurrencyTrade(
-  //     prototypeNumber,
-  //     parseInt(interval),
-  //     abbrevInstrument,
-  //     tradeUUID
-  //   )
-  // } catch (e) {
-  //   return res.status(500).send('Failed to get trade')
-  // }
-
-  console.log(trade)
 
   let WMADataPoints;
   try {

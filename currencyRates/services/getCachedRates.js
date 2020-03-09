@@ -9,7 +9,7 @@ module.exports = (interval, abbrev, count) => new Promise(async (resolve, reject
   try {
     currencyRates = JSON.parse(await fs.readFileSync(path, 'utf8'))
   } catch(e) {
-    return reject('Failed to reach currency rates cache')
+    return reject('Failed to read currency rates cache')
   }
 
   if (count > currencyRates.length) return resolve(false)

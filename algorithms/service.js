@@ -8,17 +8,32 @@ const dbConnections = require('../dbConnections')
 const stochasticsRepo = require('../stochastic/repository')
 const secsFromDate = require('../services/secondsBetweenDates')
 const getCachedWMA = require('../wma/services/getCachedWMA')
+const getCachedMacdItems = require('@/indicators/macd/service/getCache')
+
+
+exports.getCurrentAndPriorMacdItems = async (interval, abbrev) => {
+  let macdItems
+  try {
+    macdItems = await getCachedMacdItems(interval, abbrev, 2)
+  } catch (e) {
+    console.error('Failed to get cached macd items')
+  }
+
+  if (!macdItems || !macdItems.length) return 
+
+  return {
+    current: macdItems[0].macd,
+    prior: macdItems[1].macd
+  }
+}
 
 exports.getCurrentAndPrevWMAs = async (
   abbrev, 
   timeInterval = 1, 
   currencyRateSource = ''
 ) => {
-  // console.log('get current and prev WMA')
-
   const s = new Date() 
 
-  // TODO .. attempt to get from cache!
   let cachedWMAs
   try {
     cachedWMAs = await getCachedWMA(timeInterval, abbrev, 2)
@@ -56,8 +71,6 @@ exports.getCurrentAndPrevStochastic = async (abbrev, interval) => {
     throw new Error(`Could not get stochastics: ${e}`)
   }
 
-  // console.log(`time taken to get current and prev stochastic ... ${ secsFromDate(s) }`)
-
   return { current: stochastics[0].stochastic, prev: stochastics[1].stochastic }
 }
 
@@ -80,8 +93,6 @@ exports.getMovingAverages = async (
   } catch (e) {
     throw new Error('Could not get moving averages: ' + e)
   }
-
-  // console.log(`time taken to get moving averages .. ${secsFromDate(s) }`)
 
   return movingAverageDataPoints[0]
 }
@@ -175,4 +186,35 @@ exports.stats = async (data, abbrev) => {
     currentRate36WMADistance,
     volatility
   }
+}
+
+
+exports.macdCrossedOver = (current, prior) => {
+  if (prior.macdLine <= prior.macdLag) {
+    if (current.macdLine > current.macdLag) return true
+  }
+
+  return false
+}
+
+
+exports.macdCrossedUnder = (current, prior) => {
+  if (prior.macdLine >= prior.macdLag) {
+    if (current.macdLine < current.macdLag) return true
+  }
+
+  return false
+}
+
+
+exports.macdUnderLag = (current) => current.macdLine < current.macdLag
+
+
+exports.macdHistogramDecreased = (current, prior) => {
+  return current.macdHistogram < prior.macdHistogram
+}
+
+
+exports.macdHistogramIncreased = (current, prior) => {
+  return current.macdHistogram > prior.macdHistogram
 }

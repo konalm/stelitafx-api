@@ -1,11 +1,11 @@
 const config = require('@/config');
 const db = require('@/dbInstance')
-const getCurrencyPeriods = require('@/currencyRates/services/getCurrencyRates')
+const getAbbrevCandles = require('@/candle/service/getCache')
 const calcAdx = require('./calcAdx')
 const { storeAdx } = require('../repository')
 
  
-module.exports = (interval) => new Promise((resolve, reject) => {
+module.exports = (interval) => new Promise((resolve) => {
   const conn = db()
 
   const currencyStoreAdxPromises = []
@@ -32,19 +32,19 @@ module.exports = (interval) => new Promise((resolve, reject) => {
 const storeAdxForAbbrev = (interval, abbrev, conn) => 
   new Promise(async (resolve, reject) => 
 {
-  /* Get abbrev's last 150 periods */
-  let periods 
+  /* Get abbrev's last 150 candles */
+  let candles 
   try {
-    periods = await getCurrencyPeriods(interval, abbrev, 150)
+    candles = await getAbbrevCandles(interval, abbrev, 164)
   } catch (e) {
     console.log(e)
     return reject('Faled to get abbrev periods')
   }
 
-  /* Order periods by earliest first */
-  periods.sort((a, b) => new Date(a.date) - new Date(b.date))
+  /* Order candles by earliest first */
+  candles.sort((a, b) => new Date(a.date) - new Date(b.date))
 
-  const adx = calcAdx(periods)
+  const adx = calcAdx(candles, interval, abbrev)
 
   const adxModel = {
     time_interval: interval, 

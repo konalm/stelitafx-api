@@ -37,8 +37,6 @@ exports.getOandaTradeTransactions  = async (req, res) => {
 
 
 exports.getProtoIntervalCurrencyTrades = async (req, res) => {
-  console.log('prototype interval trades')
-
   const {protoNo, interval, currency} = req.params  
   const dateTimeFilter = req.query.date || '';
   const conditions = {
@@ -154,9 +152,6 @@ exports.getTrade = async (req, res) => {
     console.log(e)
     return res.status(500).send('Failed to get trade');
   }
-
-  let volatility 
-
 
 
   if (!trade) return res.status(404).send('Trade not found');

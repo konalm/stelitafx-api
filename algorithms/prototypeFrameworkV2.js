@@ -49,7 +49,7 @@ module.exports = async (
     openingTrade
   )
   const notes = JSON.stringify(data)
-  
+
   if (!openingTrade || openingTrade.closed) {
     const openConditionsMet = indicators.indicatorsTriggered(data, openConditions)
 

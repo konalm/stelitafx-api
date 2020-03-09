@@ -47,7 +47,7 @@ const populateCandleForInterval = (interval) => new Promise((resolve, reject) =>
     })
     .catch((e) => {
       console.log(e)
-      console.log(`Failed to popuate candle for ${interval}`)
+      console.log(`Failed to populate candle for ${interval}`)
       conn.end()
       reject(`Failed to popuate candle for ${interval}`)
     })
@@ -57,11 +57,9 @@ const populateCandleForInterval = (interval) => new Promise((resolve, reject) =>
 const poulateCandleForIntervalAbbrev = (interval, abbrev, conn) => 
   new Promise(async (resolve, reject) => 
 {
-  // console.log('populate candle for intervsl abbrev ... ' + abbrev)
-
   let candle
   try {
-    candle = await fetchCandleHttp(5, abbrev)
+    candle = await fetchCandleHttp(interval, abbrev)
   } catch (e) { 
     /* If failed to fetch candle. Try again in 5 seconds */
     await forceWait(5)

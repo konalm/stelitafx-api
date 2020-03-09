@@ -109,6 +109,9 @@ exports.oandaFXAccountRate = async () => {
     return
   }
 
+  console.log('oanda response >>>>')
+  console.log(response)
+
   let bids = {}
   response.prices.forEach((price) => {
     const currencyAbbrev = price.instrument.substring(0,3);

@@ -11,7 +11,9 @@ const chartingRoutes = require('../charting/route');
 const currencyRateRoutes = require('../currencyRates/route');
 const stochasticRoutes = require('../stochastic/route')
 const publishedAlgorithmRoutes = require('../publishedAlgorithm/route')
-
+const adxRoutes = require('@/indicators/adx/route')
+const macdRoutes = require('@/indicators/macd/route')
+const candleRoutes = require('@/candle/route')
 
 module.exports = (app) => {
   wmaRoutes(app);
@@ -25,6 +27,9 @@ module.exports = (app) => {
   currencyRateRoutes(app)
   stochasticRoutes(app)  
   publishedAlgorithmRoutes(app)
+  adxRoutes(app)
+  macdRoutes(app)
+  candleRoutes(app)
 
   /**
    * Get trade

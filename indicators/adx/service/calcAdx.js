@@ -1,4 +1,4 @@
-module.exports = (periods) => {
+module.exports = (periods, interval, abbrev) => {
   const calcPeriods = []
 
   periods.forEach((current, i) => {
@@ -41,6 +41,9 @@ module.exports = (periods) => {
 
   const finalPeriod = calcPeriods[calcPeriods.length - 1]
 
+  // console.log('final period >>>>')
+  // console.log(finalPeriod)
+
   
   return {
     plusDi: finalPeriod.plusDI14 || 0.00,
@@ -51,50 +54,53 @@ module.exports = (periods) => {
 
 
 const getAdx = (periods, currentDX, priorAdx) => {
-  let dx = [...periods.filter((x) => x.dx ).map((y) => y.dx)]
-  dx.push(currentDX);
+  const dxItems = [
+    ...periods.filter((x) => x.dx !== null && x.dx !== undefined && !isNaN(x.dx))
+              .map((x) => x.dx)
+  ]
+  
+  dxItems.push(currentDX)
 
-  if (dx.length < 14) return null
-
-  if (dx.length > 150) {
-    const last = dx.length - 1
-    dx = [...dx.slice(last - 150, last)]
+  if (dxItems.length < 14) return null
+  
+  if (dxItems.length > 150) {
+    const last = dxItems.length - 1
+    dxItems = [...dxItems.slice(last - 150, last)]
   }
 
-  // First ADX14 .. 14 period average of dx
-  if (dx.length === 14) round(dx.reduce((sum, x) => sum + x) / 14)
+  /* First ADX14 .. 14 period average of dx */
+  if (dxItems.length === 14) return dxItems.reduce((sum, x) => sum + x) / 14
   
-
-  // Smoothen subsequent ADX
-  if (dx.length > 14) round(( (priorAdx * 13) + currentDX ) / 14)
+  /* Smoothen subsequent ADX */
+  if (dxItems.length > 14) return ((priorAdx * 13) + currentDX ) / 14
 }
 
 
 const getDx = (DI14Diff, DI14Sum, index) => {
   if (index < 14) return null 
 
-  return round( Math.abs(DI14Diff / DI14Sum) * 100)
+  return Math.abs(DI14Diff / DI14Sum) * 100
 }
 
 
 const direction14Diff = (plusDM14, minusDM14, index) => {
   if (index < 14) return null 
 
-  return round( Math.abs(plusDM14 - minusDM14) )
+  return Math.abs( plusDM14 - minusDM14 )
 }
 
 
 const direction14Sum = (plusDM14, minusDM14, index) => {
   if (index < 14) return null
 
-  return round( Math.abs(plusDM14 + minusDM14) )
+  return Math.abs( plusDM14 + minusDM14 )
 }
 
 
 const directionalMovement14 = (dm14, tr14, index) => {
   if (index < 14) return null
 
-  return round(dm14 / tr14 * 100)
+  return dm14 / tr14 * 100
 }
 
 
@@ -112,7 +118,7 @@ const smoothen14 = (type, periods, current14, prior14) => {
     averaged14 = prior14 - (prior14 / 14) + current14
   }
 
-  return round(averaged14) || null
+  return averaged14 || null
 }
 
 
@@ -121,13 +127,24 @@ const getTrueRange = (prior, current) => {
   const highMinusPriorClose = Math.abs(current.high - prior.close)
   const lowMinusPriorClose = Math.abs(current.low - prior.close)
   
-  return Math.max(highMinusLow, highMinusPriorClose, lowMinusPriorClose)
+  return Math.max( highMinusLow, highMinusPriorClose, lowMinusPriorClose )
 }
 
 
 const getDM = (prior, current) => {
+  // console.log('get DM')
+
   const plusDM = current.high - prior.high
   const minusDM = prior.low - current.low
+
+  // console.log(`current date >> ${current.date} .. prior date >> ${prior.date}`)
+  // console.log('current high >>>> ' + current.high)
+  // console.log('prior high  >>>>' + prior.high)
+
+
+
+  // console.log(`plus DM ... ${plusDM}`)
+  // console.log(`minus DM ... ${minusDM}`)
 
   return {
     plus: plusDM > minusDM && plusDM > 0 ? plusDM : 0,

@@ -397,19 +397,10 @@ exports.getTrade = (protoNo, abbrev, tradeId) => new Promise((resolve, reject) =
       t.open_stats AS openStats,
       t.time_interval AS timeInterval,
       t.viewed,
-      t.account,
-      ov.volatility AS openingVolatility,
-      cv.volatility AS closingVolatility
+      t.account
+
     FROM tradeV2 t
-
-    LEFT JOIN volatility ov
-      ON HOUR(ov.date) = HOUR(t.date)
-      AND MINUTE(ov.date) = MINUTE(t.date)
-    
-    LEFT JOIN volatility cv
-      ON HOUR(cv.date) = HOUR(t.close_date)
-      AND MINUTE(cv.date) = MINUTE(t.close_date)
-
+  
     WHERE t.proto_no = ?
     AND t.abbrev = ?
     AND t.uuid = ?

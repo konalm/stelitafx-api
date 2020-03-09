@@ -17,7 +17,7 @@ module.exports = (interval, abbrev) => new Promise(async(resolve, reject) => {
     url: `${API_URL}/instruments/${instrument}/candles?count=2&granularity=M${interval}`
   }
 
-  let apiRexsponse
+  let apiResponse
   try {
     apiResponse = await axios(request)
   } catch (e) {

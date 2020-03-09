@@ -36,6 +36,12 @@ const prototypeNo94 = require('./prototype#94');
 const prototypeNo95 = require('./prototype#95');
 const prototypeNo96 = require('./prototype#96');
 const prototypeNo97 = require('./prototype#97');
+const prototypeNo101 = require('./prototype#101');
+const prototypeNo102 = require('./prototype#102');
+const prototypeNo103 = require('./prototype#103');
+const prototypeNo104 = require('./prototype#104');
+const prototypeNo105 = require('./prototype#105');
+
 
 const config = require('../config');
 const majorCurrencies = config.MAJOR_CURRENCIES
@@ -81,9 +87,6 @@ const intervalCurrencyAlgorithm = (timeInterval, currency, currencyRateSrc) =>
     return reject('Failed to get interval currency data')
   }
 
-  // console.log(`interval currency data for  ${timeInterval} ${currency} >>>`)
-  // console.log(intervalCurrencyData)
-
   runAlgorithms(timeInterval, currency, intervalCurrencyData)
     .then(() => {
       resolve()
@@ -105,14 +108,16 @@ const dataRelevantToIntervalCurrency = (timeInterval, currency, currencyRateSrc)
     service.getCurrentAndPrevWMAs(abbrev, timeInterval, currencyRateSrc),  
     service.getMovingAverages(abbrev, timeInterval, currencyRateSrc),
     service.getCurrentAndPrevStochastic(abbrev, timeInterval),
+    service.getCurrentAndPriorMacdItems(timeInterval, abbrev)
   ])
     .then(res => {
       const WMAs  = res[0]
       const movingAverages = res[1]
       const currentRate = WMAs.WMA ? WMAs.WMA.rate : null
       const stochastic = res[2]
- 
-      resolve({ movingAverages, WMAs, currentRate, stochastic })
+      const macd = res[3]
+
+      resolve({ movingAverages, WMAs, currentRate, stochastic, macd })
     })
     .catch(e => {
       console.log('FAILLLL')
@@ -124,8 +129,8 @@ const dataRelevantToIntervalCurrency = (timeInterval, currency, currencyRateSrc)
 const runAlgorithms = (timeInterval, currency, intervalCurrencyData) => 
   new Promise((resolve, reject) => 
 {
-
   const conn = db()
+
   Promise.all([
     prototype(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo11(timeInterval, currency, intervalCurrencyData, conn),
@@ -161,7 +166,12 @@ const runAlgorithms = (timeInterval, currency, intervalCurrencyData) =>
     prototypeNo94(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo95(timeInterval, currency, intervalCurrencyData, conn),
     prototypeNo96(timeInterval, currency, intervalCurrencyData, conn),
-    prototypeNo97(timeInterval, currency, intervalCurrencyData, conn)
+    prototypeNo97(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo101(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo102(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo103(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo104(timeInterval, currency, intervalCurrencyData, conn),
+    prototypeNo105(timeInterval, currency, intervalCurrencyData, conn),
   ])
     .then(() => {
       conn.end()

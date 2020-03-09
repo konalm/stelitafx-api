@@ -28,7 +28,7 @@ cron.schedule('* * * * *', async () => {
 
   try {
     await uploadCandles(min)
-  } catch (e) {
+} catch (e) {
     console.log(`Failed to upload candle on ${min}: e`)
   }
 
