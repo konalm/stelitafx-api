@@ -2,11 +2,13 @@ const moment = require('moment')
 const fs = require('fs')
 const { Worker } = require('worker_threads')
 const calcWmaInBatch = require('@/indicators/wma/service/calcWmaInBatch')
-const { getCurrencyRatesSinceDate } = require('@/currencyRates/repository')
+// const { getCurrencyRatesSinceDate } = require('@/currencyRates/repository')
 const pipCalc = require('@/services/calculatePip')
+
 
 exports.getWmaPerformances = (fastWma, periods, max, stopSettings) => {
   console.log(`get wma performance for ... ${fastWma}`)
+  // console.log(`going to loop ${max} times`)
 
   const wmaPerformances = []
 
@@ -29,39 +31,40 @@ exports.getWmaPerformances = (fastWma, periods, max, stopSettings) => {
     const bestStopLoss = stopLossResults.reduce((a, b) => (a.pips > b.pips) ? a : b)
     const worstStopLoss = stopLossResults.reduce((a, b) => (a.pips < b.pips) ? a : b)
     
-    if (getStopGain) {
-      const stopGainResults = []
-      for (let stopGain = stopSettings.gain.min; stopGain <= stopSettings.gain.max; stopGain ++) {
-        const trades = this.simulatedTrades(periods, fastWma, slowWma, null, stopGain)
-        const pips = this.tradesTotalPips(trades)
-        stopGainResults.push({ stopGain, pips })
-      }
-      const bestStopGain = stopGainResults.reduce((a, b) => (a.pips > b.pips) ? a : b)
-      const worstStopGain = stopGainResults.reduce((a, b) => (a.pips < b.pips) ? a : b)
-    }
+    // if (getStopGain) {
+    //   const stopGainResults = []
+    //   for (let stopGain = stopSettings.gain.min; stopGain <= stopSettings.gain.max; stopGain ++) {
+    //     const trades = this.simulatedTrades(periods, fastWma, slowWma, null, stopGain)
+    //     const pips = this.tradesTotalPips(trades)
+    //     stopGainResults.push({ stopGain, pips })
+    //   }
+    //   const bestStopGain = stopGainResults.reduce((a, b) => (a.pips > b.pips) ? a : b)
+    //   const worstStopGain = stopGainResults.reduce((a, b) => (a.pips < b.pips) ? a : b)
+    // }
 
-    if (getStopLossStopGain) {
-      const stopLossStopGainResults = []
-      for (let stopLoss = stopSettings.loss.min; stopLoss <= stopSettings.loss.max; stopLoss ++) {
-        for (let stopGain = stopSettings.gain.min; stopGain <= stopSettings.gain.max; stopGain ++) {
-          const trades = this.simulatedTrades(periods, fastWma, slowWma, stopLoss, stopGain)
-          const pips = this.tradesTotalPips(trades)
-          stopLossStopGainResults.push({ stopLoss, stopGain, pips })
-        }
-      }
-      const bestStopLossStopGain = stopLossStopGainResults.reduce((a, b) => 
-        (a.pips > b.pips) ? a : b
-      )
-      const worstStopLossStopGain = stopLossStopGainResults.reduce((a, b) => 
-        (a.pips < b.pips) ? a : b
-      )
-    }
+    // if (getStopLossStopGain) {
+    //   const stopLossStopGainResults = []
+    //   for (let stopLoss = stopSettings.loss.min; stopLoss <= stopSettings.loss.max; stopLoss ++) {
+    //     for (let stopGain = stopSettings.gain.min; stopGain <= stopSettings.gain.max; stopGain ++) {
+    //       const trades = this.simulatedTrades(periods, fastWma, slowWma, stopLoss, stopGain)
+    //       const pips = this.tradesTotalPips(trades)
+    //       stopLossStopGainResults.push({ stopLoss, stopGain, pips })
+    //     }
+    //   }
+    //   const bestStopLossStopGain = stopLossStopGainResults.reduce((a, b) => 
+    //     (a.pips > b.pips) ? a : b
+    //   )
+    //   const worstStopLossStopGain = stopLossStopGainResults.reduce((a, b) => 
+    //     (a.pips < b.pips) ? a : b
+    //   )
+    // }
 
     wmaPerformances.push({ 
       slowWma, 
       trades: trades.length - 1, 
       pips,
       pipsPerTrade: pips / trades.length,
+
       stopLoss: {
         best: { 
           ...bestStopLoss, 
@@ -72,6 +75,7 @@ exports.getWmaPerformances = (fastWma, periods, max, stopSettings) => {
           pipsPerTrade: worstStopLoss.pips / trades.length
         }
       },
+
       // stopGain: {
       //   best: {
       //     ...bestStopGain,
@@ -91,7 +95,6 @@ exports.getWmaPerformances = (fastWma, periods, max, stopSettings) => {
       //     ...worstStopLossStopGain,
       //     pipsPerTrade: worstStopLossStopGain.pips / trades.length
       //   }
-      // }
     })
   }
 
@@ -146,13 +149,11 @@ exports.updateSimulatedPeriodsCache = async (interval, abbrev, sinceDate, min, m
   const weeks = this.getWeeksSinceDate(sinceDate)
 
   let currencyRates 
-  try {
-    currencyRates = await getCurrencyRatesSinceDate(interval, abbrev, sinceDate)
-  } catch (e) {
-    return res.status(500).send('Failed to get currency rates')
-  }
-  // currencyRates = currencyRates.splice(0, 1000);
-
+  // try {
+  //   currencyRates = await getCurrencyRatesSinceDate(interval, abbrev, sinceDate)
+  // } catch (e) {
+  //   return res.status(500).send('Failed to get currency rates')
+  // }
   console.log('currency rates .... ' + currencyRates.length);
 
   /* group rates into a week */
@@ -195,8 +196,8 @@ exports.updateSimulatedPeriodsCache = async (interval, abbrev, sinceDate, min, m
 const cahePreCalcRatesWorker = (week, rates, min, max) => new Promise((resolve, reject) => {
   console.log('cache pre calc rates worker !')
 
-  const payload = { week, rates, min, max }
-  const worker = new Worker('./cachePreCalculatedRates.js', { workerData: payload })
+  const workerData = { week, rates, min, max }
+  const worker = new Worker('./cachePreCalculatedRates.js', { workerData })
   worker.on('message', (mes) => {
     console.log('RECIEVED MESSAGE FROM WORKER')
     console.log(mes)
@@ -207,8 +208,6 @@ const cahePreCalcRatesWorker = (week, rates, min, max) => new Promise((resolve, 
     resolve()
   })
 })
-
-
 
 
 exports.simulatedTrades = (periods, fastWMA, slowWMA, stopLoss, stopGain) => {
