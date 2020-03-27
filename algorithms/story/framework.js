@@ -10,8 +10,6 @@ const triggres = require('./triggers')
 
 
 module.exports = async (algorithm, data) => {
-  console.log('story framework')
-
   // Read algorithm 
   let storyPrototype
    try {

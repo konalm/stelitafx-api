@@ -5,6 +5,30 @@ const secondsBetweenDates = require('../services/secondsBetweenDates')
 const formatMysqlDate = require('../services/formatMysqlDate')
 
 
+exports.getCurrencyRatesSinceDate = (interval, abbrev, sinceDate) =>
+  new Promise((resolve, reject) => 
+{
+  const conn = db()
+  const intervalMins = getIntervalMins(interval)
+
+  const query = `
+    SELECT abbrev,
+      date,
+      exchange_rate
+    FROM currency_rate
+    WHERE MINUTE(date) IN (${intervalMins})
+      AND abbrev = ?
+      AND date >= ?
+    ORDER BY DATE ASC
+  `
+  conn.query(query, [abbrev, formatMysqlDate(sinceDate)], (e, results) => {
+    conn.end()
+    if (e) return reject('Failed getting currency rates since date')
+
+    resolve(results)
+  })
+})
+
 exports.getMultiRates = () => new Promise((resolve, reject) => {
   const dbConn = db()
 
@@ -223,13 +247,13 @@ exports.getXTBRatesFromDate = (abbrev, startDate, toDate) =>
 {
     const query = `
       SELECT abbrev, date, bid AS rate
-      FROM xtb_prices
       WHERE abbrev = ?
+      FROM xtb_prices
         AND date >= ?
         AND date <= ?
       ORDER BY date DESC
-    `
-    const queryValues = [abbrev, formatMysqlDate(startDate), formatMysqlDate(toDate)]
+      `
+      const queryValues = [abbrev, formatMysqlDate(startDate), formatMysqlDate(toDate)]
 
     const conn = db()
     conn.query(query, queryValues, (e, results) => {

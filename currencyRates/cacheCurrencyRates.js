@@ -28,9 +28,6 @@ module.exports = (date, rates) => new Promise(async (resolve, reject) => {
 
 
 const cacheIntervalRates = (interval, rates, date) =>  new Promise(async (resolve, reject) => {
-  // console.log(`cache interval .. ${interval}`)
-  // console.log(rates)
-
   /* create dir for interval if it does not exist */
   const intervalDir = `${DIR}/${interval}`
   if (!fs.existsSync(intervalDir)) await fs.mkdirSync(intervalDir)
@@ -48,8 +45,6 @@ const cacheIntervalRates = (interval, rates, date) =>  new Promise(async (resolv
     .catch(e => {
       console.log('Failed to cache abbrev rates for interval')
     })
-
- 
 })
 
 

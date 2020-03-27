@@ -14,6 +14,7 @@ const publishedAlgorithmRoutes = require('../publishedAlgorithm/route')
 const adxRoutes = require('@/indicators/adx/route')
 const macdRoutes = require('@/indicators/macd/route')
 const candleRoutes = require('@/candle/route')
+const simulateTradeHistoryRoutes = require('@/simulateTradeHistory/route')
 
 module.exports = (app) => {
   wmaRoutes(app);
@@ -30,6 +31,7 @@ module.exports = (app) => {
   adxRoutes(app)
   macdRoutes(app)
   candleRoutes(app)
+  simulateTradeHistoryRoutes(app)
 
   /**
    * Get trade

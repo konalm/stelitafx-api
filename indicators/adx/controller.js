@@ -24,6 +24,7 @@ exports.getAdxItemsForTrade = async (req, res) => {
   const { currency, tradeUUID } = req.params
   const interval = parseInt(req.params.interval)
   const abbrev = `${currency}/USD`
+  const buffer = req.query.buffer || 40
   
   let trade
   try {
@@ -40,7 +41,7 @@ exports.getAdxItemsForTrade = async (req, res) => {
       abbrev, 
       trade.openDate, 
       trade.closeDate,
-      40
+      buffer
     )
   } catch (e) {
     return res.status(500).send('Failed to get adx items')

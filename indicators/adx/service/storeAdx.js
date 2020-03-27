@@ -16,7 +16,6 @@ module.exports = (interval) => new Promise((resolve) => {
 
   Promise.all(currencyStoreAdxPromises)
     .then(() => {
-      console.log('Stored ADX for all currencies')
       conn.end()
       resolve()
     })

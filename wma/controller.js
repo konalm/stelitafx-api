@@ -108,6 +108,7 @@ exports.getWMAsForTrade = async (req, res) => {
   const interval = parseInt(req.params.interval)
   const abbrev = `${currency}/USD`;
   const abbrevInstrument = `${currency}_USD`
+  const buffer = req.query.buffer || 40;
 
   let trade;
   try {
@@ -117,7 +118,6 @@ exports.getWMAsForTrade = async (req, res) => {
   }
   if (!trade) return res.status(404).send('could not find trade');
 
-
   let WMADataPoints;
   try {
     WMADataPoints =
@@ -126,7 +126,7 @@ exports.getWMAsForTrade = async (req, res) => {
         trade.openDate, 
         trade.closeDate, 
         interval,
-        40
+        buffer
       );
   } catch (err) {
     return res.status(500).send('could not get WMAs between dates: ' + err);

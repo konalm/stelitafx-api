@@ -76,6 +76,7 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
   });
 });
 
+
 /**
  *
  */
@@ -203,3 +204,4 @@ const calcWMA = async (abbrev, WMALength, timeInterval, conn) => {
 
   return currencyRatesService.calcWeightedMovingAverage(currencyRates);
 }
+ 

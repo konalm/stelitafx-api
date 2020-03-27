@@ -25,12 +25,6 @@ exports.insertCandle = (interval, abbrev, candle, conn) =>
 exports.getCandles = async (interval, abbrev, count, offset) => 
   new Promise((resolve, reject) => 
 {
-  console.log('get candles')
-  console.log(interval)
-  console.log(abbrev)
-  console.log(count)
-  console.log(offset)
-
   const query = `
     SELECT time_interval AS timeInterval,
       abbrev,
@@ -53,8 +47,35 @@ exports.getCandles = async (interval, abbrev, count, offset) =>
     conn.end()
     if (e) return reject(e)
 
-    console.log('results >>>>')
-    console.log(results)
+    resolve(results)
+  })
+})
+
+
+exports.getCandlesBetweenDates = async (interval, abbrev, startDate, endDate, _buffer) => 
+  new Promise((resolve, reject) => 
+{
+  const buffer = _buffer * interval 
+  const query = `
+    SELECT date, 
+      open, 
+      low,
+      high,
+      close
+    FROM candle
+    WHERE time_interval = ?
+      AND abbrev = ?
+      AND date >= (? - INTERVAL ? MINUTE)
+      AND date <= (? + INTERVAL ? MINUTE)
+    ORDER BY date DESC
+  `
+  const queryValues = [interval, abbrev, startDate, buffer, endDate, buffer]
+ 
+  const conn = db()
+  conn.query(query, queryValues, (e, results) => {
+    conn.end()
+
+    if (e) return reject(e)
 
     resolve(results)
   })

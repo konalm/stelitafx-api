@@ -7,8 +7,6 @@ const getCurrencyRates = require('@/currencyRates/services/getCurrencyRates')
 
 
 module.exports = (interval) => new Promise((resolve) => {
-  console.log(`store MACD .. interval ${interval}`)
-
   const conn = db()
 
   const storeMacdForAbbrevPromises = []
@@ -19,7 +17,6 @@ module.exports = (interval) => new Promise((resolve) => {
 
   Promise.all(storeMacdForAbbrevPromises)
     .then(() => {
-      console.log('Stored macd for all currencies')
       conn.end()
       resolve()
     })
