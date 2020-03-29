@@ -1,5 +1,3 @@
-console.log('WORKERRRRRRRRRRRRRRRRRR');
-
 require('module-alias/register');
 
 const fs = require('fs');
@@ -14,10 +12,9 @@ const slowWmaPerformances = service.getWmaPerformances(
   wma, periods, rangeSettingsMax, stopSettings
 )
 
-console.log(`slow performances ... ${slowWmaPerformances.length}`)
+console.log(`${wma} ... ${slowWmaPerformances.length}`);
 
 const stats = service.wmaPerformanceItemStats(slowWmaPerformances)
-
 
 fs.writeFile(`cache/wmaPerformances/${wma}.JSON`, JSON.stringify(stats), (e) => {
   if (e) throw new Error(e)

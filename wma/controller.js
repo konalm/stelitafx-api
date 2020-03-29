@@ -1,3 +1,4 @@
+const fs = require('fs');
 const tradeRepo = require('../trade/repository');
 const currencyRateRepo = require('../currencyRates/repository');
 const getWMA = require('../services/getWMA');
@@ -6,6 +7,49 @@ const calculateWMAs = require('../services/calculateWMAs');
 const service = require('./service');
 const repo = require('./repository');
 const tradeMongoRepo = require('../trade/mongoRepository');
+
+
+exports.getWmaPerformances = async (req, res) => {
+  const dir = 'cache/wmaPerformances'
+
+  let wmaPerformanceFiles;
+  try {
+    wmaPerformanceFiles = await fs.readdirSync(dir);
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to read wma performances from cache')
+  }
+
+  console.log(wmaPerformanceFiles)
+
+  let performances = []
+
+  for (let i=0; i < wmaPerformanceFiles.length; i++) {
+    const performanceFile = wmaPerformanceFiles[i]
+
+    console.log(`performance file ... ${performanceFile}`)
+
+    let performance 
+    try {
+      performance = JSON.parse(await fs.readFileSync(`${dir}/${performanceFile}`))
+    } catch (e) {
+      console.log(e)
+      throw new Error('Failed to read stats')
+    }
+
+    console.log('got performance')
+  
+    const wma = performanceFile.replace('.JSON', '')
+  
+    const performanceStats = {
+      wma,
+      stats: performance
+    }
+    performances.push(performanceStats)
+  }
+
+  return res.send(performances)
+}
 
 /**
  * Get WMA data points start from passed date until now

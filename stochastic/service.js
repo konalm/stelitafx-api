@@ -9,28 +9,31 @@ const getCurrencyRates = require('../currencyRates/services/getCurrencyRates')
 exports.calculateStochastic = async (abbrev, timeInterval, conn) => {
   let latestRates;
   try {
-    // latestRates = await GetCurrencyLatestRates(abbrev, 16, 0, timeInterval, conn)
     latestRates = await getCurrencyRates(timeInterval, abbrev, 16)
   } catch (e) {
     console.log(e)
     throw new Error(`Failed to get last 14 rates: ${e}`)
   }
 
-  /* calculate last 3 stochastics */ 
-  const fastStochastics = [] 
-  for (let i = 2; i >= 0; i--) {
-    const rates = latestRates.slice(i, i + 14)
-    const highestRate = Math.max.apply(Math, rates.map((rate) => rate.exchange_rate))
-    const lowestRate = Math.min.apply(Math, rates.map((rate) => rate.exchange_rate))
-    const latestRate = rates[0].exchange_rate
-    const stochastic = (latestRate - lowestRate) / (highestRate - lowestRate) * 100
-    fastStochastics.push(stochastic)
-  }
+  return this.calculateStochastic(latestRates) 
+}
 
-  const slowStochastic = fastStochastics.reduce((acc, x) => acc + x) / fastStochastics.length
-  if (isNaN(slowStochastic)) return 0
-  
-  return slowStochastic 
+exports.calculateStochastic = (_rates) => {
+   /* calculate last 3 stochastics */ 
+   const fastStochastics = [] 
+   for (let i = 2; i >= 0; i--) {
+     const rates = _rates.slice(i, i + 14)
+     const highestRate = Math.max.apply(Math, rates.map((rate) => rate.exchange_rate))
+     const lowestRate = Math.min.apply(Math, rates.map((rate) => rate.exchange_rate))
+     const latestRate = rates[0].exchange_rate
+     const stochastic = (latestRate - lowestRate) / (highestRate - lowestRate) * 100
+     fastStochastics.push(stochastic)
+   }
+ 
+   const slowStochastic = fastStochastics.reduce((acc, x) => acc + x) / fastStochastics.length
+   if (isNaN(slowStochastic)) return 0
+   
+   return slowStochastic 
 }
 
 
