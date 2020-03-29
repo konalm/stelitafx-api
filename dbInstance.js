@@ -3,10 +3,6 @@ const env = require('./env.js');
 const dbConf = env.DB;
 
 module.exports = () => {
-  // console.log('use DB conn ()')
-
-  console.log('DB INSTANCE ??????')
-
   const conn = mysql.createConnection({
     host: dbConf.host,
     user: dbConf.user,

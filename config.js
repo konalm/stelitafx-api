@@ -22,9 +22,13 @@ exports.HOUR_INTERVALS = [
 
 exports.WMA_LENGTHS = [
   5,
+  10,
   12,
   15,
   36,
+  60,
+  100,
+  116,
   200
 ]
 

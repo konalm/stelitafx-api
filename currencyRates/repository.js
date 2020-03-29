@@ -4,8 +4,6 @@ const getIntervalMins = require('../services/intervalMins')
 const secondsBetweenDates = require('../services/secondsBetweenDates')
 const formatMysqlDate = require('../services/formatMysqlDate')
 
-console.trace()
-
 exports.getCurrencyRatesSinceDate = (interval, abbrev, sinceDate) =>
   new Promise((resolve, reject) => 
 {
