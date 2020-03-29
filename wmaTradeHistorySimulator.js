@@ -38,37 +38,32 @@ const stopSettings = {
 
   console.log(`periods ... ${periods.length}`)
 
-  const wmaPerformanceWorkers = []
+  let wmaPerformanceWorkers = [];
   for (let fastWma = rangeSettings.min; fastWma <= rangeSettings.max; fastWma ++) {
-    console.log('loop')
-
-    // wmaPerformanceWorkers.push(
-    //   wmaPerformanceWorker(fastWma, periods, rangeSettings.max, stopSettings)
-    // )
-
-    const slowWmaPerformances = service.getWmaPerformances(
-      fastWma, periods, rangeSettings.max, stopSettings
-    )
+    console.log(`WMA ... ${fastWma}`)
     
-    const stats = service.wmaPerformanceItemStats(slowWmaPerformances)
-      
-    try {
-      await fs.writeFileSync(`cache/wmaPerformances/${fastWma}.JSON`, JSON.stringify(stats))
-    } catch (e) {
-      throw new Error(e)
+    wmaPerformanceWorkers.push(
+      wmaPerformanceWorker(fastWma, periods, rangeSettings.max, stopSettings)
+    )
+
+    console.log(`workers ... ${wmaPerformanceWorkers.length}`)
+
+    if (wmaPerformanceWorkers.length === 10) {
+      try {
+        await Promise.all(wmaPerformanceWorkers);
+      } catch (e) {
+        console.log(e);
+        throw new Error('Workers failed');
+      }
+
+      console.log(`FINISHED SET OF WORKERS`)
+
+      wmaPerformanceWorkers = [];
     }
   }
 
-  console.log('finished looping');
+  console.log('ALL WORKERS COMPLETE');
 
-  try {
-    await Promise.all(wmaPerformanceWorkers)
-  } catch (e) {
-    console.log(e)
-    throw new Error('Workers failed')
-  }
-
-  console.log('ALL WORKERS COMPLETE')
   process.exit();
 })();
 
@@ -77,10 +72,8 @@ const stopSettings = {
 const wmaPerformanceWorker = (wma, periods, rangeSettingsMax, stopSettings) => 
   new Promise((resolve, reject) => 
 {
-  console.log('WMA PERFORMANCE WORKER PROMISE')
-
-  const workerData = { wma, periods, rangeSettingsMax, stopSettings}
-  const worker = new Worker('./wmaPerformance.js', { workerData })
+  const workerData = { wma, periods, rangeSettingsMax, stopSettings};
+  const worker = new Worker('./wmaPerformance.js', { workerData });
 
   worker.on('message', (mes) => {
     console.log('RECIEVED MESSAGE FROM WORKER')
@@ -90,8 +83,8 @@ const wmaPerformanceWorker = (wma, periods, rangeSettingsMax, stopSettings) =>
     console.log(e)
     console.log('WORKER ERROR')
   })
-  worker.on('exit', () => {
-    console.log('EXIT !!!!!')
+  worker.on('exit', (wma) => {
+    console.log('wma performance worker complete for ' + wma)
     resolve()
   })
 })

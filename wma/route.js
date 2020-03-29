@@ -12,4 +12,6 @@ module.exports = (app) => {
   
   app.route('/wma-data-points-from-date/:currency/interval/:interval/start-date/:startDate')
     .get(controller.getWMADataPointsStartDate);
+  
+  app.route('/wma-performances').get(controller.getWmaPerformances);
 }
