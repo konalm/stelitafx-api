@@ -1,14 +1,10 @@
-const mongoose = require('mongoose')
-
 const TradeSchema = require('./trade')
 
 const intervalTradesSchema = {
   intOneTrades: [TradeSchema],
   intTwoTrades: [TradeSchema],
   intThreeTrades: [TradeSchema],
-  intFiveTrades: [TradeSchema],
-  intFifteenTrades: [TradeSchema],
-  intThirtyTrades: [TradeSchema]
+  intFourTrades: [TradeSchema]
 }
 
 const PrototypeTradeSchema = new mongoose.Schema({
@@ -20,4 +16,4 @@ const PrototypeTradeSchema = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('PrototypeTrades', PrototypeTradeSchema)
+export default PrototypeTradeSchema
