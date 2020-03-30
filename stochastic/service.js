@@ -15,10 +15,25 @@ exports.calculateStochastic = async (abbrev, timeInterval, conn) => {
     throw new Error(`Failed to get last 14 rates: ${e}`)
   }
 
-  return this.calculateStochastic(latestRates) 
+  /* calculate last 3 stochastics */ 
+  const fastStochastics = [] 
+  for (let i = 2; i >= 0; i--) {
+    const rates = latestRates.slice(i, i + 14)
+    const highestRate = Math.max.apply(Math, rates.map((rate) => rate.exchange_rate))
+    const lowestRate = Math.min.apply(Math, rates.map((rate) => rate.exchange_rate))
+    const latestRate = rates[0].exchange_rate
+    const stochastic = (latestRate - lowestRate) / (highestRate - lowestRate) * 100
+    fastStochastics.push(stochastic)
+  }
+
+  const slowStochastic = fastStochastics.reduce((acc, x) => acc + x) / fastStochastics.length
+  if (isNaN(slowStochastic)) return 0
+  
+  return slowStochastic 
 }
 
-exports.calculateStochastic = (_rates) => {
+
+exports.calcStochastic = (_rates) => {
    /* calculate last 3 stochastics */ 
    const fastStochastics = [] 
    for (let i = 2; i >= 0; i--) {

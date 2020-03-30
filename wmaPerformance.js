@@ -1,3 +1,5 @@
+console.log('WORKERRRRRRRRRRRRRRRRRR');
+
 require('module-alias/register');
 
 const fs = require('fs');
@@ -11,8 +13,6 @@ parentPort.postMessage(`WMA PERFORMANCE WORKER .. ${wma}`)
 const slowWmaPerformances = service.getWmaPerformances(
   wma, periods, rangeSettingsMax, stopSettings
 )
-
-console.log(`${wma} ... ${slowWmaPerformances.length}`);
 
 const stats = service.wmaPerformanceItemStats(slowWmaPerformances)
 

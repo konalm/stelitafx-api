@@ -1,80 +1,79 @@
 const fs = require('fs')
 const { getCurrencyRatesSinceDate } = require('@/currencyRates/repository')
 const calcWmaInBatch = require('@/indicators/wma/service/calcWmaInBatch')
+const calcStochasticInBatch = require('@/indicators/stochastic/service/calcStochasticInBatch')
 const calculatePip = require('@/services/calculatePip');
 const minsBetweenDates = require('@/services/minsBetweenDates')
 const service = require('./service')
+const triggerConditions = require('./service/conditions')
 
 
 exports.simulateTradeHistory = async (req, res) => {
-  const interval = req.params.interval
-  const abbrev = `${req.params.currency}/USD`
-  const sinceDate = req.query.since || null;
-  const stopLoss = 10
-  const stopGain = 2000
-
-  if (!sinceDate) return res.status(500).send('Since date is required')
-
+  const stopLoss = null
+  const stopGain = null
+  
   let currencyRates 
   try {
-    currencyRates = await getCurrencyRatesSinceDate(interval, abbrev, sinceDate)
+    currencyRates = JSON.parse(await fs.readFileSync('cache/calculatedPeriods.JSON'))
   } catch (e) {
     return res.status(500).send('Failed to get currency rates')
   }
-
+  
   const trades = []
-
+  
   const periods = [...currencyRates]
   periods.forEach((x, i) => {
     const prior = i > 0 ? periods[i - 1] : null
-    x.wma = {}
-    x.wma['20'] = calcWmaInBatch(currencyRates, i, 20)
-    x.wma['200'] = calcWmaInBatch(currencyRates, i, 200)
+    const lastTrade = trades.length ? trades[trades.length - 1] : null
+    // const trigger = triggerConditions.twentyCrossoverTwoHundedWMA(prior, x)
+    // const trigger = triggerConditions.twentyCrossunderTwoHundredWMA(prior, x)
+    // const trigger = triggerConditions.tenCrossoverOneHundreddWMA(prior, x)
+    // const trigger = triggerConditions.stochasticTwentyEighty(prior, x)
+    const trigger = triggerConditions.wmaConjoinedStochastic(prior, x)
 
     /* only check if trade opened if last trade has been closed */ 
-    if (!trades.length || trades[trades.length - 1].close) {
-      const openTrade = prior ? wmaCrossedOver(prior, x, 20, 200) : false
-      if (openTrade) trades.push({ open: x, close: null })
+    if (!lastTrade || lastTrade.close) {
+      if (trigger.openConditions ) trades.push({ open: x, close: null })
       return
     } 
+    
+    /* if stop loss, check if triggered */ 
+    if (stopLoss) {
+      if (calculatePip(lastTrade.open.exchange_rate, x.exchange_rate) <= stopLoss * -1) {
+        lastTrade.close = { ...x, triggeredStopLoss: true, triggeredStopGain: false }
+      }
+    }
 
-    if (wmaUnder(x, 20, 200)) trades[trades.length - 1].close = x
+    /* if stop gain, check if triggered */
+    if (stopGain) {
+      if (calculatePip(lastTrade.open.exchange_rate, x.exchange_rate) >= stopGain) {
+        lastTrade.close = { ...x, triggeredStopLoss: false, triggeredStopGain: true }
+      }
+    }
+    
+    if (trigger.closeConditions) {
+      lastTrade.close = { ...x, triggeredStopLoss: false, triggeredStopGain: false }
+    }
   })
 
   const closedTrades = trades.filter((x) => x.close)
 
   closedTrades.forEach((x) => {
-    /* check if relevant rates triggered stop loss */
-    const relevantRates = currencyRates.filter((y) => 
-      new Date(y.date) >= new Date(x.open.date) && new Date(y.date) <= new Date(x.close.date)
-    )
-
-    const stopLossPeriod = triggeredStopLoss(x, relevantRates, stopLoss)
-    const stopGainPeriod = triggeredStopGain(x, relevantRates, stopGain)
-
-    if (stopLossPeriod && stopGainPeriod) {
-      if (new Date(stopLossPeriod.date) <= new Date(stopGainPeriod.date)) {
-        x.stats = stopLossPeriod
-      } 
-      else x.stats = stopGainPeriod
+    x.stats = {
+      pips: calculatePip(x.open.exchange_rate, x.close.exchange_rate),
+      duration: minsBetweenDates(x.open.date, x.close.date),
+      triggeredStopLoss: false,
+      triggeredStopGain: false
     }
-    else if (stopLossPeriod && !stopGainPeriod) x.stats = stopLossPeriod
     
-    else if (stopGainPeriod && !stopLossPeriod) x.stats = stopGainPeriod
-    
-    else {
-      x.stats = {
-        pips: calculatePip(x.open.exchange_rate, x.close.exchange_rate),
-        duration: minsBetweenDates(x.open.date, x.close.date),
-        triggeredStopLoss: false,
-        triggeredStopGain: false
-      }
-    }
+    x.open.wma = { '20': x.open.wma[20], '200': x.open.wma[200] }
+    x.close.wma = { '20': x.open.wma[20], '200': x.open.wma[200] }
   })
+
+  console.log(`trades .. ${trades.length}`)
   
   return res.send({
-    trades: closedTrades,
-    data: periods.filter((x) => x.wma['200'])
+    trades: closedTrades
   })
 }
 
@@ -116,13 +115,7 @@ exports.wmaTradeHistorySimulator = async (req, res) => {
       fastWma, periods, rangeSettings.max, stopSettings
     )
 
-    console.log('stats >>>>')
-    console.log(service.wmaPerformanceItemStats(slowWmaPerformances))
-
     const stats = service.wmaPerformanceItemStats(slowWmaPerformances)
-
-    console.log(stats.noStops.best)
-    console.log(stats.noStops.worst)
     
     const wmaPerformance = { 
       fastWma, 
@@ -137,6 +130,29 @@ exports.wmaTradeHistorySimulator = async (req, res) => {
   return res.send({
     stats: service.wmaPerformanceStats(wmaPerformances), 
   })
+}
+
+
+exports.stochasticTradeHistorySimulator = async (req, res) => {
+  const interval = req.params.interval, abbrev = `${req.params.currency}/USD`
+  const sinceDate = req.query.since || null;
+
+  /* Get currency rates from the DB */
+  let currencyRates;
+  try {
+    currencyRates = await getCurrencyRatesSinceDate(interval, abbrev, sinceDate);
+  } catch (e) {
+    return res.status(500).send('Failed to get currency rates');
+  }
+
+  let periods = [...currencyRates]
+  periods.forEach((x, i) => {
+    x.stochastic = calcStochasticInBatch(currencyRates, i)
+  })
+
+  const validPeriods = periods.filter((x) => x.stochastic)
+
+  return res.send(validPeriods)
 }
 
 
@@ -178,20 +194,4 @@ const triggeredStopGain = (period, relevantRates, stopGain) => {
   }
 
   return false
-}
-
-
-const wmaCrossedOver = (prior, current, shortWma, longWma) => {
-  if (!prior.wma[shortWma] || !prior.wma[longWma]) return false
-
-  return (
-    prior.wma[shortWma] <= prior.wma[longWma] && 
-    current.wma[shortWma] > current.wma[longWma]
-  ) 
-}
-
-const wmaUnder = (current, shortWma, longWma) => {
-  if (!current.wma[shortWma] || !current.wma[longWma]) return false
-
-  return current.wma[shortWma] < current.wma[longWma]
 }

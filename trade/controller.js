@@ -60,8 +60,6 @@ exports.getProtoIntervalCurrencyTrades = async (req, res) => {
 
 
 exports.getProtoIntervalTrades = async (req, res) => {
-  console.log('get proto interval trades !!')
-
   const {protoNo, interval} = req.params
   const conditions = {
     proto_no: parseInt(protoNo),
@@ -69,13 +67,6 @@ exports.getProtoIntervalTrades = async (req, res) => {
     closed: true,
   }
   const dateTimeFilter = req.query.date || '';
-
-  console.log('conditions ....')
-  console.log(conditions)
-
-  console.log('date time filter ....')
-  console.log(dateTimeFilter)
-
 
   let trades
   try {
