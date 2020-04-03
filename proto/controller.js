@@ -5,9 +5,11 @@ const indicators = require('../algorithms/indicators')
  * Get all prototypes
  */
 exports.getProtos = async (_, res) => {
+  console.log('GET PROTOS')
+  
   let protos;
   try {
-    protos = await repo.getProtos;
+    protos = await repo.getProtos();
   } catch (err) {
     return res.status(500).send(err);
   }

@@ -1,6 +1,5 @@
 const repository = require('./repository')
 const { getTradeV2 } = require('../trade/repository')
-const tradeMongoRepo = require('../trade/mongoRepository');
 
 
 exports.getStochastics = async (req, res) => {

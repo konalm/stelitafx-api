@@ -1,4 +1,4 @@
-const conn = require('../db')
+// const conn = require('../db')
 
 
 exports.storeTradeTransaction = (transaction) => new Promise((resolve, reject) => {

@@ -1,5 +1,8 @@
-module.exports = (periods, interval, abbrev) => {
+module.exports = (periods) => {
   const calcPeriods = []
+
+  // console.log('calc adx >>>>')
+  // console.log(periods)
 
   periods.forEach((current, i) => {
     if (i === 0) calcPeriods.push(current)

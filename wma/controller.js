@@ -1,12 +1,8 @@
 const fs = require('fs');
 const tradeRepo = require('../trade/repository');
 const currencyRateRepo = require('../currencyRates/repository');
-const getWMA = require('../services/getWMA');
-const groupWMADataPoints = require('../services/groupWMADataPoints');
 const calculateWMAs = require('../services/calculateWMAs');
-const service = require('./service');
 const repo = require('./repository');
-const tradeMongoRepo = require('../trade/mongoRepository');
 
 
 exports.getWmaPerformances = async (req, res) => {

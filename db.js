@@ -10,7 +10,6 @@ const connection = mysql.createConnection({
   port: dbConf.port
 });
 
-
 try {
   connection.connect();
 } catch (err) {

@@ -1,4 +1,3 @@
-const conn = require('../db');
 const db = require('../dbInstance');
 const getIntervalMins = require('../services/intervalMins')
 const secondsBetweenDates = require('../services/secondsBetweenDates')
