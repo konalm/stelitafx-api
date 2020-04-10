@@ -69,9 +69,6 @@ module.exports = async (
           transactionType
         );
       } catch (e) {
-        console.log('open fail reason ---->')
-        console.error(e)
-        console.log('<---------')
         return reject(`Failed to open trade`)
       }
     }

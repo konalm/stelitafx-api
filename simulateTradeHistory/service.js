@@ -253,12 +253,12 @@ exports.simulatedTrades = (periods, fastWMA, slowWMA, stopLoss, stopGain) => {
 }
 
 
-exports.tradesTotalPips = (trades) => {
+exports.tradesTotalPips = (trades, abbrev) => {
   let totalPips = 0
 
   trades.forEach((x) => {
     if (!x.close) return   
-    totalPips += pipCalc(x.open.exchange_rate, x.close.exchange_rate)
+    totalPips += pipCalc(x.open.exchange_rate, x.close.exchange_rate, abbrev)
   })
 
   return totalPips
@@ -564,6 +564,29 @@ exports.getWeeksSinceDate = (sinceDate) => {
 
   return weeks
 }
+
+
+exports.getMonthsSinceDate = (sinceDate) => {
+  const monthDates = []
+
+  /* loop every year */ 
+  for (let y = s.getFullYear(); y <= now.getFullYear(); y++) {
+    /* loop every month */ 
+    for (let m = 0; m < 12; m++) {
+      const d = new Date()
+      d.setFullYear(y)
+      d.setMonth(m)
+      d.setDate(1)
+      d.setHours(0)
+      d.setMinutes(0)
+      d.setMilliseconds(0)
+      monthDates.push(d)
+    }
+  }
+
+  console.log(monthDates)
+}
+
 
 const getWeekRange = (date) => {
   const d = new Date(date)

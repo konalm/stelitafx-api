@@ -3,14 +3,19 @@ require('module-alias/register');
 const fs = require('fs')
 const { 
   stochasticCrossedOver, stochasticCrossedUnder 
-} = require('@/simulateTradeHistory/service/conditions')
+  } = require('@/simulateTradeHistory/service/conditions')
+const { daysBetweenDates } = require('@/services/utils');
 const getPerformance = require('./service/getPerformance')
+
+const sinceDate = '2019-01-01T00:00:00.000Z';
+const abbrev = 'AUDUSD';
+const stopLosses = [0, 1, 5, 15, 30, 50];
 
 
 const algorithms = [
   {
-    open: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
-    close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
+    open: trigger => (p, c) => stochasticCrossedOver(p, c, trigger),
+    close: trigger  => (p, c) => stochasticCrossedUnder(p, c, trigger),
     cacheFilename: 'overUnder'
   },
   {
@@ -32,72 +37,71 @@ const algorithms = [
 
 
 (async () => {
-  let periods
+  let allPeriods
   try {
-    periods = JSON.parse( await fs.readFileSync('../cache/calculatedPeriods.JSON') )
+    allPeriods = JSON.parse(await fs.readFileSync(`../cache/calculatedPeriods/${abbrev}.JSON`, 'utf8'))
   } catch (e) {
-    throw new Error('Failed to read rates from cache')
+    return console.error(e)
   }
+  const periods = allPeriods.filter((x) => new Date(x.date) >= new Date(sinceDate))
+  const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
 
+  const stats = []
   for (let i = 0; i < algorithms.length; i++) {
     console.log(`algorithm .. ${i}`)
 
+    let algoStats
     try {
-      await performAlgorithm(periods, algorithms[i])
+      algoStats = await performAlgorithm(periods, algorithms[i], daysOfPeriods)
     } catch (e) {
       console.log('Failed to perform algorithm')
       console.log(e)
     }
+    stats.push(...algoStats)
   }
+
+  /* write to cache */ 
+  try {
+    await fs.writeFileSync(
+      `../cache/stats/stochastic/${abbrev}.JSON`, 
+      JSON.stringify(stats)
+    )
+  } catch (e) {
+    throw new Error(`Failed to write to cache`)
+  }  
 })();
 
 
-const performAlgorithm = async (periods, algorithm) => {
+const performAlgorithm = async (periods, algorithm, daysOfPeriods) => {
   const stats = []
 
   /* loop open triggers */
-  for (let x = 0; x < 100; x += 5) {
+  for (let x = 0; x <= 100; x += 5) {
     console.log(`i ... ${x}`)
 
     /* loop close triggers */
     for (let y = 5; y <= 100; y += 5) {
       const conditions = {  open: algorithm.open(x),  close: algorithm.close(y) }
 
-      const stopLossPerformances = [
-        (getPerformance(periods)(conditions)(y)(null)(null))
-      ]
-
       /* loop stop loss performances */ 
-      for (let stopLoss = 0; stopLoss <= 50; stopLoss += 5) {
-        stopLossPerformances.push(getPerformance(periods)(conditions)(y)(stopLoss)(null))
+      const stopLossPerformances = []
+      for (let spIndex = 0; spIndex < stopLosses.length; spIndex += 1) {
+        stopLossPerformances.push(
+          getPerformance(periods)(conditions)(stopLosses[spIndex])(null)(daysOfPeriods)
+        )
       }
 
-      /* best stop loss performance for open & close trigger combination */ 
-      const bestStopLossPerformance = stopLossPerformances.reduce(
-        (a, b) => (a.pipsPerTrade > b.pipsPerTrade) ? a : b
-      )
-      /* worst stop loss performance for open & close trigger combination */ 
-      const worstStopLossPerformance =  stopLossPerformances.reduce((a, b) => 
-        a.pipsPerTrade < b.pipsPerTrade ? a : b
-      )
-      
       stats.push(
-        { buyTrigger: x, ...bestStopLossPerformance },
-        { buyTrigger: x, ...worstStopLossPerformance }
+        ...stopLossPerformances.map((p) => ({
+          openTrigger: x,  
+          closeTrigger: y,
+          ...p,
+          algo: algorithm.cacheFilename
+        }))
       )
     }
-  }
+  } 
 
-  console.log(`stats to write .... ${stats.length}`)
-
-  /* write to cache */ 
-  try {
-    await fs.writeFileSync(
-      `../cache/stats/stochastic/${algorithm.cacheFilename}.JSON`, 
-      JSON.stringify(stats)
-    )
-  } catch (e) {
-    throw new Error(`Failed to write to cache`)
-  }   
+  return stats
 }
 

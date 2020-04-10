@@ -3,7 +3,7 @@ require('module-alias/register')
 const moment = require('Moment');
 const { getCurrencyRatesSinceDate } = require('@/currencyRates/repository')
 const service = require('@/simulateTradeHistory/service');
-const { Worker } = require('worker_threads');''
+const { Worker } = require('worker_threads');
 
 const sinceDate = '2019-12-04T00:00:00.000Z';
 const interval = 5;

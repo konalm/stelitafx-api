@@ -6,11 +6,14 @@ const { tradesTotalPips } = require('@/simulateTradeHistory/service')
 const { 
   rateAboveWma, stochasticCrossedOver, stochasticCrossedUnder 
 } = require('@/simulateTradeHistory/service/conditions');
-const getPerformance = require('./service/getPerformance');
-
-const stopLosses = [1, 5, 15, 30, 50]
-const minTrades = 500;
+const stopLosses = [0, 1, 5, 15, 30, 50];
 const Wmas = [5, 15, 30, 50, 100, 200];
+const abbrev = 'AUDUSD'
+const winningTrades = require('./service/winningTrades')
+const losingTrades = require('./service/losingTrades')
+const { daysBetweenDates, percentage } = require('@/services/utils');
+
+const sinceDate = '2019-01-01T00:00:00.000Z';
 
 const algorithms = [
   {
@@ -19,7 +22,7 @@ const algorithms = [
 
     close: trigger => (p, c) => stochasticCrossedUnder(p, c, trigger),
 
-    cacheFilename: 'overUnder'
+    algo: 'overUnder'
   },
   {
     open: wma => trigger => (p, c) =>  rateAboveWma(c, wma) 
@@ -27,7 +30,7 @@ const algorithms = [
 
     close: trigger => (p, c) => stochasticCrossedOver(p, c, trigger),
 
-    cacheFilename: 'overOver'
+    algo: 'overOver'
   },
   {
     open: wma => trigger => (p, c) =>  rateAboveWma(c, wma) 
@@ -35,7 +38,7 @@ const algorithms = [
 
     close: (trigger, p, c) => (p, c) => stochasticCrossedOver(p, c, trigger),
 
-    cacheFilename: 'underOver'
+    algo: 'underOver'
   },
   {
     open: wma => trigger => (p, c) =>  rateAboveWma(c, wma) 
@@ -43,43 +46,55 @@ const algorithms = [
 
     close: trigger => (p, c) => stochasticCrossedUnder(p, c, trigger),
 
-    cacheFilename: 'underUnder'
+    algo: 'underUnder'
   }
 ];
 
 (async () => {
-  let periods
+  let allPeriods
   try {
-    periods = JSON.parse( await fs.readFileSync('../cache/calculatedPeriods.JSON') )
+    allPeriods = JSON.parse(await fs.readFileSync(`../cache/calculatedPeriods/${abbrev}.JSON`, 'utf8'))
   } catch (e) {
-    throw new Error('Failed to read rates from cache')
+    return console.error(e)
   }
+  const periods = allPeriods.filter((x) => new Date(x.date) >= new Date(sinceDate))
+  const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
 
+  const stats = []
   for (let i = 0; i < algorithms.length; i++) {
     console.log(`ALGORITHM .... ${i}`)
     const algorithm = algorithms[i]
 
-    let stats 
+    let algoStats 
     try {
-      stats = await performAlgorithm(periods, algorithm)
+      algoStats = await performAlgorithm(periods, algorithm, daysOfPeriods)
     } catch (e) {
       console.log(e)
     }
 
-    /* write to cache */ 
-    try {
-      await fs.writeFileSync(
-        `../cache/stats/rateAboveWmaStochastic/${algorithm.cacheFilename}.JSON`,  
-        JSON.stringify(stats)
-      )
-    } catch (e) {
-      console.log(e)
-    }
+    console.log(`ALGO STATS ... ${algoStats.length}`)
+
+    stats.push(...algoStats)
+  }
+
+  console.log(`all stats ... ${stats.length}`)
+
+  /* write to cache */ 
+  try {
+    await fs.writeFileSync(
+      `../cache/stats/rateAboveWmaStochastic/${abbrev}.JSON`,  
+      JSON.stringify(stats)
+    )
+  } catch (e) {
+    console.log(e)
   }
 })();
 
 
-const performAlgorithm = async (periods, algorithm) => {
+/**
+ * 
+ */
+const performAlgorithm = async (periods, algorithm, daysOfPeriods) => {
   const stats = []
 
   /* loop wma */ 
@@ -93,52 +108,85 @@ const performAlgorithm = async (periods, algorithm) => {
       close: algorithm.close,
       cacheFilename: algorithm.cacheFilename
     }
-    const stochasticStats = await performStochasticAlgorithm(periods, algorithmForWma)
+    const stochasticStats = await performStochasticAlgorithm(periods, algorithmForWma, daysOfPeriods)
 
-    stats.push(stochasticStats)
+    stats.push(
+      ...stochasticStats.map((x) => ({
+        wma,
+        ...x
+      }))
+    )
+
+    console.log(`wma stats .... ${stats.length}`)
   }
 
   return stats
 }
 
 
-const performStochasticAlgorithm = (periods, algorithm) => 
+/**
+ * 
+ */
+const performStochasticAlgorithm = (periods, algorithm, daysOfPeriods) => 
   new Promise((resolve, reject) => 
 {
   const stats = []
 
   /* loop open triggers */
   for (let x = 0; x < 100; x += 5) {
-    console.log(`buy trigger ... ${x}`)
+    console.log(`stochastic buy trigger ... ${x}`)
 
     /* loop close triggers */
     for (let y = 5; y <= 100; y += 5) {
       const conditions = {  open: algorithm.open(x),  close: algorithm.close(y) }
 
-      const stopLossPerformances = [
-        (getPerformance(periods)(conditions)(y)(null)(null))
-      ]
-
       /* loop stop loss possibilities */ 
-      for (let stopLoss = 0; stopLoss < stopLosses.length; stopLoss += 5) {
-        stopLossPerformances.push(getPerformance(periods)(conditions)(y)(stopLoss)(null))
+      const stopLossPerformances = []
+      for (let spIndex = 0; spIndex < stopLosses.length; spIndex += 1) {
+        const stopLoss = stopLosses[spIndex]
+
+        stopLossPerformances.push(
+          getPerformance(periods)(conditions)(stopLoss)(null)(daysOfPeriods)
+        )
       }
 
-       /* best stop loss performance for open & close trigger combination */ 
-       const bestStopLossPerformance = stopLossPerformances.reduce(
-        (a, b) => (a.pipsPerTrade > b.pipsPerTrade) ? a : b
-      )
-      /* worst stop loss performance for open & close trigger combination */ 
-      const worstStopLossPerformance =  stopLossPerformances.reduce((a, b) => 
-        a.pipsPerTrade < b.pipsPerTrade ? a : b
-      )
-
       stats.push(
-        { buyTrigger: x, ...bestStopLossPerformance },
-        { buyTrigger: x, ...worstStopLossPerformance }
+        ...stopLossPerformances.map((p) => ({
+          openTrigger: x,  
+          closeTrigger: y,
+          algorithm: algorithm.algo,
+          ...p
+        }))
       )
     }
-
-    resolve(stats)
   }
+
+  resolve(stats)
 })
+
+
+const getPerformance = periods => conditions => stopLoss => stopGain => daysOfPeriods =>
+{
+  const trades = simulateTrades(periods)(conditions)(stopLoss)(stopGain)
+  const pips = tradesTotalPips(trades)
+  const wTrades = winningTrades(trades)
+  const lTrades = losingTrades(trades)
+  const tradesPerDay = trades.length / daysOfPeriods
+  const pipsPerTrade = pips / trades.length
+  const pipsPerDay = tradesPerDay * pipsPerTrade
+  const costPerDay = tradesPerDay * 0.2;
+        
+  return {
+    stopLoss,
+    trades: trades.length,
+    winningTrades: wTrades,
+    losingTrades: lTrades,
+    winPercentage: percentage(wTrades, lTrades),
+    pips,
+    pipsPerTrade: pips / trades.length,
+    tradesPerDay,
+    costPerDay,
+    pipsPerDay,
+    netPipsPerDay: pipsPerDay - costPerDay
+  }
+}
