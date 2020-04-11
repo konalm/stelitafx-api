@@ -18,13 +18,22 @@ exports.stochasticTwentyEighty = (prior, current) => {
   }
 }
 
+exports.wmaCrossover = (prior, current, shortWma, longWma) => {
+  if (!prior) return false 
+
+  return {
+    openConditions: this.wmaCrossedOver(prior, current, shortWma, longWma),
+    closeConditions: this.wmaUnder(prior, current, shortWma, longWma)
+  }
+}
+
 
 exports.twentyCrossoverTwoHundedWMA = (prior, current) => {
   if (!prior) return false 
 
   return {
-    openConditions: wmaCrossedOver(prior, current, 20, 200),
-    closeConditions: wmaUnder(current, 20, 200)
+    openConditions: this.wmaCrossedOver(prior, current, 20, 200),
+    closeConditions: this.wmaUnder(current, 20, 200)
   }
 }
 
@@ -49,15 +58,15 @@ exports.tenCrossoverOneHundreddWMA = (prior, current) => {
 }
 
 
-const stochasticCrossedOver = (prior, current, triggerStoch) => {
-  return (prior.stochastic <= triggerStoch) && (current.stochastic > triggerStoch)
+exports.stochasticCrossedOver = (prior, current, triggerStoch) => {
+  return (prior.stochastic < triggerStoch) && (current.stochastic >= triggerStoch)
 }
 
-const stochasticCrossedUnder = (prior, current, triggerStoch) => {
+exports.stochasticCrossedUnder = (prior, current, triggerStoch) => {
   return (prior.stochastic >= triggerStoch) && (current.stochastic < triggerStoch)
 }
 
-const wmaCrossedUnder = (prior, current, shortWma, longWma) => {
+exports.wmaCrossedUnder = (prior, current, shortWma, longWma) => {
   if (!prior.wma[shortWma] || !prior.wma[longWma]) return false
 
   return (
@@ -66,23 +75,49 @@ const wmaCrossedUnder = (prior, current, shortWma, longWma) => {
   )
 }
 
-const wmaCrossedOver = (prior, current, shortWma, longWma) => {
+exports.wmaCrossedOver = (prior, current, shortWma, longWma) => {
   if (!prior.wma[shortWma] || !prior.wma[longWma]) return false
 
   return (
-    prior.wma[shortWma] <= prior.wma[longWma] && 
+  prior.wma[shortWma] <= prior.wma[longWma] && 
     current.wma[shortWma] > current.wma[longWma]
   ) 
 }
 
-const wmaUnder = (current, shortWma, longWma) => {
+exports.wmaUnder = (prior, current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
   return current.wma[shortWma] < current.wma[longWma]
 }
 
-const wmaOver = (current, shortWma, longWma) => {
+exports.wmaOver = (current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
   return current.wma[shortWma] > current.wma[longWma]
 }
+
+
+exports.rateAboveWma = (current, wma) => {
+  // console.log('rate above wma')
+  // console.log(current)
+  // console.log(`wma .... ${wma}`)
+
+  return current.exchange_rate > current.wma[wma]
+}
+
+
+exports.adxCrossover = (prior, current) => prior.adx.plusDi <= prior.adx.minusDi 
+  && current.adx.plusDi > current.adx.minusDi
+
+
+exports.adxCrossunder = (prior, current) => prior.adx.minusDi >= prior.adx.plusDi 
+  && current.adx.minusDi < current.adx.plusDi
+
+  
+exports.adxPlusDiUnder = (prior, current) => current.adx.plusDi <= current.adx.minusDi
+
+
+exports.adxPlusDiAbove = (prior, current) => current.adx.plusDi >= current.adx.minusDi
+
+
+exports.adxAboveThreshold = (prior, current, threshold) => current.adx.adx >= threshold

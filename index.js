@@ -18,7 +18,7 @@ const routes = require('./routes');
 routes(app);
 
 
-require('./crons')
+// require('./crons')
 
 
 app.listen(port, () => console.log(`Stelita FX API listening in port ${port}`))

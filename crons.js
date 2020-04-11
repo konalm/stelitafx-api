@@ -11,7 +11,8 @@ const uploadCandles = require('@/candle/service/populateCandles')
 
 
 cron.schedule('* * * * *', async () => {
-
+  return 
+  
   const d = new Date()
   const min = d.getMinutes()
 

@@ -1,17 +1,12 @@
 const fs = require('fs')
 const { promisify } = require('util')
-const path = require('path')
-const mkDirAsync = promisify(fs.mkdir)
 const uuidGenerator = require('uuid/v1');
 const moment = require('moment');
 const repo = require('./repository');
-const mongoRepo = require('./mongoRepository')
 const oandaService = require('../services/oanda')
-const logTrade = require('../services/logTrade')
 const logger = require('../services/logger');
 const { isPublishedAlgorithm } = require('../publishedAlgorithm/service')
 const logTransaction = require('../services/publishedTransactionLogger')
-const prototypeTrades = require('../schema/prototypeTrades')
 const db = require('../dbInstance')
 const calculatePip = require('../services/calculatePip')
 const xtbService = require('../xtb/service')

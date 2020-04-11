@@ -4,9 +4,7 @@ const { calcStochastic } = require('@/stochastic/service');
 module.exports = (rates, index) => {
   const length = 16 
 
-  if (index < 16) return null
+  if (index < length - 1) return null
 
-  const relevantRates =  [...rates].splice(index - length, length)
-
-  return calcStochastic(relevantRates)
+  return calcStochastic( [...rates].splice(index - length + 1, length).reverse() )
 }

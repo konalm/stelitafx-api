@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"proto_no":80,"abbrev":"EUR/USD","open_rate":1.09334,"open_notes":"","open_stats":"\"\"","time_interval":1,"account":null,"uuid":"9f3220b0-7b64-11ea-828d-a355377fbf99","transaction_type":"long","close_rate":1.09356,"close_date":"2020-04-10 19:56:09","close_notes":"","closed":true}
+=======
+{"proto_no":80,"abbrev":"EUR/USD","open_rate":1.10417,"open_notes":"","open_stats":"\"\"","time_interval":1,"account":null,"uuid":"e7043622-7539-11ea-a698-8ff6b411ca90","transaction_type":"long"}
+>>>>>>> 22ce0326ff25c5ea67fe7a275d9e7f70d81bb8fc

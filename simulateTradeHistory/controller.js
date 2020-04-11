@@ -6,10 +6,13 @@ const calculatePip = require('@/services/calculatePip');
 const minsBetweenDates = require('@/services/minsBetweenDates')
 const service = require('./service')
 const triggerConditions = require('./service/conditions')
+const { daysBetweenDates } = require('@/services/utils');
+const candlePatterns = require('./service/candlePatterns')
+const sortStatsBy = require('./service/sortStatsBy')
 
 
 exports.simulateTradeHistory = async (req, res) => {
-  const stopLoss = null
+  const stopLoss = 10
   const stopGain = null
   
   let currencyRates 
@@ -18,6 +21,8 @@ exports.simulateTradeHistory = async (req, res) => {
   } catch (e) {
     return res.status(500).send('Failed to get currency rates')
   }
+
+  const daysOfPeriods = daysBetweenDates(currencyRates[0].date)(new Date())
   
   const trades = []
   
@@ -25,11 +30,12 @@ exports.simulateTradeHistory = async (req, res) => {
   periods.forEach((x, i) => {
     const prior = i > 0 ? periods[i - 1] : null
     const lastTrade = trades.length ? trades[trades.length - 1] : null
-    // const trigger = triggerConditions.twentyCrossoverTwoHundedWMA(prior, x)
+    const trigger = triggerConditions.wmaCrossover(prior, x, 195, 200)
+
     // const trigger = triggerConditions.twentyCrossunderTwoHundredWMA(prior, x)
     // const trigger = triggerConditions.tenCrossoverOneHundreddWMA(prior, x)
     // const trigger = triggerConditions.stochasticTwentyEighty(prior, x)
-    const trigger = triggerConditions.wmaConjoinedStochastic(prior, x)
+    // const trigger = triggerConditions.wmaConjoinedStochastic(prior, x)
 
     /* only check if trade opened if last trade has been closed */ 
     if (!lastTrade || lastTrade.close) {
@@ -70,9 +76,24 @@ exports.simulateTradeHistory = async (req, res) => {
     x.close.wma = { '20': x.open.wma[20], '200': x.open.wma[200] }
   })
 
-  console.log(`trades .. ${trades.length}`)
+  const pipsGained = closedTrades.reduce((sum, x) => 
+    sum + (x.stats.pips > 0 ? x.stats.pips : 0), 0
+  )
+  const pipsLost = closedTrades.reduce((sum, x) => 
+    sum + (x.stats.pips < 0 ? x.stats.pips * -1 : 0), 0
+  )
+  const totalPips = pipsGained - pipsLost
   
   return res.send({
+    stats: {
+      pipsGained,
+      pipsLost,
+      totalPips,
+      trades: trades.length,
+      tradesPerDay: trades.length / daysOfPeriods,
+      pipsPerTrade: totalPips / trades.length
+    },
+
     trades: closedTrades
   })
 }
@@ -114,8 +135,6 @@ exports.wmaTradeHistorySimulator = async (req, res) => {
     const slowWmaPerformances = service.getWmaPerformances(
       fastWma, periods, rangeSettings.max, stopSettings
     )
-
-    const stats = service.wmaPerformanceItemStats(slowWmaPerformances)
     
     const wmaPerformance = { 
       fastWma, 
@@ -125,7 +144,6 @@ exports.wmaTradeHistorySimulator = async (req, res) => {
 
     wmaPerformances.push(wmaPerformance)
   }
-
 
   return res.send({
     stats: service.wmaPerformanceStats(wmaPerformances), 
@@ -156,42 +174,190 @@ exports.stochasticTradeHistorySimulator = async (req, res) => {
 }
 
 
-const triggeredStopLoss = (period, relevantRates, stopLoss) => {
-  const lowestRate = relevantRates.reduce((a, b) => 
-    (a.exchange_rate < b.exchange_rate) ? a : b
-  )
-  const lowestPip = calculatePip(period.open.exchange_rate, lowestRate.exchange_rate)
+exports.getStochasticStats = async (req, res) => {
+  const sortBy = req.query.sortBy || null
+  const minTrades = req.query.minTrades || null
+  const abbrev = req.params.abbrev
+  const pipsPerTrade = parseFloat(req.query.pipsPerTrade) || null 
+  const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
 
-  if (lowestPip <= stopLoss * -1) {
-    return {
-      pips: stopLoss * -1,
-      duration: minsBetweenDates(period.open.date, lowestRate.date),
-      date: lowestRate.date,
-      triggeredStopLoss: true,
-      triggeredStopGain: false
-    }
+  let stats
+  try {
+    stats = await JSON.parse(fs.readFileSync(`cache/stats/stochastic/${abbrev}.JSON`, 'utf8'))
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to read stats')
   }
+  stats = stats.filter((x) => x.trades > 0)
 
-  return false
+  stats.forEach((s) => {
+    const c = s.tradesPerDay * 0.2 
+    s.shortNetPipsPerDay = s.pipsPerDay + c
+  })
+
+  if (minTrades) stats = stats.filter((x) => x.trades >= minTrades)
+  if (pipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade > pipsPerTrade)
+  if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
+  if (sortBy) return res.send(sortStatsBy(stats, sortBy).splice(0, 100))
+
+  return res.send(stats.splice(0, 1000))
 }
 
 
-const triggeredStopGain = (period, relevantRates, stopGain) => {
-  const highestRate = relevantRates.reduce((a, b) => 
-    (a.exchange_rate > b.exchange_rate) ? a : b
-  )
+exports.getRateAboveWmaStochasticStats = async (req, res) => {
+  const sortBy = req.query.sortBy || null 
+  const abbrev = req.params.abbrev;
+  const minTrades = req.query.minTrades || 0
+  const pipsPerTrade = parseFloat(req.query.pipsPerTrade) || null
+  const winPer = req.query.winPer || null
+  const dir = 'cache/stats/rateAboveWmaStochastic'
+  const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
 
-  const highestPip = calculatePip(period.open.exchange_rate, highestRate.exchange_rate)
 
-  if (highestPip >= stopGain) {
-    return {
-      pips: stopGain,
-      duration: minsBetweenDates(period.close.date, highestRate.date),
-      date: highestRate.date,
-      triggeredStopGain: true,
-      truggeredStopLoss: false
-    }
+  let stats
+  try {
+    stats = await JSON.parse(fs.readFileSync(`${dir}/${abbrev}.JSON`, 'utf8'))
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to read stats')
   }
 
-  return false
+  stats = stats.filter((x) => x.trades > 0)
+
+  stats.forEach((s) => {
+    const c = s.tradesPerDay * 0.2 
+    s.shortNetPipsPerDay = s.pipsPerDay + c
+  })
+
+  if (minTrades) stats = stats.filter((x) => x.trades >= minTrades)
+
+  if (pipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade > pipsPerTrade)
+  if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
+  if (winPer) stats = stats.filter((x) => x.winPercentage > winPer)
+
+  if (sortBy) return res.send(sortStatsBy(stats, sortBy).splice(0, 100))
+
+  return res.send(stats.splice(0,1000))
+}
+
+
+exports.getWmaCrossedOverStochasticStats = async (req, res) => {
+  const sortBy = req.query.sortBy || null 
+  const minTrades = req.query.minTrades || null
+  const dir = 'cache/stats/wmaCrossedOverStochastic'
+  const algoStatFiles = await fs.readdirSync(dir)
+
+  let stats = []
+  for (let i=0; i<algoStatFiles.length; i++) {
+    const algo = algoStatFiles[i]
+
+    const algoStats = JSON.parse(await fs.readFileSync(`${dir}/${algo}`))
+    algoStats.forEach((x) => {
+      x.algorithm = algo.replace('.JSON', '')
+    })
+
+    stats.push(...algoStats)
+  }
+
+  if (sortBy) {
+    if (sortBy === 'best') {
+      if (minTrades) stats = stats.filter((x) => x.best.trades >= minTrades)
+
+      stats.sort((a, b) => b.best.pipsPerTrade - a.best.pipsPerTrade)
+    }
+    if (sortBy === 'worst') {
+      if (minTrades) stats = stats.filter((x) => x.worst.trades >= minTrades)
+      
+      stats.sort((a, b) => a.worst.pipsPerTrade - b.worst.pipsPerTrade)
+    }
+  } 
+
+  return res.send(stats)
+}
+
+
+exports.getWmaCrossedOverStats = async (req, res) => {
+  const abbrev = req.params.abbrev
+  const sortBy = req.query.sortBy || null 
+  const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
+  const minTrades = req.query.minTrades || null
+
+  const file = `cache/stats/wmaCrossedOver/${abbrev}.JSON`
+
+  let stats 
+  try {
+    stats = JSON.parse(await fs.readFileSync(file, 'utf8'))
+  } catch (e) {
+    return res.status(500).send('Failed to read cache')
+  }
+
+
+  stats.forEach((s) => {
+    const c = s.tradesPerDay * 0.2 
+    s.shortNetPipsPerDay = s.pipsPerDay + c
+  })
+
+  if (minTrades) stats = stats.filter((x) => x.trades >= minTrades)
+  if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
+
+  if (sortBy) return res.send(sortStatsBy(stats, sortBy))
+
+  return res.send(stats.splice(0, 1000))
+}
+
+
+exports.getCachedCalcPeriods = async (req, res) => {
+  const fromDate = req.query.fromDate || null
+  const toDate = req.query.toDate || null 
+  const buffer = parseInt(req.query.buffer) || 0 
+  
+  let periods
+  try {
+    periods = JSON.parse( await fs.readFileSync('cache/calculatedPeriods.JSON', 'utf8'))
+  } catch (e) {
+    return res.status(500).send('Failed to read periods from cache')
+  }
+
+  if (fromDate) {
+    const x = periods.findIndex((y) => new Date(y.date) > new Date(fromDate))
+    periods.splice(0, x - buffer)
+  }
+
+  if (toDate) {
+    const x = periods.findIndex((y) => new Date(y.date) > new Date(toDate))
+    periods.splice(x + buffer, periods.length)
+  }
+
+  return res.send(periods.splice(0, 20))
+}
+
+
+exports.candlePatternSimulator = async (req, res) => {
+  const abbrev = req.params.abbrev 
+  const sinceDate = req.query.sinceDate ? new Date(req.query.sinceDate) : null
+
+  let allCandles 
+  try {
+    allCandles = JSON.parse( 
+      await fs.readFileSync(`cache/historicCandles/${abbrev}.JSON`, 'utf8')
+    )
+  } catch (e) {
+    return res.status(500).send('Failed to read candles from cache')
+  }
+
+  const candles = allCandles
+    .filter((x) => new Date(x.date) >= sinceDate)
+    .map((x) => ({
+      date: x.date,
+      open: parseFloat(x.candle.o),
+      high: parseFloat(x.candle.h),
+      low: parseFloat(x.candle.l),
+      close: parseFloat(x.candle.c)
+    }))
+
+
+  candlePatterns(candles)
+  
+
+  return res.send(candles)
 }

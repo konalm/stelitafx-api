@@ -1,4 +1,4 @@
-const conn = require('../db')
+// const conn = require('../db')
 const mysql = require('mysql')
 const db = require('../dbInstance')
 const calculatePip = require('../services/calculatePip')

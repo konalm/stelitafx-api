@@ -1,10 +1,12 @@
-const conn = require('../db')
+// const conn = require('../db')
 const db = require('../dbInstance')
 
 /**
  * Select all prototypes from the DB
  */
-exports.getProtos = new Promise((resolve, reject) => {
+exports.getProtos = () => new Promise((resolve, reject) => {
+  console.log('get protos ??????')
+
   const dbConn = db()
   const query = `
     SELECT prototype_no, date_created, description

@@ -1,4 +1,4 @@
-const conn = require('../db')
+// const conn = require('../db')
 const db = require('../dbInstance')
 
 exports.getAll = () => new Promise((resolve, reject) => {

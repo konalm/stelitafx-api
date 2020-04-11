@@ -1,4 +1,4 @@
-const conn = require('../db');
+// const conn = require('../db');
 const db = require('../dbInstance')
 const getIntervalMins = require('../services/intervalMins')
 const formatMysqlDate = require('../services/formatMysqlDate')

@@ -29,6 +29,7 @@ exports.WMA_LENGTHS = [
   60,
   100,
   116,
+  180,
   200
 ]
 

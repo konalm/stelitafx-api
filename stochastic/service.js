@@ -7,6 +7,8 @@ const getCurrencyRates = require('../currencyRates/services/getCurrencyRates')
 
 
 exports.calculateStochastic = async (abbrev, timeInterval, conn) => {
+  console.log('calculate stochastic')
+
   let latestRates;
   try {
     latestRates = await getCurrencyRates(timeInterval, abbrev, 16)
@@ -14,6 +16,10 @@ exports.calculateStochastic = async (abbrev, timeInterval, conn) => {
     console.log(e)
     throw new Error(`Failed to get last 14 rates: ${e}`)
   }
+
+  console.log('currency rates >>')
+  console.log(latestRates)
+  
 
   /* calculate last 3 stochastics */ 
   const fastStochastics = [] 
