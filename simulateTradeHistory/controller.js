@@ -145,7 +145,6 @@ exports.wmaTradeHistorySimulator = async (req, res) => {
     wmaPerformances.push(wmaPerformance)
   }
 
-
   return res.send({
     stats: service.wmaPerformanceStats(wmaPerformances), 
   })
@@ -179,6 +178,8 @@ exports.getStochasticStats = async (req, res) => {
   const sortBy = req.query.sortBy || null
   const minTrades = req.query.minTrades || null
   const abbrev = req.params.abbrev
+  const pipsPerTrade = parseFloat(req.query.pipsPerTrade) || null 
+  const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
 
   let stats
   try {
@@ -187,10 +188,16 @@ exports.getStochasticStats = async (req, res) => {
     console.log(e)
     return res.status(500).send('Failed to read stats')
   }
+  stats = stats.filter((x) => x.trades > 0)
 
+  stats.forEach((s) => {
+    const c = s.tradesPerDay * 0.2 
+    s.shortNetPipsPerDay = s.pipsPerDay + c
+  })
 
   if (minTrades) stats = stats.filter((x) => x.trades >= minTrades)
-  
+  if (pipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade > pipsPerTrade)
+  if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
   if (sortBy) return res.send(sortStatsBy(stats, sortBy).splice(0, 100))
 
   return res.send(stats.splice(0, 1000))
@@ -201,9 +208,11 @@ exports.getRateAboveWmaStochasticStats = async (req, res) => {
   const sortBy = req.query.sortBy || null 
   const abbrev = req.params.abbrev;
   const minTrades = req.query.minTrades || 0
-  const pipsPerTrade = req.query.pipsPerTrade || null
+  const pipsPerTrade = parseFloat(req.query.pipsPerTrade) || null
   const winPer = req.query.winPer || null
   const dir = 'cache/stats/rateAboveWmaStochastic'
+  const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
+
 
   let stats
   try {
@@ -213,19 +222,20 @@ exports.getRateAboveWmaStochasticStats = async (req, res) => {
     return res.status(500).send('Failed to read stats')
   }
 
-  stats = stats.filter((x) => x.trades >= minTrades)
+  stats = stats.filter((x) => x.trades > 0)
+
+  stats.forEach((s) => {
+    const c = s.tradesPerDay * 0.2 
+    s.shortNetPipsPerDay = s.pipsPerDay + c
+  })
+
+  if (minTrades) stats = stats.filter((x) => x.trades >= minTrades)
 
   if (pipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade > pipsPerTrade)
+  if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
   if (winPer) stats = stats.filter((x) => x.winPercentage > winPer)
 
-  if (sortBy) {
-    if (sortBy === 'best') stats.sort((a, b) => b.pipsPerTrade - a.pipsPerTrade)
-    if (sortBy === 'worst') stats.sort((a, b) => a.pipsPerTrade - b.pipsPerTrade)
-    if (sortBy === 'winPer') stats.sort((a, b) => b.winPercentage - a.winPercentage)
-    if (sortBy === 'pipsPerDay') stats.sort((a, b) => b.pipsPerDay - a.pipsPerDay)
-    if (sortBy === 'worstPipsPerDay') stats.sort((a, b) => a.pipsPerDay - b.pipsPerDay)
-
-  }
+  if (sortBy) return res.send(sortStatsBy(stats, sortBy).splice(0, 100))
 
   return res.send(stats.splice(0,1000))
 }
@@ -260,7 +270,7 @@ exports.getWmaCrossedOverStochasticStats = async (req, res) => {
       
       stats.sort((a, b) => a.worst.pipsPerTrade - b.worst.pipsPerTrade)
     }
-  }
+  } 
 
   return res.send(stats)
 }
@@ -269,6 +279,8 @@ exports.getWmaCrossedOverStochasticStats = async (req, res) => {
 exports.getWmaCrossedOverStats = async (req, res) => {
   const abbrev = req.params.abbrev
   const sortBy = req.query.sortBy || null 
+  const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
+  const minTrades = req.query.minTrades || null
 
   const file = `cache/stats/wmaCrossedOver/${abbrev}.JSON`
 
@@ -278,6 +290,15 @@ exports.getWmaCrossedOverStats = async (req, res) => {
   } catch (e) {
     return res.status(500).send('Failed to read cache')
   }
+
+
+  stats.forEach((s) => {
+    const c = s.tradesPerDay * 0.2 
+    s.shortNetPipsPerDay = s.pipsPerDay + c
+  })
+
+  if (minTrades) stats = stats.filter((x) => x.trades >= minTrades)
+  if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
 
   if (sortBy) return res.send(sortStatsBy(stats, sortBy))
 

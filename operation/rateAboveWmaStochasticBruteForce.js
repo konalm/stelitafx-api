@@ -1,17 +1,14 @@
 require('module-alias/register');
 
 const fs = require('fs')
-const simulateTrades = require('./service/simulateTrades')
-const { tradesTotalPips } = require('@/simulateTradeHistory/service')
 const { 
   rateAboveWma, stochasticCrossedOver, stochasticCrossedUnder 
 } = require('@/simulateTradeHistory/service/conditions');
 const stopLosses = [0, 1, 5, 15, 30, 50];
 const Wmas = [5, 15, 30, 50, 100, 200];
-const abbrev = 'AUDUSD'
-const winningTrades = require('./service/winningTrades')
-const losingTrades = require('./service/losingTrades')
+const abbrev = 'GBPCAD'
 const { daysBetweenDates, percentage } = require('@/services/utils');
+const getPerformance = require('./service/getPerformance')
 
 const sinceDate = '2019-01-01T00:00:00.000Z';
 
@@ -146,7 +143,7 @@ const performStochasticAlgorithm = (periods, algorithm, daysOfPeriods) =>
         const stopLoss = stopLosses[spIndex]
 
         stopLossPerformances.push(
-          getPerformance(periods)(conditions)(stopLoss)(null)(daysOfPeriods)
+          getPerformance(periods)(conditions)(stopLoss)(null)(daysOfPeriods)(abbrev)
         )
       }
 
@@ -165,28 +162,28 @@ const performStochasticAlgorithm = (periods, algorithm, daysOfPeriods) =>
 })
 
 
-const getPerformance = periods => conditions => stopLoss => stopGain => daysOfPeriods =>
-{
-  const trades = simulateTrades(periods)(conditions)(stopLoss)(stopGain)
-  const pips = tradesTotalPips(trades)
-  const wTrades = winningTrades(trades)
-  const lTrades = losingTrades(trades)
-  const tradesPerDay = trades.length / daysOfPeriods
-  const pipsPerTrade = pips / trades.length
-  const pipsPerDay = tradesPerDay * pipsPerTrade
-  const costPerDay = tradesPerDay * 0.2;
+// const getPerformance = periods => conditions => stopLoss => stopGain => daysOfPeriods =>
+// {
+//   const trades = simulateTrades(periods)(conditions)(stopLoss)(stopGain)
+//   const pips = tradesTotalPips(trades)
+//   const wTrades = winningTrades(trades)
+//   const lTrades = losingTrades(trades)
+//   const tradesPerDay = trades.length / daysOfPeriods
+//   const pipsPerTrade = pips / trades.length
+//   const pipsPerDay = tradesPerDay * pipsPerTrade
+//   const costPerDay = tradesPerDay * 0.2;
         
-  return {
-    stopLoss,
-    trades: trades.length,
-    winningTrades: wTrades,
-    losingTrades: lTrades,
-    winPercentage: percentage(wTrades, lTrades),
-    pips,
-    pipsPerTrade: pips / trades.length,
-    tradesPerDay,
-    costPerDay,
-    pipsPerDay,
-    netPipsPerDay: pipsPerDay - costPerDay
-  }
-}
+//   return {
+//     stopLoss,
+//     trades: trades.length,
+//     winningTrades: wTrades,
+//     losingTrades: lTrades,
+//     winPercentage: percentage(wTrades, lTrades),
+//     pips,
+//     pipsPerTrade: pips / trades.length,
+//     tradesPerDay,
+//     costPerDay,
+//     pipsPerDay,
+//     netPipsPerDay: pipsPerDay - costPerDay
+//   }
+// }

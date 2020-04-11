@@ -5,7 +5,7 @@ const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 
 const sinceDate = '2017-01-01T00:00:00.000Z';
 const endDate = new Date();
-const abbrev = 'EUR/GBP';
+const abbrev = 'GBP/CAD';
 
 
 (async () => {

@@ -11,7 +11,7 @@ const abbrev = 'GBPUSD';
 const stopLosses = [1, 5, 15, 30, 50]
 const wmas = [1, 5, 15, 30, 50, 100, 150, 200];
 
-const sinceDate = '2019-01-01T00:00:00.000Z';
+const sinceDate = '2019-06-01T00:00:00.000Z';
 
 const algorithms = [
   {
@@ -109,8 +109,6 @@ const performAlgorithm = async (periods, algorithm) => {
         cacheFilename: algorithm.cacheFilename
       }
       const stochasticStats = await performStochasticAlgorithm(periods, algorithmForWmaOver)
-
-      console.log(`stochastic stats ... ${stochasticStats.length}`)
 
       stats.push(
         ...stochasticStats.map((x) => ({

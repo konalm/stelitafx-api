@@ -8,7 +8,7 @@ const { daysBetweenDates } = require('@/services/utils');
 const getPerformance = require('./service/getPerformance')
 
 const sinceDate = '2019-01-01T00:00:00.000Z';
-const abbrev = 'AUDUSD';
+const abbrev = 'GBPCAD';
 const stopLosses = [0, 1, 5, 15, 30, 50];
 
 
@@ -87,7 +87,7 @@ const performAlgorithm = async (periods, algorithm, daysOfPeriods) => {
       const stopLossPerformances = []
       for (let spIndex = 0; spIndex < stopLosses.length; spIndex += 1) {
         stopLossPerformances.push(
-          getPerformance(periods)(conditions)(stopLosses[spIndex])(null)(daysOfPeriods)
+          getPerformance(periods)(conditions)(stopLosses[spIndex])(null)(daysOfPeriods)(abbrev)
         )
       }
 

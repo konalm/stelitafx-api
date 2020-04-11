@@ -14,6 +14,8 @@ module.exports = (stats, sortBy) => {
       return s.sort((a, b) => a.pipsPerDay - b.pipsPerDay)
     case 'netPipsPerDay':
       return s.sort((a, b) => b.netPipsPerDay - a.netPipsPerDay)
+    case 'shortNetPipsPerDay':
+      return s.sort((a, b) => a.shortNetPipsPerDay - b.shortNetPipsPerDay)
   }
 
     return s
