@@ -3,6 +3,12 @@ const { tradesTotalPips } = require('@/simulateTradeHistory/service')
 const winningTrades = require('./winningTrades')
 const losingTrades = require('./losingTrades')
 const { percentage } = require('@/services/utils');
+const minsBetweenDates = require('@/services/minsBetweenDates');
+
+const tradesAvgDuration = (trades) => trades.reduce(
+  (sum, x) => sum + minsBetweenDates(x.open.date, x.close.date), 0
+) / trades.length
+
 
 module.exports = periods => conditions => stopLoss => stopGain => daysOfPeriods => abbrev =>
 {
@@ -23,6 +29,7 @@ module.exports = periods => conditions => stopLoss => stopGain => daysOfPeriods 
     winPercentage: percentage(wTrades, lTrades),
     pips,
     pipsPerTrade: pips / trades.length,
+    avgDuration: tradesAvgDuration(trades),
     tradesPerDay,
     costPerDay,
     pipsPerDay,

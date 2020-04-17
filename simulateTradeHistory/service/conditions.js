@@ -59,6 +59,8 @@ exports.tenCrossoverOneHundreddWMA = (prior, current) => {
 
 
 exports.stochasticCrossedOver = (prior, current, triggerStoch) => {
+  // console.log('CONDITIONS .. stochastics crossed over')
+
   return (prior.stochastic < triggerStoch) && (current.stochastic >= triggerStoch)
 }
 
@@ -97,13 +99,7 @@ exports.wmaOver = (current, shortWma, longWma) => {
 }
 
 
-exports.rateAboveWma = (current, wma) => {
-  // console.log('rate above wma')
-  // console.log(current)
-  // console.log(`wma .... ${wma}`)
-
-  return current.exchange_rate > current.wma[wma]
-}
+exports.rateAboveWma = (current, wma) => current.exchange_rate > current.wma[wma]
 
 
 exports.adxCrossover = (prior, current) => prior.adx.plusDi <= prior.adx.minusDi 
@@ -117,7 +113,20 @@ exports.adxCrossunder = (prior, current) => prior.adx.minusDi >= prior.adx.plusD
 exports.adxPlusDiUnder = (prior, current) => current.adx.plusDi <= current.adx.minusDi
 
 
-exports.adxPlusDiAbove = (prior, current) => current.adx.plusDi >= current.adx.minusDi
+exports.adxPlusDiAbove = (prior, current) => {
+  // console.log('CONDITIONS ... adx plus di above');
+
+  return current.adx.plusDi >= current.adx.minusDi
+}
 
 
 exports.adxAboveThreshold = (prior, current, threshold) => current.adx.adx >= threshold
+
+
+exports.adxBelowThreshold = (prior, current, threshold) => current.adx.adx <= threshold
+
+
+exports.adxPlusDiAboveThreshold = (prior, current, threshold) => current.adx.plusDi > threshold
+
+
+exports.adxPlusDiBelowThreshold = (prior, current, threshold) => current.adx.plusDi < threshold

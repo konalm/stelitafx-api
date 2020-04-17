@@ -7,6 +7,19 @@ exports.MAJOR_CURRENCIES = [
   'AUD',
 ]
 
+
+exports.CURRENCYPAIRS = [
+  'GBPUSD',
+  'EURUSD',
+  'AUDUSD',
+  'USDJPY',
+  'EURGBP',
+  'CHFJPY',
+  'EURCHF',
+  'GBPCAD'
+]
+
+
 exports.TIME_INTERVALS = [
   1,
   2,
