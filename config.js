@@ -7,6 +7,10 @@ exports.MAJOR_CURRENCIES = [
   'AUD',
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
 exports.CURRENCYPAIRS = [
   'GBPUSD',
   'EURUSD',
@@ -18,6 +22,10 @@ exports.CURRENCYPAIRS = [
   'GBPCAD'
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
 exports.TIME_INTERVALS = [
   1,
   2,

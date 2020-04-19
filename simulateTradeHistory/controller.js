@@ -209,10 +209,10 @@ exports.getRateAboveWmaStochasticStats = async (req, res) => {
   const abbrev = req.params.abbrev;
   const minTrades = req.query.minTrades || 0
   const pipsPerTrade = parseFloat(req.query.pipsPerTrade) || null
-  const winPer = req.query.winPer || null
+  const winPer = parseFloat(req.query.winPer) || null
+  const worstWinPer = parseFloat(req.query.worstWinPer) || null
   const dir = 'cache/stats/rateAboveWmaStochastic'
   const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
-
 
   let stats
   try {
@@ -234,6 +234,7 @@ exports.getRateAboveWmaStochasticStats = async (req, res) => {
   if (pipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade > pipsPerTrade)
   if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
   if (winPer) stats = stats.filter((x) => x.winPercentage > winPer)
+  if (worstWinPer) stats = stats.filter((x) => x.winPercentage < worstWinPer)
 
   if (sortBy) return res.send(sortStatsBy(stats, sortBy).splice(0, 100))
 
@@ -244,33 +245,31 @@ exports.getRateAboveWmaStochasticStats = async (req, res) => {
 exports.getWmaCrossedOverStochasticStats = async (req, res) => {
   const sortBy = req.query.sortBy || null 
   const minTrades = req.query.minTrades || null
-  const dir = 'cache/stats/wmaCrossedOverStochastic'
-  const algoStatFiles = await fs.readdirSync(dir)
+  // const dir = 'cache/stats/wmaCrossedOverStochastic'
+  // const algoStatFiles = await fs.readdirSync(dir)
+  const abbrev = req.params.abbrev
 
-  let stats = []
-  for (let i=0; i<algoStatFiles.length; i++) {
-    const algo = algoStatFiles[i]
+  // let stats = []
+  // for (let i=0; i<algoStatFiles.length; i++) {
+  //   const algo = algoStatFiles[i]
 
-    const algoStats = JSON.parse(await fs.readFileSync(`${dir}/${algo}`))
-    algoStats.forEach((x) => {
-      x.algorithm = algo.replace('.JSON', '')
-    })
+  //   const algoStats = JSON.parse(await fs.readFileSync(`${dir}/${algo}`))
+  //   algoStats.forEach((x) => {
+  //     x.algorithm = algo.replace('.JSON', '')
+  //   })
 
-    stats.push(...algoStats)
+  //   stats.push(...algoStats)
+  // }
+
+  let stats
+  try {
+    stats = await JSON.parse(fs.readFileSync(`cache/stats/wmaCrossedOverStochastic/${abbrev}.JSON`, 'utf8'))
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to read stats')
   }
 
-  if (sortBy) {
-    if (sortBy === 'best') {
-      if (minTrades) stats = stats.filter((x) => x.best.trades >= minTrades)
-
-      stats.sort((a, b) => b.best.pipsPerTrade - a.best.pipsPerTrade)
-    }
-    if (sortBy === 'worst') {
-      if (minTrades) stats = stats.filter((x) => x.worst.trades >= minTrades)
-      
-      stats.sort((a, b) => a.worst.pipsPerTrade - b.worst.pipsPerTrade)
-    }
-  } 
+  if (sortBy) return res.send(sortStatsBy(stats, sortBy).splice(0, 100))
 
   return res.send(stats)
 }
@@ -279,7 +278,11 @@ exports.getWmaCrossedOverStochasticStats = async (req, res) => {
 exports.getWmaCrossedOverStats = async (req, res) => {
   const abbrev = req.params.abbrev
   const sortBy = req.query.sortBy || null 
+<<<<<<< HEAD
   const pipsPerTrade = parseFloat(req.query.pipsPerTrade) || null
+=======
+  const pipsPerTrade = req.query.pipsPerTrade
+>>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
   const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
   const minTrades = req.query.minTrades || null
 
@@ -358,7 +361,7 @@ exports.candlePatternSimulator = async (req, res) => {
     }))
 
 
-  candlePatterns(candles)
+  // candlePatterns(candles)
   
 
   return res.send(candles)

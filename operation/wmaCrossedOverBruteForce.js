@@ -12,7 +12,7 @@ const algorithm = {
 };
 
 const sinceDate = '2019-01-01T00:00:00.000Z';
-const abbrev = 'GBPCAD';
+const abbrev = 'GBPUSD';
 const stopLosses = [null, 1, 5, 15, 30, 50];
 
 

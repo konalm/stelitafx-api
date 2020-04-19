@@ -1,17 +1,24 @@
 require('module-alias/register');
 
-const fs = require('fs')
+const fs = require('fs');
+const JSONStream = require('JSONStream');
 const { 
   wmaOver, stochasticCrossedOver, stochasticCrossedUnder 
-} = require('@/simulateTradeHistory/service/conditions')
-const getPerformance = require('./service/getPerformance')
+} = require('@/simulateTradeHistory/service/conditions');
+const getPerformance = require('./service/getPerformance');
 const { daysBetweenDates } = require('@/services/utils');
 
 const abbrev = 'GBPUSD';
-const stopLosses = [1, 5, 15, 30, 50]
-const wmas = [1, 5, 15, 30, 50, 100, 150, 200];
+const stopLosses = [null, 1, 5, 15, 30, 50]
+// const wmas = [1, 5, 15, 30, 50, 100, 150, 200];
+const wmas = [50, 100, 150, 200];
 
-const sinceDate = '2019-06-01T00:00:00.000Z';
+const sinceDate = '2016-01-01T00:00:00.000Z';
+
+const stream = fs.createWriteStream(`../cache/stats/wmaCrossedOverStochastic/${abbrev}.JSON`)
+const jsonwriter = JSONStream.stringify()
+jsonwriter.pipe(stream);
+
 
 const algorithms = [
   {
@@ -60,37 +67,22 @@ const algorithms = [
 
 
   /* loop every algorithm */ 
-  const stats = [];
   for (let i = 0; i < algorithms.length; i++) {
     console.log(`ALGORITHM .... ${i}`)
     const algorithm = algorithms[i]
 
-    let algoStats 
     try {
-      algoStats = await performAlgorithm(periods, algorithm, daysOfPeriods)
+      await performAlgorithm(periods, algorithm, daysOfPeriods)
     } catch (e) {
       console.log(e)
     }
-
-    console.log(`algo stats .. ${algoStats.length}`)
-
-    stats.push(...algoStats)
   }
 
-  /* write to cache */ 
-  try {
-    await fs.writeFileSync(
-      `../cache/stats/wmaCrossedOverStochastic/${abbrev}.JSON`, JSON.stringify(stats)
-    )
-  } catch (e) {
-    console.log(e)
-  }
+  jsonwriter.end()
 })();
 
 
-const performAlgorithm = async (periods, algorithm) => {
-  const stats = []
-
+const performAlgorithm = async (periods, algorithm, daysOfPeriods) => {
   /* loop every short wma */
   for (let i = 0; i < wmas.length; i ++) {
     const shortWma = wmas[i]
@@ -108,51 +100,35 @@ const performAlgorithm = async (periods, algorithm) => {
         close: algorithm.close,
         cacheFilename: algorithm.cacheFilename
       }
-      const stochasticStats = await performStochasticAlgorithm(periods, algorithmForWmaOver)
-
-      stats.push(
-        ...stochasticStats.map((x) => ({
-          shortWma,
-          longWma,
-          ...stochasticStats
-        }))
+      await performStochasticAlgorithm(
+        periods, algorithmForWmaOver, daysOfPeriods, {short: shortWma, long: longWma}
       )
     }
   }
-
-  return stats
 }
 
 
-const performStochasticAlgorithm = (periods, algorithm, daysOfPeriods) => {
-  const stats = []
-
+const performStochasticAlgorithm = (periods, algorithm, daysOfPeriods, wmas) => {
   /* loop buy triggers */
-  for (let x = 0; x < 100; x += 5) {
+  for (let x = 95; x < 100; x += 5) {
     /* loop sell triggers */
     for (let y = 5; y <= 100; y += 5) {
       const conditions = {  open: algorithm.open(x),  close: algorithm.close(y) }
 
       /* loop stop losses */ 
-      const stopLossPerformances = []
       for (let spIndex = 0; spIndex < stopLosses.length; spIndex += 1) {
-        stopLossPerformances.push(
-          getPerformance(periods)(conditions)(stopLosses[spIndex])(null)(daysOfPeriods)
-        )
+        let stopLossPerformance = getPerformance(periods)(conditions)(stopLosses[spIndex])
+          (null)
+          (daysOfPeriods)
+          (abbrev)
+        stopLossPerformance.buyTrigger = x;
+        stopLossPerformance.sellTrigger = y;
+        stopLossPerformance.wmas = wmas;
+   
+        if (stopLossPerformance) jsonwriter.write(stopLossPerformance);
       }
-
-      stats.push(
-        ...stopLossPerformances.map((p) => ({
-          buyTrigger: x,
-          sellTrigger: y,
-          algo: algorithm.cacheFilename,
-          ...p,
-        }))
-      )
     }
   }
-
-  return stats
 }
 
 

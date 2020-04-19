@@ -50,7 +50,13 @@ exports.tenCrossoverOneHundreddWMA = (prior, current) => {
 
 
 exports.stochasticCrossedOver = (prior, current, triggerStoch) => {
+<<<<<<< HEAD
   return (prior.stochastic <= triggerStoch) && (current.stochastic > triggerStoch)
+=======
+  // console.log('CONDITIONS .. stochastics crossed over')
+
+  return (prior.stochastic < triggerStoch) && (current.stochastic >= triggerStoch)
+>>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
 }
 
 exports.stochasticCrossedUnder = (prior, current, triggerStoch) => {
@@ -84,11 +90,46 @@ exports.wmaUnder = (prior, current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
 
+<<<<<<< HEAD
   return current.wma[shortWma] < current.wma[longWma]
 }
+=======
+exports.rateAboveWma = (current, wma) => current.exchange_rate > current.wma[wma]
+>>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
 
 const wmaOver = (current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
+<<<<<<< HEAD
   return current.wma[shortWma] > current.wma[longWma]
 }
+=======
+exports.adxCrossover = (prior, current) => prior.adx.plusDi <= prior.adx.minusDi 
+  && current.adx.plusDi > current.adx.minusDi
+
+
+exports.adxCrossunder = (prior, current) => prior.adx.minusDi >= prior.adx.plusDi 
+  && current.adx.minusDi < current.adx.plusDi
+
+  
+exports.adxPlusDiUnder = (prior, current) => current.adx.plusDi <= current.adx.minusDi
+
+
+exports.adxPlusDiAbove = (prior, current) => {
+  // console.log('CONDITIONS ... adx plus di above');
+
+  return current.adx.plusDi >= current.adx.minusDi
+}
+
+
+exports.adxAboveThreshold = (prior, current, threshold) => current.adx.adx >= threshold
+
+
+exports.adxBelowThreshold = (prior, current, threshold) => current.adx.adx <= threshold
+
+
+exports.adxPlusDiAboveThreshold = (prior, current, threshold) => current.adx.plusDi > threshold
+
+
+exports.adxPlusDiBelowThreshold = (prior, current, threshold) => current.adx.plusDi < threshold
+>>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
