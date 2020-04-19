@@ -39,7 +39,7 @@ const storeMacdForAbbrev = (interval, abbrev, conn) =>
   let currencyRates
   try {
     const count = slowEma + macdEma + smoothing;
-    currencyRates = await getCurrencyRates(interval, abbrev, count)
+    currencyRates = await getCurrencyRates(interval, abbrev, count, false)
     currencyRates = currencyRates.map((x) => ({
       date: x.date,
       rate: parseFloat(x.exchange_rate)

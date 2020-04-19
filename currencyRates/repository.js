@@ -1,3 +1,4 @@
+const conn = require('../db');
 const db = require('../dbInstance');
 const getIntervalMins = require('../services/intervalMins')
 const secondsBetweenDates = require('../services/secondsBetweenDates')
@@ -105,7 +106,11 @@ exports.GetCurrencyLatestRates = (
   const s = new Date()
 
   dbConn.query(query, [currencyAbbrev, limit], (e, results) => {
-    if (e) return reject('Failed Getting currency latest rates');
+    if (e) {
+      console.log(e)
+      console.trace()
+      return reject(`Failed Getting currency latest rates for ${currencyAbbrev}`);
+    }
 
     resolve(results);
   });

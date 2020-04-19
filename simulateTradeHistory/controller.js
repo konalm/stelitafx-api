@@ -279,6 +279,7 @@ exports.getWmaCrossedOverStochasticStats = async (req, res) => {
 exports.getWmaCrossedOverStats = async (req, res) => {
   const abbrev = req.params.abbrev
   const sortBy = req.query.sortBy || null 
+  const pipsPerTrade = parseFloat(req.query.pipsPerTrade) || null
   const worstPipsPerTrade = parseFloat(req.query.worstPipsPerTrade) || null
   const minTrades = req.query.minTrades || null
 
@@ -298,6 +299,7 @@ exports.getWmaCrossedOverStats = async (req, res) => {
   })
 
   if (minTrades) stats = stats.filter((x) => x.trades >= minTrades)
+  if (pipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade >= pipsPerTrade)
   if (worstPipsPerTrade) stats = stats.filter((x) => x.pipsPerTrade < worstPipsPerTrade * -1)
 
   if (sortBy) return res.send(sortStatsBy(stats, sortBy))

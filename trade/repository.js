@@ -1,4 +1,4 @@
-// const conn = require('../db')
+const conn = require('../db')
 const mysql = require('mysql')
 const db = require('../dbInstance')
 const calculatePip = require('../services/calculatePip')
@@ -68,7 +68,7 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
 
   query += ' ORDER BY close_date DESC'
 
-  conn.query(query, queryValues, (err, results) => {
+  dbConn.query(query, queryValues, (err, results) => {
     dbConn.end()
 
     if (err) {
@@ -79,8 +79,8 @@ exports.getTrades = (conditions, dateFilter) => new Promise(async (resolve, reje
     results.forEach((r) => {
       r.pips = r.closed 
         ? r.transactionType !== 'short' 
-          ? calculatePip(r.openRate, r.closeRate, conditions.abbrev) 
-          : calculatePip(r.openRate, r.closeRate, conditions.abbrev)  * -1
+          ? calculatePip(r.openRate, r.closeRate, r.abbrev) 
+          : calculatePip(r.openRate, r.closeRate, r.abbrev)  * -1
         : null
   
       /* calculate XTB pips for trades executed on broker */ 

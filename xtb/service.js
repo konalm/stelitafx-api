@@ -234,13 +234,9 @@ exports.closeTrade = (tradeUUID, abbrev) => new Promise(async (resolve, reject) 
 
 
 exports.getCurrencyRates = () => new Promise((resolve, reject) => {
-  console.log('xtb service .. get currency rates')
-
   const ws = new WebSocket(ADDRESS)
 
   ws.on('open', async function open() {
-    console.log('opened')
-
     /* Login */
     try {
       await login(ws)

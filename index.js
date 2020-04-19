@@ -8,7 +8,6 @@ app.use(bodyParser.urlencoded())
 
 require('module-alias/register')
 
-
 const port = 8686
 const routes = require('./routes');
 
@@ -18,7 +17,7 @@ const routes = require('./routes');
 routes(app);
 
 
-// require('./crons')
+require('./crons')
 
 
 app.listen(port, () => console.log(`Stelita FX API listening in port ${port}`))

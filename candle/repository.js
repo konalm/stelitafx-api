@@ -14,7 +14,6 @@ exports.insertCandle = (interval, abbrev, candle, conn) =>
   }
 
   conn.query(query, data, (e) => {
-    console.log(e)
     if (e) return reject('Failed to insert candle into MYSQL')
     
     resolve()

@@ -1,6 +1,6 @@
 const { getMacd, getMacdItemsBetweenDates } = require('./repository')
 const tradeRepo = require('@/trade/repository');
-
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 exports.getMacd = async (req, res) => {
   const { interval, currency } = req.params
@@ -22,7 +22,7 @@ exports.getMacd = async (req, res) => {
 exports.getMacdItemsForTrade = async (req, res) => {
   const { currency, tradeUUID } = req.params
   const interval = parseInt(req.params.interval)
-  const abbrev = `${currency}/USD`
+  const abbrev = symbolToAbbrev(currency)
   const buffer = req.query.buffer || 40
 
   let trade

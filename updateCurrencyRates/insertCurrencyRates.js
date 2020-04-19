@@ -7,6 +7,7 @@ const xtbService = require('../xtb/service')
 const { insertCurrencyRateData } = require('../currencyRates/repository')
 const { cacheRates } = require('../currencyRates/service')
 const cacheCurrencyRates = require('../currencyRates/cacheCurrencyRates')
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 
 module.exports = (date) => new Promise(async (resolve, _) => {
@@ -36,10 +37,6 @@ const uploadOandaFXAccountCurrencyRates = (date) => new Promise(async (resolve, 
     return reject ('Unable to retrieve currency rates')
   }
 
-  // console.log('oanda currency rates >>')
-  // console.log(oandaCurrencyRates)
-
-
   const currencyRates = []
   for (const key in oandaCurrencyRates) {
     const currencyRate = {
@@ -51,9 +48,6 @@ const uploadOandaFXAccountCurrencyRates = (date) => new Promise(async (resolve, 
     }
     currencyRates.push(currencyRate)
   }
-
-  console.log('currency rates >>')
-  console.log(currencyRates)
 
   try {
     await insertCurrencyRates(currencyRates, 'currency_rate')
@@ -83,21 +77,16 @@ const uploadXTBAccountCurrencyRates = (date) => new Promise(async (resolve, reje
     return reject('Failed to retrieve currency rates from xtb')
   }
 
-  let currencyRates = []
-  xtbCurrencyRates.forEach((x) => {
-    const currency = x.symbol.substring(0, 3)
-    const currencyRate = {
-      currency,
-      bid: x.bid,
-      ask: x.ask,
-      high: x.high,
-      low: x.low
-    }
-    currencyRates.push(currencyRate)
-  })
+  const currencyRates = xtbCurrencyRates.map((x) => ({
+    symbol: x.symbol,
+    bid: x.bid,
+    ask: x.ask,
+    high: x.high,
+    low: x.low
+  }))
 
   try {
-    await insertCurrencyRates(currencyRates, 'currency_rate')
+    await insertCurrencyRates(currencyRates)
   } catch (e) {
     return reject('Failed to insert currency rates from xtb account')
   }
@@ -134,15 +123,13 @@ const uploadFixerioCurrencyRates = () => new Promise(async (resolve, reject) => 
 })
 
 
-const insertCurrencyRates = (currencyRates, tableName) => 
-  new Promise(async (resolve, reject) => 
-{
-  const query = `INSERT INTO ${tableName} (abbrev, exchange_rate, bid, ask, high, low) VALUES ?`
+const insertCurrencyRates = (currencyRates) => new Promise(async (resolve, reject) => {
+  const query = `INSERT INTO currency_rate (abbrev, exchange_rate, bid, ask, high, low) VALUES ?`
   const queryValues = []
 
   /* build row of data in sql query */
   currencyRates.forEach((x) => {
-    const abbrev = `${x.currency}/USD`;
+    const abbrev = symbolToAbbrev(x.symbol)
     const row = [abbrev, x.bid,x.bid, x.ask, x.high, x.low]
     queryValues.push(row);
   })

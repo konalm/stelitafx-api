@@ -1,4 +1,5 @@
 const env = require('../env.js')
+const config = require('@/config')
 
 exports.login = (ws) => new Promise((resolve, _) => {
   const query = `{
@@ -117,12 +118,13 @@ exports.getPrices = (ws) => new Promise((resolve) => {
   const d = new Date()
   d.setMinutes(d.getMinutes() - 2)
   const timestamp = d.getTime()
+  const symbols = config.CURRENCYPAIRS.join('","')
 
   const query = `{
     "command": "getTickPrices",
     "arguments": {
       "level": 0,
-      "symbols": ["EURUSD", "GBPUSD", "AUDUSD"],
+      "symbols": ["${symbols}"],
       "timestamp": ${timestamp}
     }
   }`

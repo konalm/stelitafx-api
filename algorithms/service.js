@@ -71,7 +71,10 @@ exports.getCurrentAndPrevStochastic = async (abbrev, interval) => {
     throw new Error(`Could not get stochastics: ${e}`)
   }
 
-  return { current: stochastics[0].stochastic, prev: stochastics[1].stochastic }
+  return { 
+    current: stochastics.length ? stochastics[0].stochastic : null, 
+    prev: stochastics.length > 1 ? stochastics[1].stochastic : null
+  }
 }
 
 exports.getMovingAverages = async (
