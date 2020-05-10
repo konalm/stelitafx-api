@@ -3,11 +3,14 @@ const algorithms = require('@/services/stochasticAlgorithms')
 
 class setting {
   constructor(openTrigger, closeTrigger, stopLoss, algo) {
-    this.openTrigger = openTrigger 
-    this.closeTrigger = closeTrigger
     this.algo = algo
     this.stopLoss = stopLoss
-    this.conditions = this.getConditionsWhereAlgo(algo)
+
+    const conditions = this.getConditionsWhereAlgo(algo)
+    this.conditions = {
+      open: conditions.open(openTrigger),
+      close: conditions.close(closeTrigger)
+    }
   }
   
   getConditionsWhereAlgo(algo) { 

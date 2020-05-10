@@ -21,6 +21,9 @@ module.exports = (interval) => new Promise(async (resolve, reject) => {
 const getCurrencyData = (symbol, interval) => new Promise((resolve, reject) => {
   const abbrev = `${symbol.substring(0,3)}/${symbol.substring(3,6)}`
 
+
+  /* TODO ... get higher interval data */ 
+
   Promise.all([
     service.getCurrentAndPrevWMAs(abbrev, interval, null),  
     service.getMovingAverages(abbrev, interval, null),

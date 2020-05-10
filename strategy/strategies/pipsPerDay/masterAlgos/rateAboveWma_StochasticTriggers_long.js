@@ -1,15 +1,18 @@
 const algorithms = require('@/services/rateAboveWmaStochasticAlgorithms')
-const { wmaCrossedOver, wmaUnder } = require('@/simulateTradeHistory/service/conditions');
 
 
 class setting {
   constructor(wma, openTrigger, closeTrigger, stopLoss, algo) {
-    this.wma = wma
-    this.openTrigger = openTrigger 
-    this.closeTrigger = closeTrigger
+    // console.log('RATE ABOVE WMA, STOCHASTIC TRIGGERS, LONG SETTING')
+
     this.algo = algo
     this.stopLoss = stopLoss
-    this.conditions = this.getConditionsWhereAlgo(algo)
+
+    const conditions = this.getConditionsWhereAlgo(algo)
+    this.conditions = {
+      open: conditions.open(wma)(openTrigger),
+      close: conditions.close(closeTrigger)
+    }
   }
   
   getConditionsWhereAlgo(algo) { 
@@ -17,13 +20,7 @@ class setting {
   }
 }
 
-
 const masterAlgo = {
-  conditions: {
-    open: (params) => (p, c) => wmaCrossedOver(p, c, params.shortWma, params.longWma),
-    close: (params) => (p, c) => wmaUnder(p, c, params.shortWma, params.longWma)
-  },
-
   currencySettings:  [
     { symbol: 'GBPUSD', settings: new setting(100, 95, 100, null, 'overOver') },
     { symbol: 'EURUSD', settings: new setting(30, 50, 100, 30, 'underOver') },

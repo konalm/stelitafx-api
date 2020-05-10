@@ -1,24 +1,26 @@
-const { stochasticCrossedOver, stochasticCrossedUnder } = require('@/simulateTradeHistory/service/conditions');
+const { 
+  stochasticCrossedOver, stochasticCrossedUnder 
+} = require('@/simulateTradeHistory/service/conditions');
 
 module.exports = [
   {
-    open: trigger => (p, c) => stochasticCrossedOver(p, c, trigger),
-    close: trigger  => (p, c) => stochasticCrossedUnder(p, c, trigger),
+    open: openTrigger => (p, c) => stochasticCrossedOver(p, c, openTrigger),
+    close: closeTrigger  => (p, c) => stochasticCrossedUnder(p, c, closeTrigger),
     algo: 'overUnder'
   },
   {
-    open: (trigger) => (p, c) =>  stochasticCrossedOver(p, c, trigger),
-    close: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
+    open: openTrigger => (p, c) =>  stochasticCrossedOver(p, c, openTrigger),
+    close: closeTrigger => (p, c) => stochasticCrossedOver(p, c, closeTrigger),
     algo: 'overOver'
   },
   {
-    open: (trigger) => (p, c) =>  stochasticCrossedUnder(p, c, trigger),
-    close: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
+    open: openTrigger => (p, c) =>  stochasticCrossedUnder(p, c, openTrigger),
+    close: closeTrigger => (p, c) => stochasticCrossedOver(p, c, closeTrigger),
     algo: 'underOver'
   },
   {
-    open: (trigger) => (p, c) =>  stochasticCrossedUnder(p, c, trigger),
-    close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
+    open: openTrigger => (p, c) =>  stochasticCrossedUnder(p, c, openTrigger),
+    close: closeTrigger => (p, c) => stochasticCrossedUnder(p, c, closeTrigger),
     algo: 'underUnder'
   }
 ];

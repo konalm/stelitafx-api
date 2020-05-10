@@ -15,7 +15,7 @@ const ADDRESS = 'wss://ws.xtb.com/real'
 const currencyRateRepo = require('../currencyRates/repository')
 const tradeRepo = require('../trade/repository')
 
-exports.openTrade = (tradeUUID, abbrev, price, transactionType) => new Promise(async (resolve, reject) => {
+exports.openTrade = (tradeUUID, abbrev, transactionType) => new Promise(async (resolve, reject) => {
   console.log(`transaction type .. ${transactionType}`)
   const cmd = transactionType === 'short' ? 1 : 0;
 
@@ -172,7 +172,6 @@ exports.closeTrade = (tradeUUID, abbrev) => new Promise(async (resolve, reject) 
     } catch (e) {
       console.error('Failed to update trade with abbrev price form XTB')
     }
-
 
 
     /* Close trade */

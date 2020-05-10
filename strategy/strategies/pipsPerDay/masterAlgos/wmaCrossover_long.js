@@ -2,22 +2,20 @@ const { wmaCrossedOver, wmaUnder } = require('@/simulateTradeHistory/service/con
 
 class setting {
   constructor(shortWma, longWma, stopLoss) {
-    this.shortWma = shortWma 
-    this.longWma = longWma
     this.stopLoss = stopLoss
+
+    const algo = {
+      open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma),
+      close: (shortWma, longWma) => (p, c) => wmaUnder(p, c, shortWma, longWma)
+    }
     this.conditions = {
-      open: (params) => (p, c) => wmaCrossedOver(p, c, params.shortWma, params.longWma),
-      close: (params) => (p, c) => wmaUnder(p, c, params.shortWma, params.longWma)
+      open: algo.open(shortWma, longWma),
+      close: algo.close(shortWma, longWma)
     }
   }
 }
 
 const masterAlgo = {
-  // conditions: {
-  //   open: (params) => (p, c) => wmaCrossedOver(p, c, params.shortWma, params.longWma),
-  //   close: (params) => (p, c) => wmaUnder(p, c, params.shortWma, params.longWma)
-  // },
-
   currencySettings:  [
     { symbol: 'GBPUSD', settings: new setting(110, 130, 50) },
     { symbol: 'EURUSD', settings: new setting(40, 160, 1) },

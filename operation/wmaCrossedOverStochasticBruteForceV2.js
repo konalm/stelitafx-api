@@ -6,6 +6,7 @@ const {
 } = require('@/simulateTradeHistory/service/conditions')
 const getPerformance = require('./service/getPerformance')
 const { daysBetweenDates } = require('@/services/utils');
+const getMonthsSinceDate = require('./service/getMonthsSinceDate')
 
 const abbrev = 'GBPUSD';
 const stopLosses = [1, 5, 15, 30, 50]
@@ -56,9 +57,16 @@ const algorithms = [
     return console.error(e)
   }
   const periods = allPeriods.filter((x) => new Date(x.date) >= new Date(sinceDate))
+  const monthsSinceDate = getMonthsSinceDate(sinceDate)
   const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
 
+  console.log('months since date -->')
+  console.log(monthsSinceDate)
 
+
+  return 
+
+  
   /* loop every algorithm */ 
   const stats = [];
   for (let i = 0; i < algorithms.length; i++) {

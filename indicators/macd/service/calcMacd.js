@@ -4,6 +4,10 @@ const MACD_EMA = 9
 
 
 module.exports = (rates) => {
+  console.log('CALC MACD')
+  console.log(rates)
+
+  
   const periods = []
 
   rates.forEach((rate, i) => {

@@ -66,7 +66,7 @@ exports.openTrade = async (
 
     /* open trade on xtb for published alogorithms */ 
     try {
-      await xtbService.openTrade(uuid, abbrev, rate, transactionType)
+      await xtbService.openTrade(uuid, abbrev, transactionType)
     } catch (e) {
       console.log(e)
       throw new Error('Failed to open trade on xtb')
@@ -118,6 +118,8 @@ exports.closeTrade = async (
     logger('opening trade is closed', 'warning')
     throw new Error(`Last trade for proto:${protoNo} symbol:${symbol} is closed`);
   }
+
+  const abbrev = symbolToAbbrev(symbol)
 
   /* update to closed in MYSQL */
   const now = new Date();

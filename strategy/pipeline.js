@@ -6,8 +6,6 @@ const dir = 'strategy/strategies'
 
 
 module.exports = (interval) => new Promise(async (resolve, reject) => {
-  console.log('STRATEGY PIPELINE')
-
   let strategies
   try {
     strategies = await fs.readdirSync(dir)
@@ -22,71 +20,59 @@ module.exports = (interval) => new Promise(async (resolve, reject) => {
     return console.error(e)
   }
 
-  const processMasterAlgoPromises = []
-  strategies.forEach(async (x) => {
-    console.log(`get master algorithms for ${x}`)
-
-    const masterAlgosPath = `${dir}/${x}/masterAlgos`
-
-    let settings
-    try {
-      settings = require(`@/${dir}/${x}/settings.js`)
-    } catch (e) {
-      console.log('CATCH')
-      console.log(e)
-    }
-
-    let masterAlgos
-    try {
-      masterAlgos = await fs.readdirSync(masterAlgosPath, intervalData)
-    } catch (e) {
-      console.error(e)
-    }
-
-    masterAlgos.forEach((x) => {
-      processMasterAlgoPromises.push(
-        processMasterAlgo(`${masterAlgosPath}/${x}`, intervalData, interval)
-      )
-    })
+  const strategyPromises = []
+  strategies.forEach(async (x, i) => {
+    strategyPromises.push( processStrategy(x, intervalData, interval) )
   })
 
-
-  // processMasterAlgo(
-  //   'strategy/strategies/pipsPerDay/masterAlgos/wmaCrossover_long.js', 
-  //   intervalData,
-  //   2889,
-  //   interval
-  // )
-  //   .then(res => {
-  //     console.log(`PROCESSED MASTER ALGO`)
-
-  //     resolve()
-  //   })
-  //   .catch(e => {
-  //     console.log(e)
-  //     console.log('CATCH PROMISE ??')
-
-  //     resolve()
-  //   })
-
-  Promise.all(processMasterAlgoPromises)
-    .then(res => {
-      console.log('PROMISE ALL THEN >>')
-      console.log(res)
+  Promise.all(strategyPromises)
+    .then(() => {
+      console.log('STRATEGY PROMISES COMPLETE')
       resolve()
     })
     .catch((e) => {
       console.log('CATCH PROMISE ALL ???')
+      console.log(e)
     })
 })
 
 
-const processMasterAlgo = (masterAlgoPath, intervalData, interval) => 
-  new Promise((resolve, reject) => 
+const processStrategy = (path, intervalData, interval) => 
+  new Promise(async (resolve, reject) => 
 {
-  console.log(`process master algo ... ${masterAlgoPath}`)
+  const masterAlgosPath = `${dir}/${path}/masterAlgos`
 
-  let masterAlgo = require(`@/${masterAlgoPath}`)
+  let masterAlgos
+  try {
+    masterAlgos = await fs.readdirSync(masterAlgosPath, intervalData)
+  } catch (e) {
+    console.error(e)
+  }
+
+  const masterAlgoPromises = []
+  masterAlgos.forEach((x) => {
+    masterAlgoPromises.push(
+      processMasterAlgo(`${masterAlgosPath}/${x}`, intervalData, interval)
+    )
+  })
+
+  console.log('master algos >>')
+  console.log(masterAlgos)
+
+  Promise.all(masterAlgoPromises)
+    .then(res => {
+      console.log('PROCESS MASTER ALGO PROMISES COMPLETE')
+      resolve()
+    })
+    .catch((e) => {
+      console.log('CATCH PROMISE ALL ???')
+      console.log(e)
+    })
+})
+
+
+const processMasterAlgo = (path, intervalData, interval) => new Promise((resolve, _) => {
+  let masterAlgo = require(`@/${path}`)
 
   const triggerTransactionPromises = []
 
@@ -97,29 +83,23 @@ const processMasterAlgo = (masterAlgoPath, intervalData, interval) =>
     const symbolData = intervalData.find((x) => x.symbol === symbol).data
     const algoNo = masterAlgo.no + mapSymbolsToPrototypeNo[symbol]
 
-    const conditions = {
-      open: x.settings.conditions.open(settings),
-      close: x.settings.conditions.close(settings)
-    }
     triggerTransactionPromises.push(
-      triggerTransactions(symbolData)(conditions)(settings.stopLoss)(null)
+      triggerTransactions(symbolData)(x.settings.conditions)(settings.stopLoss)(null)
         (symbol)
         (masterAlgo.transactionType)
         (algoNo)
-        (interval)
-        ()
+        (interval)        
     )
   })
 
-  console.log(`trigger transaction promises ... ${triggerTransactionPromises.length}`)
-
-  // resolve()
-
   Promise.all(triggerTransactionPromises)
-    .then(res => { resolve() })
+    .then(res => { 
+      // console.log(`TRIGGER TRANSACTIONS PROMISES RESOLVED ... ${path}`)
+      resolve() 
+    })
     .catch(e => {
-      console.log(e)
       console.log('PROMISE ALL CATCH')
+      console.log(e)
       resolve()
     })
 })

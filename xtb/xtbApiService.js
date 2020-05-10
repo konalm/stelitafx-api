@@ -37,7 +37,7 @@ exports.openTradeTransaction = (ws, symbol, price, cmd) => new Promise((resolve,
         "sl": 0.0,
         "tp": 0.0,
         "symbol": "${symbol}",
-        "volume": 0.02,
+        "volume": 0.01,
         "order": 0,
         "customComment": "Some text",
         "expiration": 0

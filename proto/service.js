@@ -5,9 +5,8 @@ const { percentage } = require('@/services/utils');
 
 
 exports.getAlgorithmPerformance = trades => {
-  console.log(`trades ... ${trades.length}`)
-
   const pips = totalPips(trades)
+
   const tradeAmount = trades.length
   const winningTrades = getWinningTrades(trades)
   const losingTrades = getLosingTrades(trades)
@@ -35,14 +34,20 @@ exports.getAlgorithmPerformance = trades => {
   }
 }
 
-const totalPips = trades => trades.reduce((sum, x) => sum + pipCalc(x.openRate, x.closeRate, x.abbrev), 0)
+const totalPips = trades => trades.reduce((sum, x) => {
+  const pips = pipCalc(x.openRate, x.closeRate, x.abbrev)
+  return sum + (x.transactionType === 'short' ? pips * -1 : pips)
+}, 0)
 
-const getWinningTrades = trades => trades.filter((x) => x.openRate < x.closeRate)
+const getWinningTrades = trades => trades.filter((x) => 
+  (x.transactionType === 'short' && x.openRate > x.closeRate) ||
+  (x.transactionType === 'long' && x.openRate < x.closeRate)
+)
+
+const getLosingTrades = (trades) => trades.filter((x) => 
+  (x.transactionType === 'long' && x.openRate > x.closeRate) ||
+  (x.transactionType === 'short' && x.openRate < x.closeRate)
+)
 
 const getPipsGained = compose(totalPips, getWinningTrades)
-
-const getLosingTrades = (trades) => trades.filter((x) => x.openRate > x.closeRate)
-
 const getPipsLost = compose(totalPips, getLosingTrades)
-
-const getAvgPips = (total, length) => total / length

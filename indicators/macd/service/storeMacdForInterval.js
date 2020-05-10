@@ -51,6 +51,8 @@ const storeMacdForAbbrev = (interval, abbrev, conn) =>
   /* Order rates by earliest first */
   currencyRates.sort((a, b) => new Date(a.date) - new Date(b.date))
 
+  console.log(`calc macd for ... ${abbrev}`)
+
   let macd 
   try {
     macd = await calcMacd(currencyRates)

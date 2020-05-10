@@ -2,27 +2,33 @@ const { wmaCrossedOver, wmaUnder } = require('@/simulateTradeHistory/service/con
 
 class setting {
   constructor(shortWma, longWma, stopLoss) {
-    this.shortWma = shortWma 
-    this.longWma = longWma
+    // this.shortWma = shortWma 
+    // this.longWma = longWma
+    // this.stopLoss = stopLoss
+    // this.conditions = {
+    //   open: (params) => (p, c) => wmaCrossedOver(p, c, params.shortWma, params.longWma),
+    //   close: (params) => (p, c) => wmaUnder(p, c, params.shortWma, params.longWma)
+    // }
+
     this.stopLoss = stopLoss
+
+    const algo = {
+      open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma),
+      close: (shortWma, longWma) => (p, c) => wmaUnder(p, c, shortWma, longWma)
+    }
     this.conditions = {
-      open: (params) => (p, c) => wmaCrossedOver(p, c, params.shortWma, params.longWma),
-      close: (params) => (p, c) => wmaUnder(p, c, params.shortWma, params.longWma)
+      open: algo.open(shortWma, longWma),
+      close: algo.close(shortWma, longWma)
     }
   }
 }
 
 const masterAlgo = {
-  // conditions: {
-  //   open: (params) => (p, c) => wmaCrossedOver(p, c, params.shortWma, params.longWma),
-  //   close: (params) => (p, c) => wmaUnder(p, c, params.shortWma, params.longWma)
-  // },
-
   currencySettings:  [
-    { symbol: 'GBPUSD', settings: new setting(5, 25, 15) },
-    { symbol: 'EURUSD', settings: new setting(185, 200, 15) },
-    { symbol: 'AUDUSD', settings: new setting(5, 60, 5) },
-    { symbol: 'USDJPY', settings: new setting(5, 200, 5) },
+    { symbol: 'GBPUSD', settings: new setting(10, 30, 5) },
+    { symbol: 'EURUSD', settings: new setting(10, 25, 5) },
+    { symbol: 'AUDUSD', settings: new setting(5, 15, 1) },
+    { symbol: 'USDJPY', settings: new setting(10, 35, 1) },
     { symbol: 'EURGBP', settings: new setting(5, 10, 1) },
     { symbol: 'CHFJPY', settings: new setting(5, 60, 30) },
     { symbol: 'EURCHF', settings: new setting(5, 70, null) },

@@ -39,7 +39,7 @@ exports.twentyCrossunderTwoHundredWMA = (prior, current) => {
 }
 
 
-exports.tenCrossoverOneHundreddWMA = (prior, current) => {
+exports.tenCrossoverOneHundredWMA = (prior, current) => {
   if (!prior) return false 
 
   return {
@@ -49,15 +49,13 @@ exports.tenCrossoverOneHundreddWMA = (prior, current) => {
 }
 
 
+
 exports.stochasticCrossedOver = (prior, current, triggerStoch) => {
-<<<<<<< HEAD
-  return (prior.stochastic <= triggerStoch) && (current.stochastic > triggerStoch)
-=======
   // console.log('CONDITIONS .. stochastics crossed over')
 
   return (prior.stochastic < triggerStoch) && (current.stochastic >= triggerStoch)
->>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
 }
+
 
 exports.stochasticCrossedUnder = (prior, current, triggerStoch) => {
   return (prior.stochastic >= triggerStoch) && (current.stochastic < triggerStoch)
@@ -82,28 +80,24 @@ exports.wmaCrossedOver = (prior, current, shortWma, longWma) => {
 }
 
 exports.wmaUnder = (prior, current, shortWma, longWma) => {
-  console.log('wma under condition')
-
-  console.log(`short wma ... ${current.wma[shortWma]}`)
-  console.log(`long wma ... ${current.wma[longWma]}`)
-
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
-
-<<<<<<< HEAD
   return current.wma[shortWma] < current.wma[longWma]
 }
-=======
-exports.rateAboveWma = (current, wma) => current.exchange_rate > current.wma[wma]
->>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
+
+exports.rateAboveWma = (current, wma) => {
+  // console.log('\nCONDITION .. RATE ABOVE WMA\n')
+  // console.log(current.rate > current.wma[wma])
+
+  return current.rate > current.wma[wma]
+}
 
 const wmaOver = (current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
-<<<<<<< HEAD
   return current.wma[shortWma] > current.wma[longWma]
 }
-=======
+
 exports.adxCrossover = (prior, current) => prior.adx.plusDi <= prior.adx.minusDi 
   && current.adx.plusDi > current.adx.minusDi
 
@@ -116,11 +110,8 @@ exports.adxPlusDiUnder = (prior, current) => current.adx.plusDi <= current.adx.m
 
 
 exports.adxPlusDiAbove = (prior, current) => {
-  // console.log('CONDITIONS ... adx plus di above');
-
   return current.adx.plusDi >= current.adx.minusDi
 }
-
 
 exports.adxAboveThreshold = (prior, current, threshold) => current.adx.adx >= threshold
 
@@ -132,4 +123,5 @@ exports.adxPlusDiAboveThreshold = (prior, current, threshold) => current.adx.plu
 
 
 exports.adxPlusDiBelowThreshold = (prior, current, threshold) => current.adx.plusDi < threshold
->>>>>>> eecd458caa46618ff6a1d3a274caef23fd018e63
+
+exports.alwaysTrueTest = (prior, current) => false

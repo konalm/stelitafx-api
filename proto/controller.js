@@ -16,9 +16,6 @@ exports.getAlgorithmStats = async (req, res) => {
     return res.status(500).send('Failed to get algorithm')
   }
 
-  console.log('algo >>')
-  console.log(algo)
-
   const tradeConditions = {
     proto_no: parseInt(algo.protoNo),
     time_interval: interval,

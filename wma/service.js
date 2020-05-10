@@ -82,10 +82,7 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
  *
  */
 exports.storeWMAData = (timeInterval) => new Promise((resolve, reject) =>  {
-  console.log('store WMA data')
-  
   const conn = db()
-
   const s = new Date()
 
   storeCurrencyPromises = [];

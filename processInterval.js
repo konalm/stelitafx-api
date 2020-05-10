@@ -31,7 +31,7 @@ Promise.all([
   storeAdx(interval)
 ])
   .then(() => {
-    console.log( secondsBetweenDates(sDate) )
+    // console.log( secondsBetweenDates(sDate) )
 
     // prototypeIni(interval)
     //   .then(() => {   

@@ -5,7 +5,7 @@ const { Worker } = require('worker_threads');
 const getCachedPeriodsSinceDate = require('@/candle/service/getCachedPeriodsSinceDate');
 const monthsSinceDate = require('./service/getMonthsSinceDate')
 const sinceDate = '2017-01-01T00:00:00.000Z';
-const abbrev= 'GBPCAD';
+const abbrev= 'USDJPY';
 
 
 (async () => {

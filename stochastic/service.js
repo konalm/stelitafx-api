@@ -53,8 +53,6 @@ exports.calcStochastic = (_rates) => {
 
 
 exports.storeStochastic = (timeInterval) => new Promise(async (resolve, reject) => {
-  console.log('store stochastic')
-  
   const storeStochasticPromises = []
   const conn = db()
 
@@ -87,6 +85,9 @@ const storeStochasticForCurrency = (abbrev, timeInterval, conn) =>
     console.log(e)
     throw new Error(`Failed to get stochastic: ${e}`)
   }
+
+  // console.log(`abbrev .. ${abbrev}`)
+  // console.log(`stochastic .. ${stochastic}`)
 
   repo.saveStochastic(abbrev, timeInterval, stochastic, conn)
     .then(() => {

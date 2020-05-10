@@ -4,34 +4,34 @@ const {
 
 module.exports = [
   {
-    open: wma => trigger => (p, c) => rateAboveWma(c, wma) 
-      && stochasticCrossedOver(p, c, trigger),
-
-    close: trigger => (p, c) => stochasticCrossedUnder(p, c, trigger),
+    open: wma => openTrigger => (p, c) => rateAboveWma(c, wma) 
+      && stochasticCrossedOver(p, c, openTrigger),
+  
+    close: closeTrigger => (p, c) => stochasticCrossedUnder(p, c, closeTrigger),
 
     algo: 'overUnder'
   },
   {
-    open: wma => trigger => (p, c) =>  rateAboveWma(c, wma) 
-      && stochasticCrossedOver(p, c, trigger),
+    open: wma => openTrigger => (p, c) =>  rateAboveWma(c, wma) 
+      && stochasticCrossedOver(p, c, openTrigger),
 
-    close: trigger => (p, c) => stochasticCrossedOver(p, c, trigger),
+    close: closeTrigger => (p, c) => stochasticCrossedOver(p, c, closeTrigger),
 
     algo: 'overOver'
   },
   {
-    open: wma => trigger => (p, c) =>  rateAboveWma(c, wma) 
-      && stochasticCrossedUnder(p, c, trigger),
+    open: wma => openTrigger => (p, c) =>  rateAboveWma(c, wma) 
+      && stochasticCrossedUnder(p, c, openTrigger),
 
-    close: (trigger, p, c) => (p, c) => stochasticCrossedOver(p, c, trigger),
+    close: closeTrigger => (p, c) => stochasticCrossedOver(p, c, closeTrigger),
 
     algo: 'underOver'
   },
   {
-    open: wma => trigger => (p, c) =>  rateAboveWma(c, wma) 
-      && stochasticCrossedUnder(p, c, trigger),
+    open: wma => openTrigger => (p, c) =>  rateAboveWma(c, wma) 
+      && stochasticCrossedUnder(p, c, openTrigger),
 
-    close: trigger => (p, c) => stochasticCrossedUnder(p, c, trigger),
+    close: closeTrigger => (p, c) => stochasticCrossedUnder(p, c, closeTrigger),
 
     algo: 'underUnder'
   }
