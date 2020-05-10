@@ -3,18 +3,40 @@ require('module-alias/register');
 const fs = require('fs');
 const { Worker } = require('worker_threads');
 const getCachedPeriodsSinceDate = require('@/candle/service/getCachedPeriodsSinceDate');
+const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 const monthsSinceDate = require('./service/getMonthsSinceDate')
-const sinceDate = '2017-01-01T00:00:00.000Z';
-const abbrev= 'GBPCAD';
+const sinceDate = '2018-01-01T00:00:00.000Z';
+const endDate = new Date();
+
+const gran = 'M15';
+const abbrev = 'GBP/USD';
+const symbol = abbrev.replace("/", "");
+
+
+
+const getPeriods = async (gran) => {
+  let candles
+  try {
+    candles = await getCandlesSinceDate(sinceDate, endDate, gran, abbrev)
+  } catch (e) {
+    console.log(e)
+    return console.error(`Failed to get candles`)
+  }
+  const periods = [...candles].map((x) => ({
+    date: new Date(x.time),
+    exchange_rate: parseFloat(x.mid.c),
+    rate: parseFloat(x.mid.c),
+    candle: x.mid,
+    volume: x.volume
+  }))
+
+  return periods 
+}
 
 
 (async () => {
-  let periods 
-  try {
-    periods = await getCachedPeriodsSinceDate(abbrev, sinceDate)
-  } catch (e) {
-    return console.log(e)
-  }
+  const periods = await getPeriods(gran)
+ 
 
   console.log(`periods from cache ... ${periods.length}`)
 
@@ -38,7 +60,7 @@ const abbrev= 'GBPCAD';
 
   /* Write to cache */
   try {
-    const cacheFile = `../cache/calculatedPeriods/${abbrev}.JSON`
+    const cacheFile = `../cache/calculatedPeriods/${gran}/${symbol}.JSON`
     await fs.writeFileSync(cacheFile, JSON.stringify(calculatedPeriods))
   } catch (e) {
     throw new Error('Failed to write to cache')
@@ -50,7 +72,9 @@ const abbrev= 'GBPCAD';
 
 const calcPeriodsForMonthWorker = (date, periods) => new Promise((resolve, _) => {
   console.log(`calc periods for month worker for ${date}`)
-  
+  // console.log(periods)
+
+ 
   const workerData = { date, periods }
   const worker = new Worker('./service/calcPeriodsForMonthWorker.js', { workerData })
 

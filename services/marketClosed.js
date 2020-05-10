@@ -1,8 +1,6 @@
 module.exports = () => {
-  console.log('check if the market is closed')
-
   const d = new Date()
-  const day = d.getDay()
+  const day = d.getDay() !== 0 ? d.getDay() : 7
   const hour = d.getHours()
 
   /* closed on friday after 22:00 */ 

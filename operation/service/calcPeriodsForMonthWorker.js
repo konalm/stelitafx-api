@@ -4,9 +4,12 @@ const calcWmaInBatch = require('@/indicators/wma/service/calcWmaInBatch');
 const calcStochasticInBatch = require('@/indicators/stochastic/service/calcStochasticInBatch');
 const calcAdxInBatch = require('@/indicators/adx/service/calcAdxInBatch');
 const calcObcInBatch = require('@/indicators/onBalanceVolume/service/calculateInBatch');
+const calcMacdInBatch = require('@/indicators/macd/service/calcMacdInBatch')
 const utils = require('@/services/utils');
 const { workerData, parentPort } = require('worker_threads');
 const { date, periods } = workerData;
+
+const wmas = [5, 15, 50, 100, 150, 200]
 
 
 const log = (mes) => parentPort.postMessage(mes);
@@ -31,9 +34,12 @@ periods.splice(endDateIndex(), periods.length)
 periods.forEach((x, periodIndex) => {
   /* Calculate WMA */
   x.wma = {}
-  for (let i = 0; i <= 200; i+=5) {
-    x.wma[i] = calcWmaInBatch(periods, periodIndex, i === 0 ? 1 : i)
-  }
+  // for (let i = 0; i <= 200; i+=5) {
+  //   x.wma[i] = calcWmaInBatch(periods, periodIndex, i === 0 ? 1 : i)
+  // }
+  wmas.forEach((w) => {
+    x.wma[w] = calcWmaInBatch(periods, periodIndex, w === 0 ? 1 : w)
+  })
   
   /* Calculate Stochastic */
   x.stochastic = calcStochasticInBatch(periods, periodIndex)
@@ -43,6 +49,10 @@ periods.forEach((x, periodIndex) => {
   
   /* Calculate OBC */
   x.obc = calcObcInBatch(periods, periodIndex)
+
+  /* Calculate MACD */
+  x.macd = calcMacdInBatch(periods, periodIndex)
+
 })
 
 

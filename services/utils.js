@@ -42,3 +42,5 @@ exports.percentage = (gained, lost) => {
 
   return division * 100;
 }
+
+exports.percentageOf = (total, obtained) => (obtained / total) * 100

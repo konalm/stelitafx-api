@@ -86,13 +86,15 @@ exports.wmaCrossedOver = (prior, current, shortWma, longWma) => {
   ) 
 }
 
-exports.wmaUnder = (prior, current, shortWma, longWma) => {
+exports.wmaUnder = (current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
   return current.wma[shortWma] < current.wma[longWma]
 }
 
 exports.wmaOver = (current, shortWma, longWma) => {
+  // console.log(`wma over ... ${shortWma} .. ${longWma}`) 
+
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
   return current.wma[shortWma] > current.wma[longWma]
@@ -100,6 +102,8 @@ exports.wmaOver = (current, shortWma, longWma) => {
 
 
 exports.rateAboveWma = (current, wma) => current.exchange_rate > current.wma[wma]
+
+exports.rateBelowWma = (current, wma) => current.exchange_rate < current.wma[wma]
 
 
 exports.adxCrossover = (prior, current) => prior.adx.plusDi <= prior.adx.minusDi 
@@ -128,5 +132,47 @@ exports.adxBelowThreshold = (prior, current, threshold) => current.adx.adx <= th
 
 exports.adxPlusDiAboveThreshold = (prior, current, threshold) => current.adx.plusDi > threshold
 
+exports.adxMinusDiAboveThreshold = (prior, current, threshold) => {
+  // console.log(current.adx)
+
+  return current.adx.minusDi > threshold
+}
+
+exports.adxBelowDiBelowThreshold = (current, threshold) => current.adx.minusDi > threshold
+
 
 exports.adxPlusDiBelowThreshold = (prior, current, threshold) => current.adx.plusDi < threshold
+
+
+exports.macdCrossedOver = (prior, current) =>  {
+  return (prior.macd.macdLine < prior.macd.macdLag) && (current.macd.macdLine > current.macd.macdLag)
+}
+
+exports.macdAbove = (prior, current) => {
+  // console.log('prior >>')
+  // console.log(prior)
+  // console.log('condition ... macd above')
+
+  // console.log('current >>')
+  // console.log(current.macd)
+
+  return current.macd.macdLine >= current.macd.macdLag
+}
+
+exports.macdUnder = (prior, current) => current.macd.macdLine <= current.macd.macdLag
+
+exports.macdBelowThreshold = (prior, current, threshold) => {
+  return current.macd.macdLine < threshold 
+}
+
+exports.macdHistogramAboveThreshold = (prior, current, threshold) => {
+  // console.log('macd histogram above threshold')
+  // console.log(current.macd)
+  return current.macd.macdHistogram >= threshold
+}
+
+exports.macdHistogramBelowThreshold = (prior, current, threshold) => {
+  return current.macd.histogram <= threshold
+}
+
+

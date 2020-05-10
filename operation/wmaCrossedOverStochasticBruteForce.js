@@ -55,6 +55,7 @@ const algorithms = [
   }
 ];
 
+
 (async () => {
   let allPeriods
   try {

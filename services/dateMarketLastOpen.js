@@ -4,7 +4,7 @@ module.exports = () => {
   if (!marketClosed()) return new Date()
 
   const d = new Date() 
-  const day = d.getDay()
+  const day = d.getDay() === 0 ? 7 : d.getDay()
   const daysOver = day - 5
 
   d.setDate(d.getDate() - daysOver)

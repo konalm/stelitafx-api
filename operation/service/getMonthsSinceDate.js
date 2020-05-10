@@ -23,15 +23,4 @@ module.exports  = (sinceDate) => {
 }
 
 
-const setToBeginningOfMonth = (year, month) => {
-  const d = new Date()
-
-  d.setFullYear(year)
-  d.setMonth(month)
-  d.setDate(1)
-  d.setHours(0)
-  d.setMinutes(0)
-  d.setMilliseconds(0)
-
-  return d
-}
+const setToBeginningOfMonth = (year, month) => new Date(Date.UTC(year, month, 1))

@@ -23,6 +23,7 @@ const abbrev = 'GBP/USD';
     candle: x.mid,
     volume: x.volume
   }))
+  
   // const periods5M = [...periods]
 
   // const periods5M = []

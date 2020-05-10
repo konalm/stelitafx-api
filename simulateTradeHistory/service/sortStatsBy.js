@@ -1,4 +1,4 @@
-module.exports = (stats, sortBy) => {
+module.exports = (stats, sortBy, dir) => {
   const s = [...stats]
 
   switch (sortBy) {
@@ -16,7 +16,12 @@ module.exports = (stats, sortBy) => {
       return s.sort((a, b) => b.netPipsPerDay - a.netPipsPerDay)
     case 'shortNetPipsPerDay':
       return s.sort((a, b) => a.shortNetPipsPerDay - b.shortNetPipsPerDay)
-  }
+    default:
+      if (!sortBy) return s
 
-    return s
+      return s.sort((a, b) => {
+        if (dir === 'desc') return b[sortBy] - a[sortBy]
+        return a[sortBy] - b[sortBy]
+      })
+  }
 }
