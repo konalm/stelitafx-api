@@ -2,17 +2,22 @@ require('module-alias/register');
 const fs = require('fs')
 const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 const symbolToAbbrev = require('@/services/symbolToAbbrev')
+const { fetchCandles } = require('@/services/bitfinex')
+
 
 const interval = 15;
 const gran = `M${interval}`;
-const upperGrans = ['H1', 'H2', 'H4', 'H6', 'H12'];
 // const upperGrans = ['H4'];
-const symbol = 'GBPUSD'
+const symbol = 'ETHBTC'
 const sinceDate = '2019-01-01T00:00:00.000Z';
+const crypto = true
+
+if (!crypto) upperGrans = ['H1', 'H2', 'H4', 'H6', 'H12'];
+else upperGrans = ['H1', 'H3', 'H6', 'H12']
 
 
 const getCalcPeriods = async (gran) => {
-  let periods
+  let periods 
   try {
     const filePath = `../cache/calculatedPeriods/${gran}/${symbol}.JSON`
     periods = JSON.parse(await fs.readFileSync(filePath, 'utf8'))
@@ -32,13 +37,6 @@ const getPeriods = async (gran) => {
     return console.error(`Failed to get candles`)
   }
 
-  // console.log('FIRST 10 CANDLEs >>>')
-  // candles.forEach((candle, i) => {
-  //   console.log(candle)
-
-  //   if (i > 10) process.exit()
-  // })
-
   const periods = [...candles].map((x) => ({
     date: new Date(x.time),
     exchange_rate: parseFloat(x.mid.c),
@@ -53,7 +51,12 @@ const getPeriods = async (gran) => {
 
 (async () => {
   let periods = await getCalcPeriods(gran);
-  const m1Periods = await getPeriods('M1');
+  let m1Periods
+  if (!crypto) m1Periods = await getPeriods('M1');
+  if (crypto) m1Periods = await fetchCandles(symbol, 'M1', sinceDate)
+
+  console.log(`periods .. ${periods.length}`)
+  console.log(`m1 periods .. ${m1Periods.length}`)
 
 
   const upperPeriods = []
@@ -63,6 +66,8 @@ const getPeriods = async (gran) => {
   }
 
   periods.forEach((p, i) => {
+    console.log(i)
+
     const d = new Date(p.date)
     d.setMinutes(d.getMinutes() + interval) 
     const spliceIndex = m1Periods.findIndex((x) => x.date >= d)

@@ -16,7 +16,8 @@ exports.CURRENCYPAIRS = [
   'EURGBP',
   'CHFJPY',
   'EURCHF',
-  'GBPCAD'
+  'GBPCAD',
+  // 'ETHBTC'
 ]
 
 
@@ -31,6 +32,14 @@ exports.TIME_INTERVALS = [
 
 exports.HOUR_INTERVALS = [
   1
+]
+
+exports.GRANS = [
+  'H1',
+  'H2',
+  'H4',
+  'H6',
+  'H12'
 ]
 
 exports.WMA_LENGTHS = [

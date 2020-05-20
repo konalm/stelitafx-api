@@ -13,17 +13,18 @@ const {
   adxPlusDiAboveThreshold,
   adxPlusDiBelowThreshold,
   adxMinusDiAboveThreshold,
-  rateAboveWma
-  } = require('@/simulateTradeHistory/service/conditions')
+  rateAboveWma,
+  rateBelowWma
+} = require('@/simulateTradeHistory/service/conditions')
 const { daysBetweenDates } = require('@/services/utils');
 const getPerformance = require('../service/getPerformance')
 const getMonthPerformances = require('@/operation/service/getMonthPerformances');
 const getMonthsSinceDate = require('@/operation/service/getMonthsSinceDate')
 
 const gran = 'M15'
-const abbrev = 'GBPUSD';
+const abbrev = 'GBPCAD';
 const sinceDate = '2019-01-01T00:00:00.000Z';
-const stopLosses = [null, 1, 5, 15, 30, 50];
+// const stopLosses = [null, 1, 5, 15, 30, 50];
 
 const upperPeriodWma = 15
 
@@ -34,40 +35,46 @@ const algos = [
   //   close: trigger  => (p, c) => stochasticCrossedUnder(p, c, trigger),
   //   cacheFilename: 'overUnder'
   // },
-  {
-    open: (trigger) => (p, c) =>  stochasticCrossedOver(p, c, trigger)
-      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
-      // && adxPlusDiAboveThreshold(p, c, 20)
-      // && adxPlusDiBelowThreshold(p, c, 30)
-    close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
-    algo: 'overUnder&UpperPeriod'
-  },
-  {
-    open: (trigger) => (p, c) =>  stochasticCrossedOver(p, c, trigger)
-      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
-      // && adxPlusDiAboveThreshold(p, c, 20)
-      // && adxPlusDiBelowThreshold(p, c, 30)
-    close: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
-    algo: 'overOver&UpperPeriod'
-  },
   // {
-  //   open: (trigger) => (p, c) =>  stochasticCrossedUnder(p, c, trigger),
-  //   close: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
-  //   cacheFilename: 'underOver'
+  //   open: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger)
+  //     && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
+  //     && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
+  //     && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+  //   close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
+  //   algo: 'overUnder&UpperPeriod'
   // },
   // {
-  //   open: (trigger) => (p, c) =>  stochasticCrossedUnder(p, c, trigger),
-  //     // && adxPlusDiAboveThreshold(p, c, 20)
-  //     // && adxPlusDiBelowThreshold(p, c, 30),
-  //   close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
-  //   algo: 'underUnder'
-  // }
+  //   open: (trigger) => (p, c) =>  stochasticCrossedOver(p, c, trigger)
+  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+      // && adxPlusDiAboveThreshold(p, c, 20)
+      // && adxPlusDiBelowThreshold(p, c, 30)
+    // close: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
+    // algo: 'overOver&UpperPeriod'
+  // },
+  {
+    open: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger)
+      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+    close: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
+    algo: 'underOver__upperPeriod'
+  },
+  {
+    open: (trigger) => (p, c) =>  stochasticCrossedUnder(p, c, trigger)
+      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+    close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
+    algo: 'underUnder__upperPeriod'
+  }
 ];
 
 
@@ -106,28 +113,24 @@ const algos = [
 
 const performAlgorithm = async (periods, algo, daysOfPeriods, months) => {
   const stats = []
-
-  const x = 20
-  const y = 45
-
+  
   /* loop open triggers */
-  // for (let x = 0; x <= 20; x += 5) {
+  for (let x = 0; x <= 100; x += 5) {
     console.log(`open trigger ... ${x}`)
 
     /* loop close triggers */
-    // for (let y = 40; y <= 100; y += 5) {
+    for (let y = 0; y <= 100; y += 5) {
       console.log(`close trigger ... ${y}`)
 
       const conditions = {  open: algo.open(x),  close: algo.close(y) }
 
+      const stopLoss = 0
+      const takeProfit = 0
+
       /* loop stop loss performances */ 
       const stopLossPerformances = []
-      for (let stopLoss = 0; stopLoss <= 100; stopLoss += 5) {
-        console.log(`stop loss .. ${stopLoss}`)
-
-        for (let takeProfit = 0; takeProfit <= 100; takeProfit += 5) {
-          // console.log(`take profit .. ${takeProfit}`)
-
+      // for (let stopLoss = 0; stopLoss <= 30; stopLoss += 5) {
+        // for (let takeProfit = 0; takeProfit <= 30; takeProfit += 5) {
           const performance = getPerformance(periods)(conditions)(stopLoss)(takeProfit)
             (daysOfPeriods)
             (abbrev)
@@ -135,8 +138,8 @@ const performAlgorithm = async (periods, algo, daysOfPeriods, months) => {
           performance.algo = algo.algo 
 
           stopLossPerformances.push(performance)
-        }
-      }
+        // }
+      // }
 
       stats.push(
         ...stopLossPerformances.map((p) => ({
@@ -146,8 +149,8 @@ const performAlgorithm = async (periods, algo, daysOfPeriods, months) => {
           algo: algo.algo
         }))
       )
-    // }
-  // } 
+    }
+  } 
 
   return stats
 }

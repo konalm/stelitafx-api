@@ -15,22 +15,64 @@ const {
 } = require('@/simulateTradeHistory/service/conditions')
 const getPerformance = require('../service/getPerformance')
 
-
 const gran = 'M15';
-const abbrev = 'GBPUSD';
-const sinceDate = '2020-01-01T00:00:00.000Z';
+const abbrev = 'GBPCAD';
+const sinceDate = '2019-01-01T00:00:00.000Z';
 
 const upperPeriodWma = 15
 
-const algorithm = {
-  open: (p, c) => macdCrossedOver(p, c)
-    && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
-    && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
-    && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
-    && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+const algorithms = [
+  {
+    open: (p, c) => macdCrossedOver(p, c)
+      && rateAboveWma(c.upperPeriods.H1, upperPeriodWma),
 
-  close: (p, c) => macdUnder(p, c)
-};
+    close: (p, c) => macdUnder(p, c),
+    algo: 'H1'
+  },
+  {
+    open: (p, c) => macdCrossedOver(p, c)
+      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma),
+
+    close: (p, c) => macdUnder(p, c),
+    algo: 'H2'
+  },
+  {
+    open: (p, c) => macdCrossedOver(p, c)
+      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma),
+
+    close: (p, c) => macdUnder(p, c),
+    algo: 'H4'
+  },
+  {
+    open: (p, c) => macdCrossedOver(p, c)
+      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma),
+    close: (p, c) => macdUnder(p, c),
+    algo: 'H6'
+  },
+  {
+    open: (p, c) => macdCrossedOver(p, c)
+      && rateAboveWma(c.upperPeriods.H1, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+
+    close: (p, c) => macdUnder(p, c),
+
+    algo: 'H1-H12'
+  },
+  {
+    open: (p, c) => macdCrossedOver(p, c)
+      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+
+    close: (p, c) => macdUnder(p, c),
+
+    algo: 'H2-H12'
+  }
+]
 
 const getPeriods = async (gran, map) => {
   const filePath = `../../cache/calculatedPeriods/withRelatedUpper/${gran}/${abbrev}.JSON`
@@ -49,26 +91,34 @@ const getPeriods = async (gran, map) => {
 }
 
 (async () => {
-  console.log('MACD brute force')
-
   const periods = await getPeriods(gran, false)
 
-  console.log(`periods ... ${periods.length}`)
-
-
   const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
- 
-  getAlgoPerformance(periods, daysOfPeriods, abbrev)
+
+  const performances = []
+  algorithms.forEach((x) => {
+    performances.push(...getAlgoPerformance(x, periods, daysOfPeriods, abbrev))
+  })
+
+  const worst = [...performances]
+  .sort((a, b) => a.pipsPerTrade - b.pipsPerTrade)
+  .splice(0, 20)
+  .reverse()
+
+  const best = [...performances]
+    .sort((a, b) => b.pipsPerTrade - a.pipsPerTrade)
+    .splice(0, 20)
+    .reverse()
+
+  console.log('BEST >>>>')
+  console.log(best)
 })();
 
 
-const getAlgoPerformance = (periods, daysOfPeriods, abbrev) => {
+const getAlgoPerformance = (algorithm, periods, daysOfPeriods, abbrev) => {
   console.log('get algo performance')
 
   const performances = []
-
-  // let stopLoss = null 
-  // let takeProfit = null 
 
   /* loop stop loss */ 
   for (let stopLoss = 0; stopLoss <= 100; stopLoss += 5) {
@@ -82,26 +132,10 @@ const getAlgoPerformance = (periods, daysOfPeriods, abbrev) => {
         (daysOfPeriods)
         (abbrev)
         ()
+      performance.algo = algorithm.algo
       performances.push(performance)
     }
   } 
 
-  const worst = [...performances]
-    .sort((a, b) => a.pipsPerTrade - b.pipsPerTrade)
-    .splice(0, 20)
-    .reverse()
-  
-  const best = [...performances]
-  .sort((a, b) => b.pipsPerTrade - a.pipsPerTrade)
-  .splice(0, 20)
-  .reverse()
-
-  console.log('best >>>>')
-  console.log(best)
-
-  // console.log('worst >>>>')
-  // console.log(worst)
-
-  // console.log('no stops >>>')
-  // console.log([...performances].filter((x) => x.stopLoss === null && x.stopGain === null))
+  return performances
 }

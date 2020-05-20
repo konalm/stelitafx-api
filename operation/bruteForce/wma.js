@@ -24,72 +24,132 @@ const upperPeriodWma = 15
 
 const algorithms = [
   // {
-  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
-  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma),
-
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedUnder(p, c, shortWma, longWma)
+  //     && rateAboveWma(c.upperPeriods.H1, upperPeriodWma),
+  //   close: (shortWma, longWma) => (p, c) => wmaOver(c, shortWma, longWma),
+  //   algo: 'crossedUnder__H1'
+  // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma)
+  //     && rateAboveWma(c.upperPeriods.H1, upperPeriodWma),
   //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
-  //   algo: 'upperPeriodBelowH2'
+  //   algo: 'crossedOver__H1'
+  // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma)
+  //     && rateAboveWma(c.upperPeriods.H3, upperPeriodWma),
+  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  //   algo: 'H3'
+  // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma)
+  //     && rateAboveWma(c.upperPeriods.H6, upperPeriodWma),
+  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  //   algo: 'H6'
+  // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma)
+  //     && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  //   algo: 'H12'
   // },
   {
-    open: (shortWma, longWma) => (p, c) => wmaCrossedUnder(p, c, shortWma, longWma) 
-      && rateAboveWma(c.upperPeriods.H1, upperPeriodWma),
+    open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
+      && rateAboveWma(c.upperPeriods.H1, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
 
-    close: (shortWma, longWma) => (p, c) => wmaOver(c, shortWma, longWma),
-    algo: 'upperPeriodAboveH1'
+    close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+    algo: 'crossedOver__H1-H12'
   },
   {
     open: (shortWma, longWma) => (p, c) => wmaCrossedUnder(p, c, shortWma, longWma) 
+      && rateAboveWma(c.upperPeriods.H1, upperPeriodWma)
       && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
+      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
       && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
 
     close: (shortWma, longWma) => (p, c) => wmaOver(c, shortWma, longWma),
-    algo: 'upperPeriodAboveH2&RateAbove'
+    algo: 'crossedUnder__H1-H12'
   },
   // {
-  //   open: (shortWma, longWma) => (p, c) => wmaCrossedUnder(p, c, shortWma, longWma) 
-  //     && rateAboveWma(c.upperPeriods.H4, upperPeriodWma),
-
-  //   close: (shortWma, longWma) => (p, c) => wmaOver(c, shortWma, longWma),
-  //   algo: 'upperPeriodAboveH4'
-  // },
-  // {
   //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
-  //     && rateBelowWma(c.upperPeriods.H12, 200)
-  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma),
-
+  //     && rateAboveWma(c.upperPeriods.H3, upperPeriodWma)
+  //     && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+      
   //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
-  //   algo: 'upperPeriodBelowH12200&H4'
+  //   algo: 'Aligned__H3-H12'
   // },
-  // {
-  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
-  //     && rateBelowWma(c.upperPeriods.H12, 50)
-  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma),
-
-  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
-  //   algo: 'upperPeriodBelowH1250&H4'
   // },
   // {
   //   open: (shortWma, longWma) => (p, c) => wmaCrossedUnder(p, c, shortWma, longWma) 
-  //     && rateAboveWma(c.upperPeriods.H6, upperPeriodWma),
+  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma),
 
   //   close: (shortWma, longWma) => (p, c) => wmaOver(c, shortWma, longWma),
-  //   algo: 'upperPeriodAboveH6'
+  //   algo: 'H2'
   // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedUnder(p, c, shortWma, longWma) 
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma),
 
+  //   close: (shortWma, longWma) => (p, c) => wmaOver(c, shortWma, longWma),
+  //   algo: 'H4'
+  // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
+  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma),
+
+  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  //   algo: 'H6'
+  // },
   // {
   //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
   //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
 
   //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
-  //   algo: 'upperPeriodBelowH12'
+  //   algo: 'H12'
   // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
+  //     && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+
+  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  //   algo: 'Aligned__H1-H12'
+  // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
+  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+
+  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  //   algo: 'Aligned__H2-H12'
+  // },
+  // {
+  //   open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma) 
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+
+  //   close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  //   algo: 'Aligned__H4-H12'
+  // }
 ];
 
 const gran = 'M15';
-const abbrev = 'GBPUSD';
+const abbrev = 'GBPCAD';
 const sinceDate = '2019-01-01T00:00:00.000Z';
-const stopLosses = [null, 1, 5, 15, 30, 50];
-const stopGains = [null];
+// const stopLosses = [null, 1, 5, 15, 30, 50];
+// const stopGains = [null];
 
 const getPeriods = async (gran, abbrev, sinceDate) => {
   let periods
@@ -109,8 +169,6 @@ const getPeriods = async (gran, abbrev, sinceDate) => {
 }
 
 (async () => {
-  console.log('WMA brute force')
-
   const periods = await getPeriods(gran, abbrev, sinceDate)
 
   const months = getMonthsSinceDate(sinceDate)
@@ -129,20 +187,22 @@ const getPeriods = async (gran, abbrev, sinceDate) => {
     console.log(`short wma .. ${fastWma}`)
 
     /* loop long wma */ 
-    // for (let slowWma = fastWma + 5; slowWma <= 200; slowWma += 5) {
+    // for (let slowWma = fastWma + 5; slowWma < 200; slowWma += 5) {
+      if (slowWma > 100) slowWma += 5
+
       console.log(`long wma .. ${slowWma}`)
 
       const stopPerformances = []
       
       /* loop stop loss */
-      for (let stopLoss = 0; stopLoss <= 100; stopLoss += 5) {
-        console.log(`stop loss .. ${stopLoss}`)
+      for (let stopLoss = 0; stopLoss <= 50; stopLoss += 5) {
+        // console.log(`stop loss .. ${stopLoss}`)
 
         /* loop stop gain */
-        for (let takeProfit = 0; takeProfit <= 100; takeProfit += 5) {
+        for (let takeProfit = 0; takeProfit <= 50; takeProfit += 5) {
 
           /* loop algorithms */
-          algorithms.forEach((algo) => {
+          algorithms.forEach((algo, i) => {
             const conditions = {
               open: algo.open(fastWma, slowWma),
               close: algo.close(fastWma, slowWma)
@@ -164,7 +224,6 @@ const getPeriods = async (gran, abbrev, sinceDate) => {
   // }
     
   
-
   const validPerformances = performances.filter((x) => x.pipsPerTrade)
 
   /* write to cache */ 

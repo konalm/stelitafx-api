@@ -4,14 +4,15 @@ const fs = require('fs');
 const { Worker } = require('worker_threads');
 const getCachedPeriodsSinceDate = require('@/candle/service/getCachedPeriodsSinceDate');
 const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
+const { fetchCandles } = require('@/services/bitfinex')
 const monthsSinceDate = require('./service/getMonthsSinceDate')
-const sinceDate = '2018-01-01T00:00:00.000Z';
+const sinceDate = '2016-01-01T00:00:00.000Z';
 const endDate = new Date();
 
-const gran = 'M15';
-const abbrev = 'GBP/USD';
+const crypto = true
+const gran = 'H12';
+const abbrev = 'ETH/BTC';
 const symbol = abbrev.replace("/", "");
-
 
 
 const getPeriods = async (gran) => {
@@ -35,10 +36,11 @@ const getPeriods = async (gran) => {
 
 
 (async () => {
-  const periods = await getPeriods(gran)
- 
+  let periods 
+  if (!crypto) periods = await getPeriods(gran)
+  if (crypto) periods = await fetchCandles(symbol, gran, sinceDate)
 
-  console.log(`periods from cache ... ${periods.length}`)
+  console.log(`periods ... ${periods.length}`)
 
   const workerPromises = []
   monthsSinceDate(sinceDate).forEach((x) => {
@@ -72,8 +74,6 @@ const getPeriods = async (gran) => {
 
 const calcPeriodsForMonthWorker = (date, periods) => new Promise((resolve, _) => {
   console.log(`calc periods for month worker for ${date}`)
-  // console.log(periods)
-
  
   const workerData = { date, periods }
   const worker = new Worker('./service/calcPeriodsForMonthWorker.js', { workerData })

@@ -5,7 +5,7 @@ const sortByService = require('@/simulateTradeHistory/service/sortStatsBy')
 const filterService = require('@/simulateTradeHistory/service/filterStatsBy')
 
 const gran = 'M15';
-const abbrev = 'GBPUSD';
+const abbrev = 'GBPCAD';
 const ops = [
   'stochasticAdx',
   'wma',
@@ -15,21 +15,20 @@ const ops = [
 const op = ops[3]
 
 const sortBy = 'pipsPerTrade';
-const dir = 'desc';
+const dir = 'asc';
 const filters = {
   // minTrades: 250,
   pipsPerTrade: null,
   winPer: null,
   worstWinPer: null,
   worstPipsPerTrade: null,
-  // tradesPerDay: 1.0,
+  tradesPerDay: 0.7,
   // stopLoss: 100
   // threshold: 50
   // adxAlgo: 'adxAboveThreshold'
 };
 
-const performance = 35;
-
+ 
 (async () => {
   let stats 
   try {
