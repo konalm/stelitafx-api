@@ -7,18 +7,18 @@ module.exports =
   periods => 
   conditions => 
   stopLoss => 
-  stopGain => 
+  takeProfit => 
   symbol => 
   transactionType =>
   algoNo =>
   interval =>
   new Promise(async (resolve, reject) => 
 {
-  const rate = periods.current.rate
-
-  if (algoNo === 10000) {
-    console.log(`trigger transaction ... ${algoNo} TEST`)
+  if (algoNo == 4034) {
+    console.log('Looking at trigger transactions for 4034')
   }
+
+  const rate = periods.current.rate
 
   /* Opening trade */ 
   let openingTrade;
@@ -30,10 +30,14 @@ module.exports =
 
   /* only check if trade opening conditions met if last trade has been closed */ 
   if (!openingTrade || openingTrade.closed) {
+    // console.log(`looking at open conditions for ${algoNo}`)
+
     if (conditions.open(periods.prior, periods.current)) {
       console.log(`OPEN TRADE .. ${algoNo}`)
       try {
-        await tradeService.openTrade(algoNo, symbol, rate, null, interval, transactionType);
+        await tradeService.openTrade(
+          algoNo, symbol, rate, null, interval, transactionType, stopLoss, takeProfit
+        );
       } catch (e) {
        return reject(`Failed to open trade`)
       }
@@ -57,8 +61,8 @@ module.exports =
   }
   
   /* if stop gain, check if triggered */
-  if (stopGain) {
-    if (pipCalc(openingTrade.rate, rate, abbrev) >= stopGain, abbrev) {
+  if (takeProfit) {
+    if (pipCalc(openingTrade.rate, rate, abbrev) >= takeProfit, abbrev) {
       await closeTrade()
       return resolve()
     }

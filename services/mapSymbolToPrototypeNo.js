@@ -6,5 +6,6 @@ module.exports = {
   EURGBP: 5,
   CHFJPY: 6,
   EURCHF: 7,
-  GBPCAD: 8
+  GBPCAD: 8,
+  ETHBTC: 9,
 }

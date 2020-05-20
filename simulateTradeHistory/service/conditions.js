@@ -79,6 +79,18 @@ exports.wmaCrossedOver = (prior, current, shortWma, longWma) => {
   ) 
 }
 
+exports.wmaCrossedOverV2 = (prior, current, shortWma, longWma) => {
+  console.log('WMA CROSSED OVER V2')
+
+  if (!prior.wma[shortWma] || !prior.wma[longWma]) return false
+
+  return (
+    prior.wma[shortWma] <= prior.wma[longWma] && 
+    current.wma[shortWma] > current.wma[longWma]
+  ) 
+}
+
+
 exports.wmaUnder = (prior, current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
@@ -86,11 +98,27 @@ exports.wmaUnder = (prior, current, shortWma, longWma) => {
 }
 
 exports.rateAboveWma = (current, wma) => {
-  // console.log('\nCONDITION .. RATE ABOVE WMA\n')
-  // console.log(current.rate > current.wma[wma])
+  const rate = current.hasOwnProperty('exchange_rate') 
+    ? current.exchange_rate 
+    : current.rate;
+  
+  if (current.hasOwnProperty('wma')) return rate > current.wma[wma]
+  
 
-  return current.rate > current.wma[wma]
+  return current.rate > current.WMAs[wma]
 }
+
+
+exports.rateBelowWma = (current, wma) => {
+  const rate = current.hasOwnProperty('exchange_rate') 
+    ? current.exchange_rate 
+    : current.rate;
+
+  if (current.hasOwnProperty('wma')) return rate < current.wma[wma]
+
+  return rate < current.WMAs[wma]
+}
+
 
 const wmaOver = (current, shortWma, longWma) => {
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
@@ -115,13 +143,26 @@ exports.adxPlusDiAbove = (prior, current) => {
 
 exports.adxAboveThreshold = (prior, current, threshold) => current.adx.adx >= threshold
 
-
 exports.adxBelowThreshold = (prior, current, threshold) => current.adx.adx <= threshold
-
 
 exports.adxPlusDiAboveThreshold = (prior, current, threshold) => current.adx.plusDi > threshold
 
-
 exports.adxPlusDiBelowThreshold = (prior, current, threshold) => current.adx.plusDi < threshold
+
+
+exports.macdCrossedOver = (prior, current) =>  {
+  // console.log('CONDITIONS ... MACD CROSSED OVER')
+  // console.log('prior >>')
+  // console.log(prior.macd)
+
+  // console.log('current >>')
+  // console.log(current.macd)
+
+  return (prior.macd.macdLine <= prior.macd.macdLag) 
+    && (current.macd.macdLine > current.macd.macdLag)
+}
+
+exports.macdUnder = (prior, current) => current.macd.macdLine <= current.macd.macdLag
+
 
 exports.alwaysTrueTest = (prior, current) => false

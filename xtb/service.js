@@ -15,7 +15,9 @@ const ADDRESS = 'wss://ws.xtb.com/real'
 const currencyRateRepo = require('../currencyRates/repository')
 const tradeRepo = require('../trade/repository')
 
-exports.openTrade = (tradeUUID, abbrev, transactionType) => new Promise(async (resolve, reject) => {
+exports.openTrade = (tradeUUID, abbrev, transactionType, stopLoss, takeProfit) => 
+  new Promise(async (resolve, reject) => 
+{
   console.log(`transaction type .. ${transactionType}`)
   const cmd = transactionType === 'short' ? 1 : 0;
 
@@ -65,7 +67,9 @@ exports.openTrade = (tradeUUID, abbrev, transactionType) => new Promise(async (r
     let tradeTransaction 
     try {
       const symbol = abbrev.replace("/", "")
-      tradeTransaction = await openTradeTransaction(ws, symbol, currencyRate.ask, cmd)
+      tradeTransaction = await openTradeTransaction(
+        ws, symbol, currencyRate.ask, cmd, stopLoss, takeProfit
+      )
     } catch (e) {
       return reject('Open trade transaction failed')
     }

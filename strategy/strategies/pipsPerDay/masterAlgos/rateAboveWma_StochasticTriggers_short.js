@@ -5,6 +5,7 @@ class setting {
   constructor(wma, openTrigger, closeTrigger, stopLoss, algo) {
     this.algo = algo
     this.stopLoss = stopLoss
+    this.takeProfit = null
     
     const conditions = this.getConditionsWhereAlgo(algo)
     this.conditions = {

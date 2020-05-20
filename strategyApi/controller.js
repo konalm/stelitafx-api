@@ -1,5 +1,8 @@
 const repository = require('./repository');
-
+const protoRepo = require('@/proto/repository')
+const { 
+  getAlgorithmTradesPerformances, algorithmsPerformanceSummary 
+} = require('@/proto/service')
 
 exports.getStrategies = async (req, res) => {
   let strategies
@@ -31,19 +34,53 @@ exports.getStrategy = async (req, res) => {
 exports.getStrategyMasterAlgo = async (req, res) => {
   console.log('get strategy master algo !!')
 
-  const strategyUuid = req.params.strategyUUID
-  const masterAlgoUuid = req.params.masterAlgoUUID
+  const strategyUUID = req.params.strategyUUID
+  const masterAlgoUUID = req.params.masterAlgoUUID
 
-  console.log(`strategy uuid .. ${strategyUuid}`)
-  console.log(`master algo uuid .. ${masterAlgoUuid}`)
+  console.log(`strategy uuid .. ${strategyUUID}`)
+  console.log(`master algo uuid .. ${masterAlgoUUID}`)
 
   let masterAlgo
   try {
-    masterAlgo = await repository.getMasterAlgorithm(strategyUuid, masterAlgoUuid)
+    masterAlgo = await repository.getMasterAlgorithm(strategyUUID, masterAlgoUUID)
   } catch (e) {
     console.log(e)
     return res.status(500).send('Failed to get strategy master algo')
   }
-
+  
   return res.send(masterAlgo)
+}
+
+
+/**
+ * 
+ */
+exports.getStrategyStats = async (req, res) => {
+  console.log('get strategy stats')
+
+  const { strategyUUID, interval } = req.params 
+  const sinceDate = req.query.sinceDate || ''
+
+  let algos 
+  try {
+    algos = await protoRepo.getStrategyAlgos(strategyUUID)
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to get strategy algos')
+  }
+
+  const promises = []
+  algos.forEach((algo) => {
+    promises.push(getAlgorithmTradesPerformances(algo.prototypeNo)(interval)(sinceDate))
+  })
+
+  let performances
+  try {
+    performances = await Promise.all(promises)
+  } catch (e) {
+    return res.status(500).send('Failed to get performances')
+  }
+
+
+  return res.send(algorithmsPerformanceSummary(performances))
 }

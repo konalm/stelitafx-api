@@ -15,16 +15,36 @@ exports.CURRENCYPAIRS = [
   'EURGBP',
   'CHFJPY',
   'EURCHF',
-  'GBPCAD'
+  'GBPCAD',
+  // 'ETHBTC'
+]
+
+exports.CRYPTO_CURRENCYPAIRS = [
+  'ETHBTC'
 ]
 
 exports.TIME_INTERVALS = [
   1,
   2,
-  3,
+  // 3,
   5,
   15,
   // 30,
+]
+
+exports.GRANS = [
+  'H1',
+  'H2',
+  'H4',
+  'H6',
+  'H12'
+]
+
+exports.CRYPTO_GRANS = [
+  'H1',
+  'H3',
+  'H6',
+  'H12'
 ]
 
 exports.HOUR_INTERVALS = [

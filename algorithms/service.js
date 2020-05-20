@@ -9,8 +9,65 @@ const stochasticsRepo = require('../stochastic/repository')
 const secsFromDate = require('../services/secondsBetweenDates')
 const getCachedWMA = require('../wma/services/getCachedWMA')
 const getCachedMacdItems = require('@/indicators/macd/service/getCache')
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 
+/**
+ * 
+ */
+exports.getHigherPeriodData = async (abbrev, gran) => {
+  const symbol = symbolToAbbrev(abbrev)
+
+  const promises = []
+
+  if (!config.CRYPTO_CURRENCYPAIRS.includes(symbol)) {
+    config.GRANS.forEach((gran) => {
+      promises.push(getCurrencyPairWma(abbrev, gran))
+    })
+  } else {
+    console.log('is a crypto !')
+
+    config.CRYPTO_CRANS.forEach((gran) => {
+      promises.push(getCurrencyPairWma(abbrev, gran))
+    })
+  }
+
+  let higherPeriodData
+  try {
+    higherPeriodData = await Promise.all(promises)
+  } catch (e) {
+    console.log('PROMISE FAILED')
+    return reject(e)
+  }
+
+  const higherPeriods = {}
+  higherPeriodData.forEach((x) => {
+    higherPeriods[x.gran] = x.data
+  })
+
+  return higherPeriods
+}
+
+/**
+ * 
+ */
+const getCurrencyPairWma = (abbrev, gran) => new Promise(async (resolve, reject) => {
+  let cachedWmas
+  try {
+    cachedWmas = await getCachedWMA(gran, abbrev, 1)
+  } catch (e) {
+    console.log(e)
+    console.error('Failed to get cached WMAs')
+  }
+
+  const cachedWma = cachedWmas[0]
+
+  resolve({ gran, data: cachedWma })
+})
+
+/**
+ * 
+ */
 exports.getCurrentAndPriorMacdItems = async (interval, abbrev) => {
   let macdItems
   try {
@@ -27,6 +84,9 @@ exports.getCurrentAndPriorMacdItems = async (interval, abbrev) => {
   }
 }
 
+/**
+ * 
+ */
 exports.getCurrentAndPrevWMAs = async (
   abbrev, 
   timeInterval = 1, 
@@ -60,6 +120,7 @@ exports.getCurrentAndPrevWMAs = async (
 
   return {WMA, prevWMA};
 }
+
 
 exports.getCurrentAndPrevStochastic = async (abbrev, interval) => {
   const s = new Date()

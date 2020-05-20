@@ -2,7 +2,9 @@ const getCachedRates = require('./getCachedRates')
 const currencyRatesRepo = require('../repository');
 
 
-module.exports = (interval, abbrev, count, cacheOnly = false) => new Promise(async (resolve, reject) => {
+module.exports = (interval, abbrev, count, cacheOnly = false) => 
+  new Promise(async (resolve, reject) => 
+{
   /* first attempt to get currency rates from cache */
   let currencyRates
   try {
@@ -17,9 +19,10 @@ module.exports = (interval, abbrev, count, cacheOnly = false) => new Promise(asy
     return resolve(currencyRates)
   }
 
-  // console.log(`CACHE ONLY .. ${cacheOnly}`)
-
   if (cacheOnly) resolve([])
+
+  // console.trace()
+  // console.log('NOT CACHE ONLY ??')
 
   /* get currency rate from DB if cache fails */ 
   try {

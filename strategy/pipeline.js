@@ -6,6 +6,8 @@ const dir = 'strategy/strategies'
 
 
 module.exports = (interval) => new Promise(async (resolve, reject) => {
+  console.log('strategy pipeline')
+
   let strategies
   try {
     strategies = await fs.readdirSync(dir)
@@ -49,6 +51,9 @@ const processStrategy = (path, intervalData, interval) =>
     console.error(e)
   }
 
+  // console.log(`strategy ... ${path}`)
+  // console.log(masterAlgos)
+
   const masterAlgoPromises = []
   masterAlgos.forEach((x) => {
     masterAlgoPromises.push(
@@ -56,12 +61,9 @@ const processStrategy = (path, intervalData, interval) =>
     )
   })
 
-  console.log('master algos >>')
-  console.log(masterAlgos)
-
   Promise.all(masterAlgoPromises)
     .then(res => {
-      console.log('PROCESS MASTER ALGO PROMISES COMPLETE')
+      // console.log('PROCESS MASTER ALGO PROMISES COMPLETE')
       resolve()
     })
     .catch((e) => {
@@ -84,11 +86,12 @@ const processMasterAlgo = (path, intervalData, interval) => new Promise((resolve
     const algoNo = masterAlgo.no + mapSymbolsToPrototypeNo[symbol]
 
     triggerTransactionPromises.push(
-      triggerTransactions(symbolData)(x.settings.conditions)(settings.stopLoss)(null)
+      triggerTransactions(symbolData)(settings.conditions)(settings.stopLoss)
+        (settings.takeProfit)
         (symbol)
         (masterAlgo.transactionType)
         (algoNo)
-        (interval)        
+        (interval)
     )
   })
 

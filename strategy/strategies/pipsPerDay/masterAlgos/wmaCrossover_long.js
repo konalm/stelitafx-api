@@ -1,8 +1,9 @@
 const { wmaCrossedOver, wmaUnder } = require('@/simulateTradeHistory/service/conditions');
 
 class setting {
-  constructor(shortWma, longWma, stopLoss) {
+  constructor (shortWma, longWma, stopLoss) {
     this.stopLoss = stopLoss
+    this.takeProfit = null
 
     const algo = {
       open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma),

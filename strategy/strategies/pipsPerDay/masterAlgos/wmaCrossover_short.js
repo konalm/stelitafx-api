@@ -11,6 +11,7 @@ class setting {
     // }
 
     this.stopLoss = stopLoss
+    this.takeProfit = null
 
     const algo = {
       open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma),

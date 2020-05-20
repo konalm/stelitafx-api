@@ -25,7 +25,7 @@ let sDate = new Date()
 
 
 Promise.all([
-  wmaService.storeWMAData(interval),
+  wmaService.storeWMAData(interval, false),
   storeStochastic(interval),
   storeMacd(interval),
   storeAdx(interval)
@@ -43,8 +43,6 @@ Promise.all([
      
     //     process.exit(`fail for ${interval}`)
     //   })
-
-
 
     strategyPipeline(interval)
       .then((res) => {
