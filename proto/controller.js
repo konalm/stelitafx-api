@@ -1,21 +1,53 @@
 const repo = require('./repository')
+const tradeRepo = require('@/trade/repository')
 const indicators = require('../algorithms/indicators')
+const service = require('./service')
+
+
+exports.getAlgorithmStats = async (req, res) => {
+  const { id, interval } = req.params
+  const sinceDate = req.query.sinceDate || ''
+
+  let algo 
+  try {
+    algo = await repo.getProtoById(id)
+  } catch (e) {
+    console.log(e)
+    return res.status(500).send('Failed to get algorithm')
+  }
+
+  const tradeConditions = {
+    proto_no: parseInt(algo.protoNo),
+    time_interval: interval,
+    closed: true
+  }
+  let trades 
+  try {
+    trades = await tradeRepo.getTrades(tradeConditions, sinceDate)
+  } catch (e) {
+    return res.status(500).send('Failed to get trades')
+  }
+
+  const performance = service.getAlgorithmPerformance(trades) 
+
+  return res.send({ ...algo, performance })
+}
+
 
 /**
  * Get all prototypes
  */
 exports.getProtos = async (_, res) => {
-  console.log('GET PROTOS')
-  
   let protos;
   try {
-    protos = await repo.getProtos();
+    protos = await repo.getProtos;
   } catch (err) {
     return res.status(500).send(err);
   }
 
   return res.send(protos);
 }
+
 
 /**
  * Get a prototype

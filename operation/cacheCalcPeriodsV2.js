@@ -6,8 +6,8 @@ const getCachedPeriodsSinceDate = require('@/candle/service/getCachedPeriodsSinc
 const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 const { fetchCandles } = require('@/services/bitfinex')
 const monthsSinceDate = require('./service/getMonthsSinceDate')
-const sinceDate = '2016-01-01T00:00:00.000Z';
-const endDate = new Date();
+const sinceDate = '2017-01-01T00:00:00.000Z';
+const abbrev= 'USDJPY';
 
 const crypto = true
 const gran = 'H12';

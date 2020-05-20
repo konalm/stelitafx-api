@@ -1,5 +1,4 @@
 const fs = require('fs')
-const { promisify } = require('util')
 const uuidGenerator = require('uuid/v1');
 const moment = require('moment');
 const repo = require('./repository');
@@ -7,23 +6,23 @@ const oandaService = require('../services/oanda')
 const logger = require('../services/logger');
 const { isPublishedAlgorithm } = require('../publishedAlgorithm/service')
 const logTransaction = require('../services/publishedTransactionLogger')
-const db = require('../dbInstance')
 const calculatePip = require('../services/calculatePip')
 const xtbService = require('../xtb/service')
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 
 exports.openTrade = async (
   protoNo, 
-  currency, 
+  symbol, 
   rate, 
-  notes, 
   stats, 
   timeInterval,
-  conn = db(),
   transactionType = 'long'
 ) => {
+  console.log('OPEN TRADE FOR ' + symbol)
+
   const uuid = uuidGenerator();
-  const abbrev = `${currency}/USD`
+  const abbrev = symbolToAbbrev(symbol)
   const trade = {
     proto_no: protoNo,
     abbrev,
@@ -35,10 +34,6 @@ exports.openTrade = async (
     uuid,
     transaction_type: transactionType
   }
-
-  // console.log('trade service open trade ..' + abbrev)
-  // console.log(trade)
-
 
   let publishedAlgorithm
   try { 
@@ -58,7 +53,7 @@ exports.openTrade = async (
   }
 
   try {
-    await cacheLastTrade(trade)
+    await cacheLastTrade(trade, symbol)
   } catch (e) {
     console.log(e)
     console.log('failed to cache last trade')
@@ -71,7 +66,7 @@ exports.openTrade = async (
 
     /* open trade on xtb for published alogorithms */ 
     try {
-      await xtbService.openTrade(uuid, abbrev, rate, transactionType)
+      await xtbService.openTrade(uuid, abbrev, transactionType)
     } catch (e) {
       console.log(e)
       throw new Error('Failed to open trade on xtb')
@@ -113,18 +108,18 @@ const openOandaTrade = async (uuid, currency) => {
 
 exports.closeTrade = async (
   protoNo, 
-  currency, 
+  symbol, 
   rate, 
   notes, 
   timeInterval, 
   openingTrade,
 ) => {
-  const abbrev = `${currency}/USD`
-
   if (openingTrade && openingTrade.closed) {
     logger('opening trade is closed', 'warning')
-    throw new Error(`Last trade for proto:${protoNo} abbrev:${abbrev} is closed`);
+    throw new Error(`Last trade for proto:${protoNo} symbol:${symbol} is closed`);
   }
+
+  const abbrev = symbolToAbbrev(symbol)
 
   /* update to closed in MYSQL */
   const now = new Date();
@@ -143,7 +138,7 @@ exports.closeTrade = async (
   }
 
   try {
-    await closeCachedLastTrade(protoNo, abbrev, timeInterval, trade)
+    await closeCachedLastTrade(protoNo, symbol, timeInterval, trade)
   } catch (e) {
     console.log(e)
     throw new Error('Failed to close cached trade')
@@ -257,7 +252,7 @@ exports.mapStringToInterval = (string) => {
 }
 
 
-const cacheLastTrade = async (trade) => {
+const cacheLastTrade = async (trade, symbol) => {
   const dir = 'cache/lastTrade'
 
   /* create dir for prototype if it does not exist */
@@ -265,7 +260,7 @@ const cacheLastTrade = async (trade) => {
   if (!fs.existsSync(prototypeDir)) await fs.mkdirSync(prototypeDir)
 
   /* create dir for abbrev if it does not exist */
-  const abbrevDir = `${prototypeDir}/${this.mapAbbrevUnderscore(trade.abbrev)}`
+  const abbrevDir = `${prototypeDir}/${symbol}`
   if (!fs.existsSync(abbrevDir)) await fs.mkdirSync(abbrevDir)
 
 
@@ -278,10 +273,9 @@ const cacheLastTrade = async (trade) => {
 }
 
 
-const closeCachedLastTrade = async (prototypeNo, abbrev, interval, closedTrade) => {
+const closeCachedLastTrade = async (prototypeNo, symbol, interval, closedTrade) => {
   const dir = 'cache/lastTrade'
-  const abbrevUnderscore = this.mapAbbrevUnderscore(abbrev)
-  const path = `${dir}/${prototypeNo}/${abbrevUnderscore}/${interval}.json`
+  const path = `${dir}/${prototypeNo}/${symbol}/${interval}.json`
   
   let lastTrade
   try {
@@ -294,17 +288,16 @@ const closeCachedLastTrade = async (prototypeNo, abbrev, interval, closedTrade) 
   const updatedClosedTrade = {...lastTrade, ...closedTrade}
 
   try {
-    await cacheLastTrade(updatedClosedTrade)
+    await cacheLastTrade(updatedClosedTrade, symbol)
   } catch (e) {
     console.error('Failed to closed cached last trade')
   }
 }
 
 
-exports.getCachedLastTrade = async (prototypeNo, abbrev, interval) => {
+exports.getCachedLastTrade = async (prototypeNo, symbol, interval) => {
   const dir = 'cache/lastTrade'
-  const abbrevUnderscore = this.mapAbbrevUnderscore(abbrev)
-  const path = `${dir}/${prototypeNo}/${abbrevUnderscore}/${interval}.json`
+  const path = `${dir}/${prototypeNo}/${symbol}/${interval}.json`
 
   let trade 
   try {

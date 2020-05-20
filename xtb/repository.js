@@ -1,7 +1,9 @@
-// const conn = require('../db')
+const db = require('@/dbInstance')
 
 
 exports.storeTradeTransaction = (transaction) => new Promise((resolve, reject) => {
+  const conn = db()
+
   console.log('xtb .. store transaction')
 
   const query = 'INSERT INTO xtb_trade_transactions SET ?'
@@ -10,6 +12,8 @@ exports.storeTradeTransaction = (transaction) => new Promise((resolve, reject) =
     json: JSON.stringify(transaction)
   }
   conn.query(query, data, (e) => {
+    conn.end()
+
     if (e) return reject('Failed to insert xtb trade transaction')
     resolve()
   })
@@ -17,6 +21,7 @@ exports.storeTradeTransaction = (transaction) => new Promise((resolve, reject) =
 
 
 exports.storeCloseTradeTransaction = (transaction) => new Promise((resolve, reject) => {
+  const conn = db()
   console.log('xtb .. store transaction')
 
   const query = 'INSERT INTO xtb_trade_transactions SET ?'
@@ -25,6 +30,8 @@ exports.storeCloseTradeTransaction = (transaction) => new Promise((resolve, reje
     json: JSON.stringify(transaction)
   }
   conn.query(query, data, (e) => {
+    conn.end()
+
     if (e) return reject('Failed to insert xtb trade transaction')
     resolve()
   })
@@ -32,6 +39,8 @@ exports.storeCloseTradeTransaction = (transaction) => new Promise((resolve, reje
 
 
 exports.storeTradeRel = (tradeUUID, xtbTradeId) => new Promise((resolve, reject) => {
+  const conn = db()
+
   console.log('xtb repo .. store trade rel')
   console.log(`trade UUID .. ${tradeUUID}`)
   console.log(`xtb trade id .. ${xtbTradeId}`)
@@ -42,14 +51,17 @@ exports.storeTradeRel = (tradeUUID, xtbTradeId) => new Promise((resolve, reject)
     xtb_opentrade_id: xtbTradeId
   }
   conn.query(query, queryValues, (e) => {
-    if (e) return reject(`Failed to store xtb trade relationship: ${e}`)
+    conn.end()
 
+    if (e) return reject(`Failed to store xtb trade relationship: ${e}`)
     resolve()
   })
 })
 
 
 exports.updateTradeRel = (tradeUUID, xtbTradeId) => new Promise((resolve, reject) => {
+  const conn = db()
+
   console.log('update trade rel')
   console.log(tradeUUID)
   console.log(xtbTradeId)
@@ -57,14 +69,17 @@ exports.updateTradeRel = (tradeUUID, xtbTradeId) => new Promise((resolve, reject
   const query = "UPDATE trade_xtbtrade_rel SET xtb_closetrade_id = ? WHERE trade_uuid = ?"
   const queryValues = [xtbTradeId, tradeUUID]
   conn.query(query, queryValues, (e) => {
-    if (e) return reject(`Failed to update xtb trade relationship: ${e}`)
+    conn.end()
 
+    if (e) return reject(`Failed to update xtb trade relationship: ${e}`)
     resolve()
   })
 })
 
 
 exports.getTradeRel = (tradeUUID) => new Promise((resolve, reject) => {
+  const conn = db()
+
   console.log('get trade rel')
 
   const query = `
@@ -75,8 +90,11 @@ exports.getTradeRel = (tradeUUID) => new Promise((resolve, reject) => {
   `
   const queryValues = [tradeUUID]
   conn.query(query, queryValues, (e, results) => {
+    conn.end()
+
     console.log(e)
     console.log(results)
+
     if (e) return reject(`Failed to get xtb trade relationship: ${e}`)
     if (results.length === 0) reject('Could not find xtb trade relationship')
 
@@ -89,6 +107,8 @@ exports.getTradeRel = (tradeUUID) => new Promise((resolve, reject) => {
  * Get all historic trades
  */
 exports.getHistoricTrades = () => new Promise((resolve, reject) => {
+  const conn = db()
+
   const query = `
     SELECT id, 
     order_no AS orderNo,
@@ -96,6 +116,8 @@ exports.getHistoricTrades = () => new Promise((resolve, reject) => {
     FROM xtb_historic_trade
   `
   conn.query(query, (e, results) => {
+    conn.end()
+
     if (e) return reject('Failed to get xtb historic trades')
 
     return resolve(results)
@@ -107,6 +129,7 @@ exports.getHistoricTrades = () => new Promise((resolve, reject) => {
  * 
  */
 exports.storeHistoricTrades = (trades) => new Promise((resolve, reject) => {
+  const conn = db()
   const query = 'INSERT INTO xtb_historic_trade (order_no, order2_no, json) VALUES ?'
 
   const queryValues = []
@@ -116,6 +139,8 @@ exports.storeHistoricTrades = (trades) => new Promise((resolve, reject) => {
   })
 
   conn.query(query, [queryValues], (e, results) => {
+    conn.end()
+    
     if (e) return reject('Failed to insert historic trades')
     resolve(results)
   })

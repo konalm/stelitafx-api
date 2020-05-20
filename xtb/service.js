@@ -15,7 +15,7 @@ const ADDRESS = 'wss://ws.xtb.com/real'
 const currencyRateRepo = require('../currencyRates/repository')
 const tradeRepo = require('../trade/repository')
 
-exports.openTrade = (tradeUUID, abbrev, price, transactionType) => new Promise(async (resolve, reject) => {
+exports.openTrade = (tradeUUID, abbrev, transactionType) => new Promise(async (resolve, reject) => {
   console.log(`transaction type .. ${transactionType}`)
   const cmd = transactionType === 'short' ? 1 : 0;
 
@@ -174,7 +174,6 @@ exports.closeTrade = (tradeUUID, abbrev) => new Promise(async (resolve, reject) 
     }
 
 
-
     /* Close trade */
     let tradeTransaction
     try {
@@ -234,13 +233,9 @@ exports.closeTrade = (tradeUUID, abbrev) => new Promise(async (resolve, reject) 
 
 
 exports.getCurrencyRates = () => new Promise((resolve, reject) => {
-  console.log('xtb service .. get currency rates')
-
   const ws = new WebSocket(ADDRESS)
 
   ws.on('open', async function open() {
-    console.log('opened')
-
     /* Login */
     try {
       await login(ws)

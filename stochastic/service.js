@@ -1,25 +1,19 @@
 const { GetCurrencyLatestRates } = require('../currencyRates/repository')
 const repo = require('./repository')
-const { MAJOR_CURRENCIES } = require('../config');
+const { CURRENCYPAIRS } = require('../config');
 const dbConnections = require('../dbConnections')
 const db = require('../dbInstance');
 const getCurrencyRates = require('../currencyRates/services/getCurrencyRates')
-
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 exports.calculateStochastic = async (abbrev, timeInterval, conn) => {
-  console.log('calculate stochastic')
-
   let latestRates;
   try {
-    latestRates = await getCurrencyRates(timeInterval, abbrev, 16)
+    latestRates = await getCurrencyRates(timeInterval, abbrev, 16, false)
   } catch (e) {
     console.log(e)
     throw new Error(`Failed to get last 14 rates: ${e}`)
   }
-
-  console.log('currency rates >>')
-  console.log(latestRates)
-  
 
   /* calculate last 3 stochastics */ 
   const fastStochastics = [] 
@@ -62,8 +56,8 @@ exports.storeStochastic = (timeInterval) => new Promise(async (resolve, reject) 
   const storeStochasticPromises = []
   const conn = db()
 
-  MAJOR_CURRENCIES.forEach((currency) => {
-    const abbrev = `${currency}/USD`
+  CURRENCYPAIRS.forEach((currencyPair) => {
+    const abbrev = symbolToAbbrev(currencyPair)
     storeStochasticPromises.push(storeStochasticForCurrency(abbrev, timeInterval, conn))
   })
 
@@ -91,6 +85,9 @@ const storeStochasticForCurrency = (abbrev, timeInterval, conn) =>
     console.log(e)
     throw new Error(`Failed to get stochastic: ${e}`)
   }
+
+  // console.log(`abbrev .. ${abbrev}`)
+  // console.log(`stochastic .. ${stochastic}`)
 
   repo.saveStochastic(abbrev, timeInterval, stochastic, conn)
     .then(() => {

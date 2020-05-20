@@ -28,14 +28,14 @@ module.exports = () => new Promise((resolve, reject) =>  {
 
       if (connection.User !== 'connor' || connection.Command !== 'Sleep') continue;
 
-      console.log('connection is connection with sleep command !!')
+      // console.log('connection is connection with sleep command !!')
 
       const id = connections[i].Id;
 
       try {
         await killConnection(id)
       } catch (e) {
-        console.log(`Failed to kill connection: ${id}`)
+        // console.log(`Failed to kill connection: ${id}`)
       }
     }
 

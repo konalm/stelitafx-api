@@ -7,7 +7,6 @@ exports.MAJOR_CURRENCIES = [
   'AUD',
 ]
 
-
 exports.CURRENCYPAIRS = [
   'GBPUSD',
   'EURUSD',
@@ -19,7 +18,6 @@ exports.CURRENCYPAIRS = [
   'GBPCAD',
   // 'ETHBTC'
 ]
-
 
 exports.TIME_INTERVALS = [
   1,
@@ -47,11 +45,26 @@ exports.WMA_LENGTHS = [
   10,
   12,
   15,
+  25,
+  35,
   36,
+  40,
   60,
+  70,
   100,
+  105,
+  110,
   116,
+  130,
+  135,
+  140,
+  160,
+  165,
+  170,
+  175,
   180,
+  185,
+  195,
   200
 ]
 

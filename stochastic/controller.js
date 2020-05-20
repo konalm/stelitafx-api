@@ -1,6 +1,6 @@
 const repository = require('./repository')
 const { getTradeV2 } = require('../trade/repository')
-
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 exports.getStochastics = async (req, res) => {
   console.log('get stochastics !!')
@@ -30,10 +30,9 @@ exports.getStochastics = async (req, res) => {
 exports.getStochasticForTrade = async (req, res) => {
   console.log('get stochastic for trade')
 
-  const { prototypeNumber, currency, tradeUUID } = req.params
+  const { currency, tradeUUID } = req.params
   const interval = parseInt(req.params.interval)
-  const abbrev = `${currency}/USD`
-  const abbrevInstrument = `${currency}_USD`
+  const abbrev = symbolToAbbrev(currency)
   const buffer = req.query.buffer || 40
 
   let trade
@@ -43,19 +42,6 @@ exports.getStochasticForTrade = async (req, res) => {
     return res.status(500).send('Failed to get trade')
   }
   if (!trade) return res.status(404).send('could not find trade')
-
-
-  // let trade 
-  // try {
-  //   trade = await tradeMongoRepo.getPrototypeIntervalCurrencyTrade(
-  //     prototypeNumber,
-  //     parseInt(interval),
-  //     abbrevInstrument,
-  //     tradeUUID
-  //   )
-  // } catch (e) {
-  //   return res.status(500).send('Failed to get trade')
-  // }
 
 
   let stochastics

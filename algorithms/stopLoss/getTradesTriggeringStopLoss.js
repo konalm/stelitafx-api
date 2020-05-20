@@ -90,8 +90,8 @@ const tradeTriggeredStopLoss = (trade, abbrevRates, stopLoss) => {
   const latestRate = abbrevRates.find(x => x.abbrev === trade.abbrev).exchangeRate
   const openRate = trade.openRate
   const pipDiff = trade.transactionType !== 'short' 
-    ? calculatePip(openRate, latestRate)
-    : calculatePip(openRate, latestRate) * -1
+    ? calculatePip(openRate, latestRate, trade.abbrev)
+    : calculatePip(openRate, latestRate, trade.abbrev) * -1
 
   return pipDiff <= (stopLoss * -1)
 }

@@ -53,7 +53,7 @@ const calculateVolatility = async (interval, abbrev) => {
 
   let currencyRates
   try {
-    currencyRates = await getCurrencyRates(interval, abbrev, length)
+    currencyRates = await getCurrencyRates(interval, abbrev, length, false)
   } catch (e) {
     throw new Error(`Failed to get last 10 rates for volatility`)
   }

@@ -15,6 +15,7 @@ const adxRoutes = require('@/indicators/adx/route')
 const macdRoutes = require('@/indicators/macd/route')
 const candleRoutes = require('@/candle/route')
 const simulateTradeHistoryRoutes = require('@/simulateTradeHistory/route')
+const strategyRoutes = require('@/strategyApi/route')
 
 module.exports = (app) => {
   wmaRoutes(app);
@@ -32,59 +33,60 @@ module.exports = (app) => {
   macdRoutes(app)
   candleRoutes(app)
   simulateTradeHistoryRoutes(app)
+  strategyRoutes(app)
 
   /**
    * Get trade
    */
-  app.get('/algo/:algo_id/currency/:currency/trade/:trade_id', async (req, res) => {
-    const algoId = req.params.algo_id;
-    const baseCurrency = req.params.currency;
-    const currencyPairAbbrev = `${baseCurrency}/USD`;
-    const tradeId = req.params.trade_id;
+  // app.get('/algo/:algo_id/currency/:currency/trade/:trade_id', async (req, res) => {
+  //   const algoId = req.params.algo_id;
+  //   const baseCurrency = req.params.currency;
+  //   const currencyPairAbbrev = `${baseCurrency}/USD`;
+  //   const tradeId = req.params.trade_id;
 
-    let trade;
-    try {
-      trade = await tradeRepo.getAlgoCurrencyTrade(algoId, currencyPairAbbrev, tradeId);
-    } catch (err) {
-      return res.status(500).send('Error getting trade');
-    }
+  //   let trade;
+  //   try {
+  //     trade = await tradeRepo.getAlgoCurrencyTrade(algoId, currencyPairAbbrev, tradeId);
+  //   } catch (err) {
+  //     return res.status(500).send('Error getting trade');
+  //   }
 
-    if (!trade) return res.status(204).send('Could not get trade')
+  //   if (!trade) return res.status(204).send('Could not get trade')
 
-    return res.send(trade);
-  });
+  //   return res.send(trade);
+  // });
 
 
   /**
    *
    */
-  app.get('/currency/:abbrev/rate', async (req, res) => {
-    const currencyPairAbbrev = `${req.params.abbrev}/USD`
+  // app.get('/currency/:abbrev/rate', async (req, res) => {
+  //   const currencyPairAbbrev = `${req.params.abbrev}/USD`
 
-    let rate;
-    try {
-      rate = await currencyRatesRepo.getCurrencyRate(currencyPairAbbrev);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
+  //   let rate;
+  //   try {
+  //     rate = await currencyRatesRepo.getCurrencyRate(currencyPairAbbrev);
+  //   } catch (err) {
+  //     return res.status(500).send(err);
+  //   }
 
-    return res.send(rate);
-  });
+  //   return res.send(rate);
+  // });
 
   /**
    * Get currencies rates
    */
-  app.get('/currency/:abbrev/rates/:count', async (req, res) => {
-    const currencyPairAbbrev = `${req.params.abbrev}/USD`
-    const ratesAmount = parseInt(req.params.count);
+  // app.get('/currency/:abbrev/rates/:count', async (req, res) => {
+  //   const currencyPairAbbrev = `${req.params.abbrev}/USD`
+  //   const ratesAmount = parseInt(req.params.count);
 
-    let rates;
-    try {
-      rates = await currencyRatesRepo.getCurrenciesRates(currencyPairAbbrev, ratesAmount);
-    } catch (err) {
-      return res.status(500).send(err);
-    }
+  //   let rates;
+  //   try {
+  //     rates = await currencyRatesRepo.getCurrenciesRates(currencyPairAbbrev, ratesAmount);
+  //   } catch (err) {
+  //     return res.status(500).send(err);
+  //   }
 
-    return res.send(rates);
-  })
+  //   return res.send(rates);
+  // })
 }

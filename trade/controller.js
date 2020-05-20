@@ -3,7 +3,7 @@ const service = require('./service')
 const oandaService = require('../services/oanda')
 const wmaRepo = require('../wma/repository')
 const volatilityRepo = require('../volatility/repository')
-
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 exports.getOandaTradeTransactions  = async (req, res) => {
   const tradeId = req.params.id; 
@@ -37,14 +37,20 @@ exports.getOandaTradeTransactions  = async (req, res) => {
 
 
 exports.getProtoIntervalCurrencyTrades = async (req, res) => {
-  const {protoNo, interval, currency} = req.params  
+  console.log('get proto interval currency trades')
+  
+  const { protoNo, interval, currency } = req.params  
+  console.log(currency)
   const dateTimeFilter = req.query.date || '';
   const conditions = {
     proto_no: parseInt(protoNo),
     time_interval: parseInt(interval),
-    abbrev: `${currency}/USD`,
+    abbrev: symbolToAbbrev(currency),
     closed: true,
   }
+
+  console.log('conditions >>')
+  console.log(conditions)
 
   let trades
   try {
@@ -134,7 +140,7 @@ exports.getTrade = async (req, res) => {
   console.log('get trade !!')
 
   const { protoNo, currency, tradeUUID } = req.params;
-  const abbrev = `${currency}/USD`
+  const abbrev = symbolToAbbrev(currency)
 
   let trade;
   try {

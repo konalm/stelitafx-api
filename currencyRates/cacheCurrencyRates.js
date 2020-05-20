@@ -51,8 +51,7 @@ const cacheIntervalRates = (interval, rates, date) =>  new Promise(async (resolv
 const cacheIntervalAbbrevRate = (interval, rate, date) => 
   new Promise(async(resolve, reject) => 
 {
-  const abbrev = `${rate.currency}USD`
-  const filename = `${DIR}/${interval}/${abbrev}.JSON`
+  const filename = `${DIR}/${interval}/${rate.symbol}.JSON`
 
   let currencyRates
   try {
