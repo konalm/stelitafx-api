@@ -7,22 +7,23 @@ const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 const { fetchCandles } = require('@/services/bitfinex')
 const monthsSinceDate = require('./service/getMonthsSinceDate')
 const sinceDate = '2017-01-01T00:00:00.000Z';
-const abbrev= 'USDJPY';
+// const abbrev= 'USDJPY';
 
-const crypto = true
-const gran = 'H12';
-const abbrev = 'ETH/BTC';
+const crypto = false
+const gran = 'H2'
+const abbrev = 'GBP/CAD';
 const symbol = abbrev.replace("/", "");
 
 
 const getPeriods = async (gran) => {
   let candles
   try {
-    candles = await getCandlesSinceDate(sinceDate, endDate, gran, abbrev)
+    candles = await getCandlesSinceDate(sinceDate, new Date(), gran, abbrev)
   } catch (e) {
     console.log(e)
     return console.error(`Failed to get candles`)
   }
+
   const periods = [...candles].map((x) => ({
     date: new Date(x.time),
     exchange_rate: parseFloat(x.mid.c),
@@ -30,6 +31,10 @@ const getPeriods = async (gran) => {
     candle: x.mid,
     volume: x.volume
   }))
+
+
+
+  const x = periods.splice(periods.length - 200, 100)
 
   return periods 
 }
@@ -39,8 +44,6 @@ const getPeriods = async (gran) => {
   let periods 
   if (!crypto) periods = await getPeriods(gran)
   if (crypto) periods = await fetchCandles(symbol, gran, sinceDate)
-
-  console.log(`periods ... ${periods.length}`)
 
   const workerPromises = []
   monthsSinceDate(sinceDate).forEach((x) => {
@@ -58,7 +61,6 @@ const getPeriods = async (gran) => {
     .flat()
     .sort((a, b) => new Date(a) - new Date(b))
   
-  console.log(`calculated periods ... ${calculatedPeriods.length}`)
 
   /* Write to cache */
   try {

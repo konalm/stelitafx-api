@@ -1,6 +1,6 @@
 const compose = (...fns) => x => fns.reduceRight((v, f) => f(v), x);
 
-exports.getDate = date =>  date instanceof Date 
+exports.getDate = date => date instanceof Date 
   ? new Date(date.getTime())
   : new Date(date)
 
@@ -44,3 +44,54 @@ exports.percentage = (gained, lost) => {
 }
 
 exports.percentageOf = (total, obtained) => (obtained / total) * 100
+
+exports.dateStripMins = (date) => {
+  // console.log('date strip mins')
+
+  const d = this.getDate(date)
+  d.setMinutes(0)
+  
+  return d
+}
+
+exports.dateStripSecs = (date) => {
+  // console.log('date strip secs')
+  // console.log(typeof(date))
+
+  const d = this.getDate(date)
+
+  // console.log(`date strip secs -->`)
+  // console.log(d)
+
+  d.setSeconds(0)
+
+  // console.log('date after setting seconds -->')
+  // console.log(d)
+
+  return d
+}
+
+exports.dateCorrectGmt = (date) => {
+  // console.log('date correct GMT')
+  // console.log(date)
+  // console.log(typeof(date))
+
+  return date instanceof Date 
+    ? date.toISOString().replace("Z", "")
+    : date.replace("Z")
+}
+
+
+exports.dateMinusHours = (date, hours) => {
+  const d = this.getDate(date)
+  d.setHours(d.getHours() - hours)
+
+  return d
+}
+
+exports.dateAddHours = (date, hours) => {
+  const d = this.getDate(date)
+  d.setHours(d.getHours() + hours)
+
+  return d
+}

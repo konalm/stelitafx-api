@@ -31,20 +31,27 @@ exports.fetchCandles = async (symbol, sinceDate) => {
 
 const candleBody = candle => Math.abs(candle.close - candle.open)
 
-
 const candleLength = candle => candle.high - candle.low
 
 
 const candleType = candle => {
   if (candle.close > candle.open) return 'bull'
   if (candle.close < candle.open) return 'bear'
+  
   return 'neutral'
 }
 
 
-exports.candleStats = candle => {
+exports.candleStats = _candle => {
+  const candle = {
+    open: parseFloat(_candle.o),
+    high: parseFloat(_candle.h),
+    low: parseFloat(_candle.l),
+    close: parseFloat(_candle.c)
+  }
+
   return {
-    date: candle.date,
+    // date: candle.date,
     type: candleType(candle),
     body: candleBody(candle),
     size: candleLength(candle),

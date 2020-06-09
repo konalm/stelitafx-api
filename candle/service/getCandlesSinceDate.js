@@ -28,9 +28,11 @@ module.exports = async (fromDate, endDate, gran, abbrev) => {
 
 
 const getCandlesRequest = async (fromTs, gran, abbrev) => {
-  // const instrument = abbrev.replace("/", "_")
-  const instrument = 'Bitcoin'
+  const instrument = abbrev.replace("/", "_")
+  // const instrument = 'Bitcoin'
   const path = `instruments/${instrument}/candles?granularity=${gran}&from=${fromTs}&count=5000`
+
+  console.log(path)
 
   let response 
   try {

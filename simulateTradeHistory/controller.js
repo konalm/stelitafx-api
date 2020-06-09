@@ -9,8 +9,101 @@ const triggerConditions = require('./service/conditions')
 const { daysBetweenDates } = require('@/services/utils');
 const candlePatterns = require('./service/candlePatterns')
 const sortStatsBy = require('./service/sortStatsBy')
+const getPerformance = require('@/operation/service/getPerformance');
+const { 
+  wmaCrossedOver, wmaUnder, rateBelowWma, macdCrossedOver, macdUnder
+} = require('@/simulateTradeHistory/service/conditions');
+const simulateTrades = require('@/operation/service/simulateTradesV2');
+const fetchCalcPeriods = require('@/operation/service/fetchCalcPeriods');
+const fetchLivePeriods = require('@/operation/service/fetchLivePeriods');
+
+/**
+ * 
+ */
+exports.simulatePerformance = async (req, res) => {
+  console.log('simulate performance !!')
+
+  const gran = 'M5';
+  const symbol = 'GBPCAD';
+  const sinceDate = '2020-06-01T00:00:00.000Z';
+  const fastWma = 5
+  const slowWma = 15
+  const stopLoss = null
+  const takeProfit = null
+  const upperPeriodWma = 15
+
+  const periods = await fetchCalcPeriods(gran, symbol, sinceDate)
+  const livePeriods = await fetchLivePeriods(gran, symbol, sinceDate)
+
+  console.log('first live period -->')
+  console.log(livePeriods[0])
+
+  console.log('last live period -->')
+  console.log(livePeriods[livePeriods.length - 1])
+
+  
+  livePeriods.forEach((p) => {    
+    if (p.date.toISOString().includes('2020-06-02')) {
+      console.log(p.date)
+      console.log(p.rate)
+      
+      // if (p.date === '2020-06-02T01:00:00.000Z' || p.date === '2020-06-02T02:00:00.000Z') {
+      if (p.date.toISOString().includes('2020-06-02T01') || p.date.toISOString().includes('2020-06-02T02')) {
+        console.log('H1 upper period --------->')
+        console.log(p.upperPeriods.H1.date)
+        console.log(p.upperPeriods.H1.rate)
+        console.log('<---')
+      }
+
+      console.log()
+    }
+  })
+
+  return
 
 
+
+
+  const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
+
+
+  const algo = {
+    open: (shortWma, longWma) => (p, c) => wmaCrossedOver(p, c, shortWma, longWma)
+      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H2, upperPeriodWma),
+
+    close: (shortWma, longWma) => (p, c) => wmaUnder(c, shortWma, longWma),
+  }
+
+  const conditions = {
+    open: algo.open(fastWma, slowWma),
+    close: algo.close(fastWma, slowWma)
+  }
+
+  const trades = simulateTrades(periods)(conditions)(stopLoss)(takeProfit)(symbol)
+  const performance = getPerformance(periods)(conditions)(stopLoss)(takeProfit)
+    (daysOfPeriods)
+    (symbol)
+    ()
+
+  console.log(`trades .. ${trades.length}`)
+
+  trades.forEach((trade) => {
+    const h1RateBelowWma = trade.open.upperPeriods.H1.rate < trade.open.upperPeriods.H1.wma[15]
+    const h2RateBelowWma = trade.open.upperPeriods.H2.rate < trade.open.upperPeriods.H2.wma[15]
+
+    console.log(`h1 rate below .. ${h1RateBelowWma}`)
+    console.log(`h2 rate below .. ${h2RateBelowWma}`)
+    console.log()
+  })
+  
+  return res.send({performance, trades})
+}
+
+
+/**
+ * 
+ */
 exports.simulateTradeHistory = async (req, res) => {
   const stopLoss = 10
   const stopGain = null
@@ -307,31 +400,44 @@ exports.getWmaCrossedOverStats = async (req, res) => {
 }
 
 
+/**
+ * 
+ */
 exports.getCachedCalcPeriods = async (req, res) => {
+  console.log('get cached calc periods !!')
+
   const fromDate = req.query.fromDate || null
   const toDate = req.query.toDate || null 
   const buffer = parseInt(req.query.buffer) || 0 
-  
-  let periods
-  try {
-    periods = JSON.parse( await fs.readFileSync('cache/calculatedPeriods.JSON', 'utf8'))
-  } catch (e) {
-    return res.status(500).send('Failed to read periods from cache')
-  }
+  const gran = req.params.gran
+  const fetchLive = req.query.fetchLive || null
+  const sinceDate = '2020-06-01T00:00:00.000Z';
+  const symbol = 'GBPCAD';
+
+
+  console.log(`from date .. ${fromDate}`)
+  console.log(`to date .. ${toDate}`)
+  console.log(`gran ... ${gran}`)
+
+  let periods = null 
+  if (!fetchLive) periods = await fetchCalcPeriods(gran, symbol, sinceDate)
+  else periods = await fetchLivePeriods(gran, symbol, sinceDate)
 
   if (fromDate) {
-    const x = periods.findIndex((y) => new Date(y.date) > new Date(fromDate))
+    const x = periods.findIndex((y) => new Date(y.date) >= new Date(fromDate))
     periods.splice(0, x - buffer)
   }
 
   if (toDate) {
-    const x = periods.findIndex((y) => new Date(y.date) > new Date(toDate))
+    const x = periods.findIndex((y) => new Date(y.date) >= new Date(toDate))
     periods.splice(x + buffer, periods.length)
   }
 
-  return res.send(periods.splice(0, 20))
-}
+  console.log('first period -->')
+  console.log(periods[0])
 
+  return res.send(periods)
+}
 
 exports.candlePatternSimulator = async (req, res) => {
   const abbrev = req.params.abbrev 

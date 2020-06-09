@@ -7,11 +7,13 @@ const { daysBetweenDates } = require('@/services/utils');
 const calcMacdInBatch = require('@/indicators/macd/service/calcMacdInBatch')
 const {
   macdCrossedOver, 
+  macdCrossedUnder,
   macdUnder, 
+  macdAbove,
   macdBelowThreshold, 
   macdHistogramAboveThreshold, 
-  macdAbove, 
-  rateAboveWma
+  rateAboveWma,
+  rateBelowWma
 } = require('@/simulateTradeHistory/service/conditions')
 const getPerformance = require('../service/getPerformance')
 
@@ -23,55 +25,55 @@ const upperPeriodWma = 15
 
 const algorithms = [
   {
-    open: (p, c) => macdCrossedOver(p, c)
-      && rateAboveWma(c.upperPeriods.H1, upperPeriodWma),
+    open: (p, c) => macdCrossedUnder(p, c)
+      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma),
 
-    close: (p, c) => macdUnder(p, c),
+    close: (p, c) => macdAbove(p, c),
     algo: 'H1'
   },
-  {
-    open: (p, c) => macdCrossedOver(p, c)
-      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma),
+  // {
+  //   open: (p, c) => macdCrossedUnder(p, c)
+  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma),
 
-    close: (p, c) => macdUnder(p, c),
-    algo: 'H2'
-  },
-  {
-    open: (p, c) => macdCrossedOver(p, c)
-      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma),
+  //   close: (p, c) => macdAbove(p, c),
+  //   algo: 'H2'
+  // },
+  // {
+  //   open: (p, c) => macdCrossedUnder(p, c)
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma),
 
-    close: (p, c) => macdUnder(p, c),
-    algo: 'H4'
-  },
+  //   close: (p, c) => macdAbove(p, c),
+  //   algo: 'H4'
+  // },
   {
-    open: (p, c) => macdCrossedOver(p, c)
-      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma),
-    close: (p, c) => macdUnder(p, c),
+    open: (p, c) => macdCrossedUnder(p, c)
+      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma),
+    close: (p, c) => macdAbove(p, c),
     algo: 'H6'
   },
   {
-    open: (p, c) => macdCrossedOver(p, c)
-      && rateAboveWma(c.upperPeriods.H1, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+    open: (p, c) => macdCrossedUnder(p, c)
+      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+      && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
 
-    close: (p, c) => macdUnder(p, c),
+    close: (p, c) => macdAbove(p, c),
 
     algo: 'H1-H12'
   },
-  {
-    open: (p, c) => macdCrossedOver(p, c)
-      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H4, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H6, upperPeriodWma)
-      && rateAboveWma(c.upperPeriods.H12, upperPeriodWma),
+  // {
+  //   open: (p, c) => macdCrossedUnder(p, c)
+  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
 
-    close: (p, c) => macdUnder(p, c),
+  //   close: (p, c) => macdAbove(p, c),
 
-    algo: 'H2-H12'
-  }
+  //   algo: 'H2-H12'
+  // }
 ]
 
 const getPeriods = async (gran, map) => {
@@ -93,6 +95,15 @@ const getPeriods = async (gran, map) => {
 (async () => {
   const periods = await getPeriods(gran, false)
 
+  console.log(periods[0].date)
+  console.log(periods[0].upperPeriods.H1.date)
+
+  console.log('last period -->')
+  console.log(periods[periods.length - 1].date)
+  console.log(periods[periods.length - 1].upperPeriods.H1.date)
+
+  return 
+
   const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
 
   const performances = []
@@ -110,8 +121,7 @@ const getPeriods = async (gran, map) => {
     .splice(0, 20)
     .reverse()
 
-  console.log('BEST >>>>')
-  console.log(best)
+  console.log(worst)
 })();
 
 

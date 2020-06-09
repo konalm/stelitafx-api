@@ -1,6 +1,8 @@
 const controller = require('./controller')
 
 module.exports = (app) => {
+  app.route('/simulate-performance').get(controller.simulatePerformance)
+  
   app.route('/simulate-history')
     .get(controller.simulateTradeHistory)
   
@@ -14,6 +16,6 @@ module.exports = (app) => {
   app.route('/stochastic-stats/:abbrev').get(controller.getStochasticStats)
   app.route('/ratewma-stochastic-stats/:abbrev').get(controller.getRateAboveWmaStochasticStats)
   app.route('/wmaover-stochastic-stats/:abbrev').get(controller.getWmaCrossedOverStochasticStats)
-  app.route('/cached-calc-periods').get(controller.getCachedCalcPeriods)
+  app.route('/cached-calc-periods/:gran').get(controller.getCachedCalcPeriods)
   app.route('/candle-pattern-simulator/:abbrev').get(controller.candlePatternSimulator)
 }

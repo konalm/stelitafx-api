@@ -1,3 +1,5 @@
+const { candleStats, isTimesBigger } = require('@/operation/candlePatterns/service')
+
 exports.wmaConjoinedStochastic = (prior, current) => {
   if (!prior) return false
 
@@ -61,7 +63,7 @@ exports.stochasticCrossedUnder = (prior, current, triggerStoch) => {
   return (prior.stochastic >= triggerStoch) && (current.stochastic < triggerStoch)
 }
 
-const wmaCrossedUnder = (prior, current, shortWma, longWma) => {
+exports.wmaCrossedUnder = (prior, current, shortWma, longWma) => {
   if (!prior.wma[shortWma] || !prior.wma[longWma]) return false
 
   return (
@@ -96,9 +98,6 @@ exports.wmaOver = (current, shortWma, longWma) => {
 
   return current.wma[shortWma] > current.wma[longWma]
 }
-
-
-exports.rateBelowWma = (current, wma) => current.exchange_rate < current.wma[wma]
 
 exports.adxCrossover = (prior, current) => prior.adx.plusDi <= prior.adx.minusDi 
   && current.adx.plusDi > current.adx.minusDi
@@ -139,6 +138,10 @@ exports.macdCrossedOver = (prior, current) =>  {
   return (prior.macd.macdLine < prior.macd.macdLag) && (current.macd.macdLine > current.macd.macdLag)
 }
 
+exports.macdCrossedUnder = (prior, current) =>  {
+  return (prior.macd.macdLine >= prior.macd.macdLag) && (current.macd.macdLine < current.macd.macdLag)
+}
+
 exports.macdAbove = (prior, current) => {
   return current.macd.macdLine >= current.macd.macdLag
 }
@@ -159,5 +162,51 @@ exports.macdHistogramBelowThreshold = (prior, current, threshold) => {
   return current.macd.histogram <= threshold
 }
 
+exports.rateClosedOverWma = (prior, current, wma) => {
+  if (!prior.wma[wma]) return false
 
-exports.alwaysTrueTest = (prior, current) => false
+  return prior.rate <= prior.wma[wma] && current.rate > current.wma[wma]
+}
+
+exports.rateClosedUnderWma = (prior, current, wma) => {
+  if (!prior.wma[wma]) return false
+
+  return prior.rate >= prior.wma[wma] && current.rate < current.wma[wma]
+}
+
+exports.rateBelowWma = (current, wma) => current.rate < current.wma[wma]
+
+exports.rateBelowUpperPeriodWma = (current, upperPeriod, wma) => {
+  return current.rate < current.upperPeriods[upperPeriod].wma[wma]
+}
+
+exports.engulfedCandle = (prior, current) => {
+  const priorCandle = candleStats(prior.candle)
+  const currentCandle = candleStats(current.candle)
+
+  if (priorCandle.type === 'bear' && currentCandle.type === 'bull') {
+    if (currentCandle.body >= priorCandle.size) return true
+
+    // if (isTimesBigger(currentCandle.body, priorCandle.size, 1.0)) return true
+  }
+  
+  return false 
+}
+
+
+const candleBodyLength = (candle) => parseFloat(candle.o) - parseFloat(candle.l)
+
+const candleLength = (candle) => parseFloat(c)
+
+
+exports.alwaysTrue = (prior, current) => true
+
+exports.alwaysFalse = (prior, current) => false
+
+exports.bullCandle = (candle) => {
+  return candle.close > candle.open
+}
+
+exports.bearCandle = (candle) => {
+  return candle.open > candle.close
+}

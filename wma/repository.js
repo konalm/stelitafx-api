@@ -2,6 +2,7 @@ const conn = require('../db');
 const db = require('../dbInstance')
 const getIntervalMins = require('../services/intervalMins')
 const formatMysqlDate = require('../services/formatMysqlDate')
+const symbolToAbbrev = require('@/services/symbolToAbbrev');
 
 
 exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, conn) =>
@@ -50,7 +51,6 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
   const queryValues = [currencyAbbrev, interval, amount, offset];
 
   const dbConn = db()
-  // console.log(`getting WMAs .... abbrev: ${currencyAbbrev}, interval: ${interval}`)
 
   dbConn.query(query, queryValues, (e, results) => {
     dbConn.end()
@@ -80,22 +80,28 @@ exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSou
 })
 
 
-exports.getWMAFromDate = (abbrev, timeInterval, startDate, toDate) => 
+exports.getWMAFromDate = (symbol, timeInterval, startDate, toDate) => 
   new Promise((resolve, reject) => 
 {
+  const abbrev = symbolToAbbrev(symbol)
+  const useGran = typeof(timeInterval) === 'string' && timeInterval.includes('H') ? true : false 
+
   let query = `
     SELECT abbrev, date, rate, wma_data_json
     FROM currency_wma
-    WHERE time_interval = ?
-      AND date >= ?
-      AND date <= ?
+    WHERE date >= ?
+    AND date <= ?
   `
-  if (abbrev) query += `AND abbrev = ?`
-  query += `ORDER BY date DESC`
+  if (!useGran) query += ` AND time_interval = ?`
+  else query += ` AND gran = ?`
 
-  const queryValues = [timeInterval, formatMysqlDate(startDate), formatMysqlDate(toDate)]
+  if (abbrev) query += ` AND abbrev = ?`
+  query += ` ORDER BY date DESC`
+
+  const queryValues = [formatMysqlDate(startDate), formatMysqlDate(toDate), timeInterval]
   
   if (abbrev) queryValues.push(abbrev)
+
 
   const dbConn = db()
   dbConn.query(query, queryValues, (err, results) => {
@@ -125,20 +131,37 @@ exports.getWMAFromDate = (abbrev, timeInterval, startDate, toDate) =>
 })
 
 
-exports.getWMAsBetweenDates = (abbrev, startDate, endDate, timeInterval, _buffer) =>
+exports.getWMAsBetweenDates = (abbrev, startDate, endDate, _timeInterval, _buffer) =>
   new Promise((resolve, reject) =>
 {
-  const buffer = _buffer * timeInterval
-  const query = `
+  console.log('get wmas between dates')
+  console.log(_timeInterval)
+
+  const useGran = !_timeInterval.includes('H') 
+    ? false 
+    : true 
+  const interval = useGran ? intervalFromGran(_timeInterval) : _timeInterval
+
+  // const buffer = !useGran ? _buffer * interval : 0
+  const buffer = _buffer * interval
+
+  let query = `
     SELECT date, rate, wma_data_json
     FROM currency_wma
     WHERE abbrev = ?
-     AND time_interval = ?
-     AND date >= (? - INTERVAL ? MINUTE)
-     AND date <= (? + INTERVAL ? MINUTE)
-    ORDER BY date DESC
-  `
-  const queryValues = [abbrev, timeInterval, startDate, buffer, endDate, buffer];
+    AND date >= (? - INTERVAL ? MINUTE)
+    AND date <= (? + INTERVAL ? MINUTE)`
+  
+  if (!useGran) query += ` AND time_interval = ?`
+  else query += ` AND gran = ?`
+
+  query += ` ORDER BY date DESC`
+
+  const queryValues = [abbrev, startDate, buffer, endDate, buffer, _timeInterval];
+
+
+  console.log(query)
+  console.log(queryValues)
 
   const dbConn = db()
   dbConn.query(query, queryValues, (err, results) => {

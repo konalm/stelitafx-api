@@ -58,6 +58,8 @@ module.exports =
   // console.log(`losing trades .. ${losingTrades.length}`)
   // console.log(`l trades upper p criteria ... ${lTradesUpperPeriodCriteriaPerc}`)
 
+  const performance = percentage(totalWinningPips, totalLosingPips * -1)
+
   
   return {
     stopLoss,
@@ -77,7 +79,8 @@ module.exports =
     netPipsPerDay: pipsPerDay - costPerDay,
     totalWinningPips,
     totalLosingPips: totalLosingPips * -1,
-    performance: percentage(totalWinningPips, totalLosingPips * -1)
+    performance,
+    shortPerformance: 100 - performance
   }
 }
 

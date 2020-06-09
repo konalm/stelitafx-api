@@ -258,7 +258,7 @@ exports.tradesTotalPips = (trades, abbrev) => {
 
   trades.forEach((x) => {
     if (!x.close) return   
-    totalPips += pipCalc(x.open.exchange_rate, x.close.exchange_rate, abbrev)
+    totalPips += pipCalc(x.open.rate, x.close.rate, abbrev)
   })
 
   return totalPips

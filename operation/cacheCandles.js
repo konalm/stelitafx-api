@@ -3,16 +3,17 @@ const fs = require('fs')
 
 const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 
-const sinceDate = '2015-01-01T00:00:00.000Z';
+const sinceDate = '2020-01-01T00:00:00.000Z';
 const endDate = new Date();
 const abbrev = 'GBP/USD';
+const gran = 'M5';
 
 
 (async () => {
   /* get 5M candles since date */ 
   let candles5M
   try {
-    candles5M = await getCandlesSinceDate(sinceDate, endDate, 5, abbrev)
+    candles5M = await getCandlesSinceDate(sinceDate, endDate, gran, abbrev)
   } catch (e) {
     return console.error(`Failed to get candles`)
   }
@@ -46,7 +47,7 @@ const abbrev = 'GBP/USD';
   try {
     const cacheFile = `${abbrev.replace('/', '')}.JSON`
     await fs.writeFileSync(
-      `../cache/historicCandles/${cacheFile}`, 
+      `../cache/historicCandles/${gran}/${cacheFile}`, 
       JSON.stringify(periods)
     )
   } catch (e) {
