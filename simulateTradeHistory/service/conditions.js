@@ -204,9 +204,17 @@ exports.alwaysTrue = (prior, current) => true
 exports.alwaysFalse = (prior, current) => false
 
 exports.bullCandle = (candle) => {
-  return candle.close > candle.open
+  return parseFloat(candle.c) > parseFloat(candle.o)
 }
 
 exports.bearCandle = (candle) => {
   return candle.open > candle.close
+}
+
+exports.volumeThrust = (prior, current, thrust) => {
+  return current.volume > (prior.volume * thrust) 
+}
+
+exports.minVolume = (prior, current, min) => {
+  return current.volume > min
 }

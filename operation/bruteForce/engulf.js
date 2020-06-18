@@ -14,16 +14,16 @@ const upperPeriodWma = 15
 const algorithms = [
   {
     open: (p, c) => engulfedCandle(p, c)
-      // && rateAboveWma(c.upperPeriods.H1, upperPeriodWma)
+      && rateAboveWma(c, 150),
       // && rateAboveWma(c.upperPeriods.H2, upperPeriodWma),
-      && rateAboveWma(c.upperPeriods.H2, upperPeriodWma),
+      // && rateAboveWma(c.upperPeriods.H2, upperPeriodWma),
     close: (p, c) => alwaysFalse(p, c)
   }
 ]
 
-const gran = 'M15'
+const gran = 'H1'
 const symbol = 'GBPUSD'
-const sinceDate = '2019-01-01T00:00:00.000Z';
+const sinceDate = '2017-01-01T00:00:00.000Z';
 
 (async () => {
   const periods = await fetchCalcPeriods(gran, symbol, sinceDate)
@@ -46,8 +46,8 @@ const sinceDate = '2019-01-01T00:00:00.000Z';
   // for (let wma = 5; wma < 100; wma += 5) {
     // console.log(`wma .. ${wma}`)
 
-    for (let stopLoss = 5; stopLoss <= 50; stopLoss += 5) {
-      for (let takeProfit = 5; takeProfit <= 50; takeProfit += 5) {
+    for (let stopLoss = 5; stopLoss <= 150; stopLoss += 5) {
+      for (let takeProfit = 5; takeProfit <= 150; takeProfit += 5) {
         /* loop algorithms */
         algorithms.forEach((algo, i) => {
           const performance = getPerformance(periods)(algo)(stopLoss > 0 ? stopLoss : null)
@@ -55,7 +55,7 @@ const sinceDate = '2019-01-01T00:00:00.000Z';
             (daysOfPeriods)
             (symbol)
             ()
-          performance.algo = 'engulfed__isTimesBigger'
+          performance.algo = 'engulfed'
           performances.push(performance)
         })
       }

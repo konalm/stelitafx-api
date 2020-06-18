@@ -1,9 +1,11 @@
 const symbolToAbbrev = require('@/services/symbolToAbbrev')
 const { getCandles, getCandlesBetweenDates } = require('../repository')
+const getCachedCandles = require('./getCachedHistoricCandles')
+const intervalFromGran = require('@/services/intervalFromGran')
 
 
 module.exports = async (reqParams, reqQuery) => {
-  const { interval, symbol } = reqParams
+  const { gran, symbol } = reqParams
   const abbrev = symbolToAbbrev(symbol)
   const count = parseInt(reqQuery.count) || 50
   const offset = parseInt(reqQuery.offset) || 0
@@ -18,8 +20,16 @@ module.exports = async (reqParams, reqQuery) => {
   } 
   /* Get latest candles */
   else {
-    candles = await getCandles(interval, abbrev, count, offset)
+    candles = await getCachedCandles(gran, symbol, count, offset)
   }
 
-  return candles.sort((a, b) => new Date(a.date) - new Date(b.date))
+  const mappedCandles = candles.map((x) => ({
+    date: new Date(x.date),
+    open: parseFloat(x.candle.o),
+    low: parseFloat(x.candle.l),
+    high: parseFloat(x.candle.h),
+    close: parseFloat(x.candle.c)
+  }))
+
+  return mappedCandles.sort((a, b) => new Date(a.date) - new Date(b.date))
 }

@@ -6,7 +6,27 @@ const constructWaveDataPoints = require('./service/constructWaveDataPoints')
 const constructWaves = require('./service/constructWaves')
 const impulseWaveScanner = require('./service/impulseWave')
 const handleGetCandlesRequest = require('./service/handleGetCandlesRequest')
+const getCachedCandles = require('./service/getCachedHistoricCandles')
+const harmonicPatterns = require('./service/harmonicPattern')
+const constructTrends = require('./service/constructTrends')
+const constructFullWaves = require('./service/constructFullWaves')
 
+
+/**
+ * 
+ */
+exports.getVolume = async (req, res) => {
+  const { gran, symbol } = req.params 
+  const count = req.query.count || null
+  const offset = req.query.offset || 0
+  const candles = await getCachedCandles(gran, symbol, count, offset)
+  const volume = candles.map((x) => ({ 
+    date: new Date(x.date), 
+    volume: x.volume
+  }))
+
+  return res.send(volume)
+}
 
 /**
  * 
@@ -14,13 +34,10 @@ const handleGetCandlesRequest = require('./service/handleGetCandlesRequest')
 exports.getWaves = async (req, res) => {
   const candles = await handleGetCandlesRequest(req.params, req.query)
   const heikenAshiCandles = getHeikinAshiCandles(candles)
-
-
   const waveDataPoints = constructWaveDataPoints(heikenAshiCandles)
 
   return res.send(waveDataPoints)
 }
-
 
 /**
  * 
@@ -28,22 +45,46 @@ exports.getWaves = async (req, res) => {
 exports.scanImpulseWaves = async (req, res) => {
   const symbol = req.params.symbol
   const candles = await handleGetCandlesRequest(req.params, req.query)
-
-  console.log('candles -->')
-  console.log(candles[0])
-  console.log(candles[candles.length - 1])
-
   
   const heikenAshiCandles = getHeikinAshiCandles(candles)
   const waveDataPoints = constructWaveDataPoints(heikenAshiCandles)
   const waves = constructWaves(waveDataPoints, symbol)
   const impulseWaves = impulseWaveScanner(waves)
   
-  console.log('data points -->')
-  console.log(waveDataPoints[0])
-  console.log(waveDataPoints[waveDataPoints.length - 1])
-
   return res.send(impulseWaves)
+}
+
+/**
+ * 
+ */
+exports.getTrends = async (req, res) => {
+  const symbol = req.params.symbol
+  const candles = await handleGetCandlesRequest(req.params, req.query)
+  const heikenAshiCandles = getHeikinAshiCandles(candles)
+  const waveDataPoints = constructWaveDataPoints(heikenAshiCandles)
+  const waves = constructWaves (waveDataPoints, symbol)
+  const fullWaves = constructFullWaves(waves)
+  const trends = constructTrends(fullWaves)
+
+  return res.send(trends)
+}
+
+/**
+ * 
+ */
+exports.scanHarmonicPatterns = async (req, res) => {
+  const symbol = req.params.symbol
+  const candles = await handleGetCandlesRequest(req.params, req.query)
+
+  console.log(`candles .. ${candles.length}`)
+  
+  const heikenAshiCandles = getHeikinAshiCandles(candles)
+  const waveDataPoints = constructWaveDataPoints(heikenAshiCandles)
+  const waves = constructWaves(waveDataPoints, symbol)
+
+  harmonicPatterns(waves)
+
+  return res.send('scan harmonic patterns')
 }
 
 
@@ -59,11 +100,7 @@ exports.getHeikenAshiCandles = async (req, res) => {
 
 
 exports.getCandles = async (req, res) => {
-  const { interval, currency } = req.params
-  const count = parseInt(req.params.count)
-  const offset = parseInt(req.query.offset) || 0
-  const abbrev = symbolToAbbrev(currency)
-  const candles = await getCandles(interval, abbrev, count, offset)
+  const candles = await handleGetCandlesRequest(req.params, req.query)
 
   return res.send(candles)
 }

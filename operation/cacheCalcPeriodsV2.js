@@ -6,12 +6,12 @@ const getCachedPeriodsSinceDate = require('@/candle/service/getCachedPeriodsSinc
 const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 const { fetchCandles } = require('@/services/bitfinex')
 const monthsSinceDate = require('./service/getMonthsSinceDate')
-const sinceDate = '2017-01-01T00:00:00.000Z';
+const sinceDate = '2019-01-01T00:00:00.000Z';
 // const abbrev= 'USDJPY';
 
 const crypto = false
-const gran = 'H2'
-const abbrev = 'GBP/CAD';
+const gran = 'M5'
+const abbrev = 'GBP/USD';
 const symbol = abbrev.replace("/", "");
 
 
@@ -31,7 +31,6 @@ const getPeriods = async (gran) => {
     candle: x.mid,
     volume: x.volume
   }))
-
 
 
   const x = periods.splice(periods.length - 200, 100)

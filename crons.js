@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const cron = require('node-cron');
 const config = require('./config');
 const insertCurrencyRates = require('./updateCurrencyRates/insertCurrencyRates');
-const implementStops= require('./algorithms/stopLoss');
+const implementStops = require('./algorithms/stopLoss');
 const dbConnGarbageCollector = require('./dbConnGarbageCollector');
 // const algorthmStoryPipeline = require('./algorithms/storyPipeline')
 // const dbConnections = require('./dbConnections')
@@ -11,8 +11,8 @@ const uploadCandles = require('@/candle/service/populateCandles');
 
 
 cron.schedule('* * * * *', async () => {
-  return 
-  
+  return
+
 // (async () => {
   const d = new Date()
   const min = d.getMinutes()

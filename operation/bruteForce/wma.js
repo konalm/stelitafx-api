@@ -76,8 +76,8 @@ const algorithms = [
 ];
 
 const gran = 'M5';
-const abbrev = 'GBPCAD';
-const sinceDate = '2018-01-01T00:00:00.000Z';
+const abbrev = 'GBPUSD';
+const sinceDate = '2020-01-01T00:00:00.000Z';
 // const stopLosses = [null, 1, 5, 15, 30, 50];
 // const stopGains = [null];
 

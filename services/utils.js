@@ -45,6 +45,11 @@ exports.percentage = (gained, lost) => {
 
 exports.percentageOf = (total, obtained) => (obtained / total) * 100
 
+exports.percentageDiff = (o, n) => {
+  const diff = n - o
+  return (diff / 10) * 100
+}
+
 exports.dateStripMins = (date) => {
   // console.log('date strip mins')
 

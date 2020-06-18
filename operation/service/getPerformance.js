@@ -14,8 +14,8 @@ const tradesAvgDuration = (trades) => trades.reduce(
 module.exports = 
   periods => conditions => stopLoss => stopGain => daysOfPeriods => abbrev => upperPeriods =>
 {
-  // const trades = simulateTrades(periods)(conditions)(stopLoss)(stopGain)(abbrev)
-  const trades = simulateTradesV2(periods)(conditions)(stopLoss)(stopGain)(abbrev)
+  const trades = simulateTrades(periods)(conditions)(stopLoss)(stopGain)(abbrev)
+  // const trades = simulateTradesV2(periods)(conditions)(stopLoss)(stopGain)(abbrev)
 
   // if (trades.length) {
   //   trades.forEach((trade) => {
