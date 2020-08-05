@@ -14,16 +14,24 @@ const {
   adxPlusDiBelowThreshold,
   adxMinusDiAboveThreshold,
   rateAboveWma,
-  rateBelowWma
+  rateBelowWma,
+  trendUp,
+  trendDown,
+  upperTrendUp,
+  upperTrendDown,
+  progressiveTrendUp
 } = require('@/simulateTradeHistory/service/conditions')
 const { daysBetweenDates } = require('@/services/utils');
 const getPerformance = require('../service/getPerformance')
 const getMonthPerformances = require('@/operation/service/getMonthPerformances');
 const getMonthsSinceDate = require('@/operation/service/getMonthsSinceDate')
+const fetchHACandles = require('@/candle/service/getHeikenAshiCandlesSinceDate')
+const fetchHATrendGroups = require('@/candle/service/heikenAshiGroupTrends')
+ 
 
-const gran = 'M15'
-const abbrev = 'GBPCAD';
-const sinceDate = '2019-01-01T00:00:00.000Z';
+const gran = 'M5'
+const abbrev = 'GBPUSD';
+const sinceDate = '2017-10-01T00:00:00.000Z';
 // const stopLosses = [null, 1, 5, 15, 30, 50];
 
 const upperPeriodWma = 15
@@ -33,7 +41,7 @@ const algos = [
   // {
   //   open: trigger => (p, c) => stochasticCrossedOver(p, c, trigger),
   //   close: trigger  => (p, c) => stochasticCrossedUnder(p, c, trigger),
-  //   cacheFilename: 'overUnder'
+  //   cacheFilename: 'overUnder'p
   // },
   // {
   //   open: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger)
@@ -56,35 +64,57 @@ const algos = [
     // algo: 'overOver&UpperPeriod'
   // },
   {
-    open: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger)
-      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+    open: (haTrendGroups, haCandles) => (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger)
+      && upperTrendUp(c.upperHACandles['H1'])
+      && upperTrendUp(c.upperHACandles['H4'])
+      && rateAboveWma(c, 100),
+
+      // && progressiveTrendUp(c.upperHACandles['H1'], haTrendGroups, haCandles)
+      // && progressiveTrendUp(c.upperHACandles['H4'], haTrendGroups, haCandles),
+
+      // && trendUp(c.upperHACandles['H4']),
+      // && trendUp(c.upperHACandles['H1']),
+
+      // && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
+      // && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+      // && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+      // && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+      // && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+
     close: (trigger) => (p, c) => stochasticCrossedOver(p, c, trigger),
-    algo: 'underOver__upperPeriod'
+    algo: 'overOver'
   },
-  {
-    open: (trigger) => (p, c) =>  stochasticCrossedUnder(p, c, trigger)
-      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
-    close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
-    algo: 'underUnder__upperPeriod'
-  }
+  // {
+  //   open: (trigger) => (p, c) =>  stochasticCrossedUnder(p, c, trigger)
+  //     && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
+  //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
+  //   close: (trigger) => (p, c) => stochasticCrossedUnder(p, c, trigger),
+  //   algo: 'underUnder__upperPeriod'
+  // }
 ];
 
 
 (async () => {
-  const filePath = `../../cache/calculatedPeriods/withRelatedUpper/${gran}/${abbrev}.JSON`
+  console.log('BRUTE FORCE STOCH')
+  const filePath = `./cache/calculatedPeriods/withRelatedUpper/${gran}/${abbrev}.JSON`
   const allPeriods = JSON.parse(await fs.readFileSync(filePath, 'utf8'))
-  const periods = allPeriods.filter((x) => new Date(x.date) >= new Date(sinceDate))
-
+  const periods = allPeriods.filter((x) => new Date(x.date) >= new Date(sinceDate))  
   const months = getMonthsSinceDate(sinceDate)
   const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
+
+
+  const HACandles = await fetchHACandles(gran, abbrev, sinceDate)
+  const HATrendGroups = fetchHATrendGroups(HACandles)
+
+  console.log(`HA Candles .. ${HACandles.length}`)
+  console.log(`HA trend groupd .. ${HATrendGroups.length}`)
+
+
+  console.log(`periods length .. ${periods.length}`)
+
 
   const stats = []
   for (let i = 0; i < algos.length; i++) {
@@ -92,7 +122,9 @@ const algos = [
 
     let algoStats
     try {
-      algoStats = await performAlgorithm(periods, algos[i], daysOfPeriods, months)
+      algoStats = await performAlgorithm(
+        periods, algos[i], daysOfPeriods, months, HACandles, HATrendGroups
+      )
     } catch (e) {
       console.log('Failed to perform algorithm')
       console.log(e)
@@ -103,7 +135,7 @@ const algos = [
   /* write to cache */ 
   try {
     await fs.writeFileSync(
-      `../../cache/stats/stochastic/${gran}/${abbrev}.JSON`,  JSON.stringify(stats)
+      `./cache/stats/stochastic/${gran}/${abbrev}.JSON`,  JSON.stringify(stats)
     )
   } catch (e) {
     throw new Error(`Failed to write to cache`)
@@ -111,26 +143,28 @@ const algos = [
 })();
 
 
-const performAlgorithm = async (periods, algo, daysOfPeriods, months) => {
+const performAlgorithm = async (periods, algo, daysOfPeriods, months, HACandles, HATrendGroups) => {
   const stats = []
+
+  const x = 90
+  const y = 95
+
   
   /* loop open triggers */
-  for (let x = 0; x <= 100; x += 5) {
-    console.log(`open trigger ... ${x}`)
-
+  // for (let x = 0; x <= 100; x += 5) {
     /* loop close triggers */
-    for (let y = 0; y <= 100; y += 5) {
-      console.log(`close trigger ... ${y}`)
+    // for (let y = 0; y <= 100; y += 5) {
+      if (y === 100) y = 99
 
-      const conditions = {  open: algo.open(x),  close: algo.close(y) }
+      const conditions = {  open: algo.open(HATrendGroups, HACandles)(x),  close: algo.close(y) }
 
-      const stopLoss = 0
-      const takeProfit = 0
+      const stopLoss = null
+      const takeProfit = null
 
       /* loop stop loss performances */ 
       const stopLossPerformances = []
-      // for (let stopLoss = 0; stopLoss <= 30; stopLoss += 5) {
-        // for (let takeProfit = 0; takeProfit <= 30; takeProfit += 5) {
+      // for (let stopLoss = 0; stopLoss <= 50; stopLoss += 5) {
+        // for (let takeProfit = 0; takeProfit <= 50; takeProfit += 5) {
           const performance = getPerformance(periods)(conditions)(stopLoss)(takeProfit)
             (daysOfPeriods)
             (abbrev)
@@ -149,8 +183,8 @@ const performAlgorithm = async (periods, algo, daysOfPeriods, months) => {
           algo: algo.algo
         }))
       )
-    }
-  } 
+    // }
+  // } 
 
   return stats
 }

@@ -19,4 +19,6 @@ module.exports = (app) => {
   app.route('/volume/:symbol/grans/:gran').get(controller.getVolume);
 
   app.route('/trends/:symbol/grans/:gran').get(controller.getTrends);
+
+  app.route('/rsi/:symbol/grans/:gran').get(controller.getRsi)
 }

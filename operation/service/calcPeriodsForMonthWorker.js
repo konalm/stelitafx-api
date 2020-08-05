@@ -9,9 +9,6 @@ const utils = require('@/services/utils');
 const { workerData, parentPort } = require('worker_threads');
 const { date, periods } = workerData;
 
-// const wmas = [5, 15, 50, 100, 150, 200]
-
-
 const log = (mes) => parentPort.postMessage(mes);
 
 const endDate = utils.getDate(date)
@@ -55,7 +52,7 @@ periods.forEach((x, periodIndex) => {
   // x.obc = calcObcInBatch(periods, periodIndex)
 
   /* Calculate MACD */
-  // x.macd = calcMacdInBatch(periods, periodIndex)
+  x.macd = calcMacdInBatch(periods, periodIndex)
 })
 
 console.log(`PERIODS .. ${periods.length}`)

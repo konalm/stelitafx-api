@@ -1,4 +1,5 @@
 const { candleStats, isTimesBigger } = require('@/operation/candlePatterns/service')
+const getProgressiveCandleTrend = require('@/operation/service/progressiveCandleTrend');
 
 exports.wmaConjoinedStochastic = (prior, current) => {
   if (!prior) return false
@@ -186,8 +187,6 @@ exports.engulfedCandle = (prior, current) => {
 
   if (priorCandle.type === 'bear' && currentCandle.type === 'bull') {
     if (currentCandle.body >= priorCandle.size) return true
-
-    // if (isTimesBigger(currentCandle.body, priorCandle.size, 1.0)) return true
   }
   
   return false 
@@ -217,4 +216,82 @@ exports.volumeThrust = (prior, current, thrust) => {
 
 exports.minVolume = (prior, current, min) => {
   return current.volume > min
+}
+
+exports.trendUp = (current) => {
+  return current.trend === 'up'
+}
+
+exports.upperTrendUp = (current) => {
+  // console.log('upper trend up')
+  // console.log(current)
+
+  return current.upperTrend === 'up'
+}
+
+exports.upperTrendDown = (current) => {
+  return current.upperTrend === 'down'
+}
+
+exports.trendDown = (current) => {
+  return current.trend === 'down'
+}
+
+exports.progressiveTrendUp = (current, haTrendGroups, haCandles) => {
+  const progressiveTrendUp = getProgressiveCandleTrend(current, haTrendGroups, haCandles)
+
+  return progressiveTrendUp && progressiveTrendUp.upperTrend === 'up'
+}
+
+
+exports.progressiveUpperTrendUp = (current, haTrendGroups, haCandles) => {
+
+}
+
+
+exports.periodLow = (current, candles, length) => {
+  const index = candles.findIndex((x) => x.date === current.date)
+  if (index + 1 < length) return false 
+
+  const indices = []
+  for (let i = index - length + 1; i <= index; i++) indices.push(i)
+  const relevantCandles = indices.map(i => candles[i])
+
+  const priorCandles = relevantCandles.splice(0, length - 1)
+  const priorCandleLow = priorCandles.reduce((a, b) => a.close < b.close ? a : b)
+
+  return relevantCandles[0].close < priorCandleLow.close
+}
+
+
+exports.periodHigh = (current, candles, length) => {
+  const index = candles.findIndex((x) => x.date === current.date)
+  if (index + 1 < length) return false 
+
+  const indices = []
+  for (let i = index - length + 1; i <= index; i++) indices.push(i)
+  const relevantCandles = indices.map(i => candles[i])
+
+  const priorCandles = relevantCandles.splice(0, length - 1)
+  const priorCandleHigh = priorCandles.reduce((a, b) => a.close > b.close ? a : b)
+
+  return relevantCandles[0].close > priorCandleHigh.close
+}
+
+exports.rsiAbove = (current, thresh) => {
+  // console.log(`rsi above .. ${thresh}`)
+  // console.log(current.rsi)
+
+  if (!current.rsi) return false
+
+  return current.rsi.rsi >= thresh
+}
+
+exports.rsiBelow = (current, thresh) => {
+  // console.log('rsi below')
+  // console.log(current.rsi)
+
+  if (!current.rsi) return false
+
+  return current.rsi.rsi <= thresh
 }

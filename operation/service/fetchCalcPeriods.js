@@ -1,16 +1,20 @@
 const fs = require('fs')
 
 module.exports = async (gran, abbrev, sinceDate) => {
+  console.log('fetch calc periods')
+
   const historicCandles = false 
 
-  // let path 
-  // if (!historicCandles) {
-  //   path = gran.includes('H') ? 'calculatedPeriods' : 'calculatedPeriods/withRelatedUpper'
-  // } else {
-  //   path = 'historicCandles'
-  // }
+  let path 
+  if (!historicCandles) {
+    path = gran.includes('H') ? 'calculatedPeriods' : 'calculatedPeriods/withRelatedUpper'
+  } else {
+    path = 'historicCandles'
+  }
 
-  path = 'calculatedPeriods'
+  // path = 'calculatedPeriods'
+
+  console.log(path)
 
 
   let periods

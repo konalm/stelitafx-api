@@ -12,9 +12,5 @@ module.exports = (rates, index) => {
 
   const relevantRates = [...rates].splice(index - length, length)
 
-
-  // console.log('RELEVANT RATES >>')
-  // console.log(relevantRates)
-
   return calcMacd(relevantRates)
 }

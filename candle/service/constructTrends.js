@@ -15,7 +15,7 @@ module.exports = (waves) => {
     let trend 
     if (higherHigh && higherLow) trend = 'up'
     else if (!higherHigh && !higherLow) trend = 'down'
-    else trend = 'congestion'
+    // else trend = 'congestion'
 
     if (!lastTrend) {
       trends.push({
@@ -34,10 +34,10 @@ module.exports = (waves) => {
         timeline: { start: wave.first.timeline.start }
       }
 
-      if (trend === 'congestion') {
-        newTrend.ceiling = getHighPoint(priorWave.second)
-        newTrend.floor = getLowPoint(priorWave.second)
-      }
+      // if (trend === 'congestion') {
+      //   newTrend.ceiling = getHighPoint(priorWave.second)
+      //   newTrend.floor = getLowPoint(priorWave.second)
+      // }
 
       trends.push(newTrend)
     }

@@ -14,10 +14,11 @@ const ops = [
   'rateClosedWma',
   'engulfed',
   'lawOfAverage',
-  'volume'
+  'volume',
+  'rsi'
 
 ]
-const op = ops[7]
+const op = ops[8]
 
 const sortBy = 'performance';
 const dir = 'desc';
@@ -27,7 +28,7 @@ const filters = {
   winPer: null,
   worstWinPer: null,
   worstPipsPerTrade: null,
-  // tradesPerDay: 2,
+  // tradesPerDay: 0.1,
   // fastWma: 5,
   // slowWma: 15
   // stopLoss: 100
@@ -40,7 +41,7 @@ const filters = {
   let stats 
   try {
     stats = JSON.parse(
-      await fs.readFileSync(`../cache/stats/${op}/${gran}/${abbrev}.JSON`, 'UTF8')
+      await fs.readFileSync(`./cache/stats/${op}/${gran}/${abbrev}.JSON`, 'UTF8')
     );
   } catch (e) {
     console.log(e)

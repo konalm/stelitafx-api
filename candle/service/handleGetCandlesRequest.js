@@ -23,6 +23,8 @@ module.exports = async (reqParams, reqQuery) => {
     candles = await getCachedCandles(gran, symbol, count, offset)
   }
 
+  console.log(`candles .. ${candles.length}`)
+
   const mappedCandles = candles.map((x) => ({
     date: new Date(x.date),
     open: parseFloat(x.candle.o),

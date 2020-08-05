@@ -5,25 +5,26 @@ const symbolToAbbrev = require('@/services/symbolToAbbrev')
 const { fetchCandles } = require('@/services/bitfinex')
 const intervalFromGran = require('@/services/intervalFromGran')
 const hourFromGran = require('@/services/hourFromGran')
+const fetchHeikenAshiCandles = require('@/candle/service/getHeikenAshiCandlesSinceDate')
 
-const interval = 5
+const interval = 15
 const gran = `M${interval}`;
 // const upperGrans = ['H4'];
-const symbol = 'GBPCAD'
-const sinceDate = '2017-01-01T00:00:00.000Z';
+const symbol = 'EURUSD'
+const sinceDate = '2018-01-01T00:00:00.000Z';
 const crypto = false
 const { 
   dateStripMins, dateStripSecs, dateMinusHours, dateAddHours
 } = require('@/services/utils')
 
-if (!crypto) upperGrans = ['H1', 'H2'];
+if (!crypto) upperGrans = ['H1', 'H4'];
 else upperGrans = ['H1', 'H3', 'H6', 'H12']
 
 
 const getCalcPeriods = async (gran) => {
   let periods 
   try {
-    const filePath = `../cache/calculatedPeriods/${gran}/${symbol}.JSON`
+    const filePath = `./cache/calculatedPeriods/${gran}/${symbol}.JSON`
     periods = JSON.parse(await fs.readFileSync(filePath, 'utf8'))
   } catch (e) {
     return console.error(e)
@@ -66,21 +67,24 @@ const getPeriods = async (gran) => {
   const upperPeriods = []
   for (let gran of upperGrans) {
     const uPeriods = await getCalcPeriods(gran)
-    upperPeriods.push({ gran, data: uPeriods });
+    const HACandles = await fetchHeikenAshiCandles(gran, symbol, sinceDate)
+    upperPeriods.push({ gran, data: uPeriods, HACandles: HACandles });
   }
+
 
   periods.forEach((p, i) => {
     if (i % 1000 === 0) console.log(`period .. ${i}`)
 
-    // const d = new Date(p.date)
+    const d = new Date(p.date)
+
     // d.setMinutes(d.getMinutes() + interval) 
     // const spliceIndex = m1Periods.findIndex((x) => x.date >= d)
     
     /* Assign M1 periods */
     // p.m1Candles = m1Periods.splice(0, spliceIndex)
 
-    const d = new Date(p.date)
     
+    /* Upper period */
     p.upperPeriods = {}
     for (upperPeriod of upperPeriods) {
       if (!upperPeriod.data.length) continue 
@@ -96,18 +100,33 @@ const getPeriods = async (gran) => {
 
       p.upperPeriods[upperPeriod.gran] = upperPeriod.data[0]
     }
+
+    /* Heiken Ashi candle */ 
+    p.upperHACandles = {}
+    for (upperPeriod of upperPeriods) {
+      if (!upperPeriod.HACandles.length) continue 
+      
+      const hour = hourFromGran(upperPeriod.gran)
+      const granCloseDate = dateAddHours(upperPeriod.HACandles[0].date, hour)
+
+      /* upper period not available */ 
+      if (d < granCloseDate) continue 
+
+      /* exceeded closing date of most current upper period date */
+      if (d >= dateAddHours(granCloseDate, hour)) upperPeriod.HACandles.splice(0,1)
+
+      p.upperHACandles[upperPeriod.gran] = upperPeriod.HACandles[0]
+    }
   })
 
-  const validPeriods = periods.filter((x) => 
-    x.upperPeriods.hasOwnProperty('H1') && x.upperPeriods.hasOwnProperty('H2')
-  )
+  const validPeriods = periods.filter((x) => x.upperPeriods.hasOwnProperty('H4') )
 
-  console.log(`periods .. ${periods.length}`)
-  console.log(`valid periods .. ${validPeriods.length}`)
+  console.log(validPeriods[0])
+  console.log(validPeriods[validPeriods.length - 1])
 
   /* Write to cache */
   try {
-    const cacheFile = `../cache/calculatedPeriods/withRelatedUpper/${gran}/${symbol}.JSON`
+    const cacheFile = `./cache/calculatedPeriods/withRelatedUpper/${gran}/${symbol}.JSON`
     await fs.writeFileSync(cacheFile, JSON.stringify(validPeriods))
   } catch (e) {
     throw new Error('Failed to write to cache')

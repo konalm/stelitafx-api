@@ -45,9 +45,6 @@ exports.openTradeTransaction = (ws, symbol, price, cmd) => new Promise((resolve,
     }
   }`
 
-  console.log('request >>')
-  console.log(request)
-
   ws.send(request)
   ws.on('message', incoming = (dataS) => {
     resolve(JSON.parse(dataS))

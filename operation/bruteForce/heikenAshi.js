@@ -7,17 +7,23 @@ const getPerformance = require('../service/getPerformance');
 const { daysBetweenDates } = require('@/services/utils');
 const symbolToAbbrev = require('@/services/symbolToAbbrev');
 const getHeikenAshiCandles = require('@/candle/service/heikenAshiCandles.js');
-const { bullCandle, bearCandle } = require('@/simulateTradeHistory/service/conditions');
+const { 
+  bullCandle, 
+  bearCandle,
+  trendUp,
+  trendDown,
+  upperTrendUp,
+  upperTrendDown
+} = require('@/simulateTradeHistory/service/conditions');
 
-const gran = 'M5'
+const gran = 'D'
 const symbol = 'GBPUSD'
-const abbrev = symbolToAbbrev(symbol)
-const sinceDate = '2020-01-01T00:00:00.000Z';
+const sinceDate = '2015-01-01T00:00:00.000Z';
 
 const algos = [
   {
-    open: (p, c) => bullCandle(c),
-    close: (p, c) => bearCandle(c),
+    open: (p, c) => upperTrendUp(c),
+    close: (p, c) => upperTrendDown(c),
     algo: 'heikenAshi'
   }
 ];
@@ -26,6 +32,9 @@ const algos = [
   const candles = await fetchCachedCandles(gran, symbol, sinceDate)
   const heikenAshiCandles = getHeikenAshiCandles(candles)
   const daysOfPeriods = daysBetweenDates(heikenAshiCandles[0].date)(new Date())
+
+  // console.log(heikenAshiCandles.length)
+  // console.log(heikenAshiCandles)
 
   algos.forEach((algo) => {
     const performance = getPerformance(heikenAshiCandles)(algo)(null)(null)

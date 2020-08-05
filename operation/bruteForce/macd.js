@@ -16,20 +16,19 @@ const {
   rateBelowWma
 } = require('@/simulateTradeHistory/service/conditions')
 const getPerformance = require('../service/getPerformance')
+// const calcMacdInBatch = require('@/indicators/macd/service')
 
-const gran = 'M15';
-const abbrev = 'GBPCAD';
-const sinceDate = '2019-01-01T00:00:00.000Z';
+const gran = 'M5';
+const abbrev = 'GBPUSD';
+const sinceDate = '2018-01-01T00:00:00.000Z';
 
 const upperPeriodWma = 15
 
 const algorithms = [
   {
-    open: (p, c) => macdCrossedUnder(p, c)
-      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma),
-
-    close: (p, c) => macdAbove(p, c),
-    algo: 'H1'
+    open: (p, c) => macdCrossedOver(p, c),
+    close: (p, c) => macdUnder(p, c),
+    algo: 'default'
   },
   // {
   //   open: (p, c) => macdCrossedUnder(p, c)
@@ -38,42 +37,6 @@ const algorithms = [
   //   close: (p, c) => macdAbove(p, c),
   //   algo: 'H2'
   // },
-  // {
-  //   open: (p, c) => macdCrossedUnder(p, c)
-  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma),
-
-  //   close: (p, c) => macdAbove(p, c),
-  //   algo: 'H4'
-  // },
-  {
-    open: (p, c) => macdCrossedUnder(p, c)
-      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma),
-    close: (p, c) => macdAbove(p, c),
-    algo: 'H6'
-  },
-  {
-    open: (p, c) => macdCrossedUnder(p, c)
-      && rateBelowWma(c.upperPeriods.H1, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
-      && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
-
-    close: (p, c) => macdAbove(p, c),
-
-    algo: 'H1-H12'
-  },
-  // {
-  //   open: (p, c) => macdCrossedUnder(p, c)
-  //     && rateBelowWma(c.upperPeriods.H2, upperPeriodWma)
-  //     && rateBelowWma(c.upperPeriods.H4, upperPeriodWma)
-  //     && rateBelowWma(c.upperPeriods.H6, upperPeriodWma)
-  //     && rateBelowWma(c.upperPeriods.H12, upperPeriodWma),
-
-  //   close: (p, c) => macdAbove(p, c),
-
-  //   algo: 'H2-H12'
-  // }
 ]
 
 const getPeriods = async (gran, map) => {
@@ -94,17 +57,14 @@ const getPeriods = async (gran, map) => {
 
 (async () => {
   const periods = await getPeriods(gran, false)
-
-  console.log(periods[0].date)
-  console.log(periods[0].upperPeriods.H1.date)
-
-  console.log('last period -->')
-  console.log(periods[periods.length - 1].date)
-  console.log(periods[periods.length - 1].upperPeriods.H1.date)
-
-  return 
-
   const daysOfPeriods = daysBetweenDates(periods[0].date)(new Date())
+
+  console.log(`periods .. ${periods.length}`)
+
+  periods.forEach((period, i) => {
+    console.log(`i ... ${i}`)
+    period.macd = calcMacdInBatch(periods) 
+  })
 
   const performances = []
   algorithms.forEach((x) => {
@@ -113,15 +73,19 @@ const getPeriods = async (gran, map) => {
 
   const worst = [...performances]
   .sort((a, b) => a.pipsPerTrade - b.pipsPerTrade)
-  .splice(0, 20)
+  .splice(0, 5)
   .reverse()
 
   const best = [...performances]
     .sort((a, b) => b.pipsPerTrade - a.pipsPerTrade)
-    .splice(0, 20)
+    .splice(0, 5)
     .reverse()
 
+  console.log('worst -->')
   console.log(worst)
+
+  console.log('best -->')
+  console.log(best)
 })();
 
 

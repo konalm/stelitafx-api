@@ -3,10 +3,10 @@ const fs = require('fs')
 
 const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 
-const sinceDate = '2019-01-01T00:00:00.000Z';
+const sinceDate = '2015-01-01T00:00:00.000Z';
 const endDate = new Date();
 const abbrev = 'GBP/USD';
-const gran = 'M5';
+const gran = 'D';
 
 
 (async () => {
@@ -15,8 +15,11 @@ const gran = 'M5';
   try {
     candles5M = await getCandlesSinceDate(sinceDate, endDate, gran, abbrev)
   } catch (e) {
+    console.log(e)
     return console.error(`Failed to get candles`)
   }
+
+  console.log(`candles 5M .. ${candles5M.length}`)
 
   const periods = [...candles5M].map((x) => ({
     date: new Date(x.time),

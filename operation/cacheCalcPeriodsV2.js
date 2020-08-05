@@ -6,7 +6,7 @@ const getCachedPeriodsSinceDate = require('@/candle/service/getCachedPeriodsSinc
 const getCandlesSinceDate = require('@/candle/service/getCandlesSinceDate');
 const { fetchCandles } = require('@/services/bitfinex')
 const monthsSinceDate = require('./service/getMonthsSinceDate')
-const sinceDate = '2019-01-01T00:00:00.000Z';
+const sinceDate = '2016-01-01T00:00:00.000Z';
 // const abbrev= 'USDJPY';
 
 const crypto = false
@@ -31,7 +31,6 @@ const getPeriods = async (gran) => {
     candle: x.mid,
     volume: x.volume
   }))
-
 
   const x = periods.splice(periods.length - 200, 100)
 
@@ -60,7 +59,6 @@ const getPeriods = async (gran) => {
     .flat()
     .sort((a, b) => new Date(a) - new Date(b))
   
-
   /* Write to cache */
   try {
     const cacheFile = `../cache/calculatedPeriods/${gran}/${symbol}.JSON`
