@@ -32,7 +32,7 @@ exports.lowPoint = (stageOne, candle) => {
   }
 
   if (stageOne.trend === 'down') {
-    if (candle.high > stageOne.highPoint) return true
+    if (candle.high > stageOne.lowPoint) return true
   }
 
   return false

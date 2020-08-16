@@ -6,7 +6,6 @@ module.exports = (wave, candle, allWaves, abbrev) => {
 
   const height = measureWaveHeight(wave.trend, wave.candles, abbrev)
   
-  // console.log(`height .. ${height}`)
   
   const priorWave = allWaves[allWaves.length - 2]
   let retraceHeight = null

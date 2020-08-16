@@ -66,8 +66,8 @@ exports.getTrends = async (req, res) => {
   const waveDataPoints = constructWaveDataPoints(heikenAshiCandles)
   const waves = constructWaves (waveDataPoints, symbol)
   const fullWaves = constructFullWaves(waves)
-  const trends = constructTrends(fullWaves)
-  // const trends = constructTrendsV2(waves)
+  // const trends = constructTrends(fullWaves)
+  const trends = constructTrendsV2(waves)
 
   return res.send(trends)
 }

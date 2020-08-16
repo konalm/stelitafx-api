@@ -3,7 +3,10 @@ module.exports = (impulseWave, retraceWave) => {
   const lastImpulseCandle = impulseWave.candles[impulseWave.candles.length - 1]
   const lastRetraceCandle = retraceWave.candles[retraceWave.candles.length - 1]
 
-  if (impulseWave.type === 'up') {
+  const log = impulseWave.date.start === '2019-08-01T13:00:00.000Z'
+
+
+  if (impulseWave.trend === 'up') {
     highPoint = lastImpulseCandle.high 
     lowPoint = lastRetraceCandle.low 
   } else {
@@ -16,6 +19,21 @@ module.exports = (impulseWave, retraceWave) => {
 
   // console.log(`HIGH POINT .. ${highPoint}`)
   // console.log(`LOW POINT .. ${lowPoint}`)
+
+
+  // if (log) {
+  //   console.log()
+  //   console.log('CREATE STAGE ONE ITEM')
+  //   console.log(`high point .. ${highPoint}`)
+
+  //   console.log('last impulse candle -->')
+  //   console.log(lastImpulseCandle)
+
+  //   console.log(`impulse wave trend .. ${impulseWave.trend}`)
+  //   console.log(`impulse wave type .. ${impulseWave.type}`)
+  //   console.log()
+  // }
+
 
   return {
     impulseWave,
