@@ -9,7 +9,7 @@ module.exports = async (gran, abbrev, sinceDate, endDate) => {
     new Date(x.date) < new Date(endDate)
   )
     .map((x) => ({
-      date: x.date,
+      date: new Date(x.date),
       open: parseFloat(x.candle.o),
       high: parseFloat(x.candle.h),
       low: parseFloat(x.candle.l),

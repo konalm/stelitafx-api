@@ -1,11 +1,9 @@
+const calculatePip = require('../../../services/calculatePip')
+
 module.exports = (candles) => {
   const waves = []
 
   candles.forEach((candle, i) => {
-    // if (i > 20) process.exit()
-
-    // console.log(`candle .. ${candle.date}`)
-
     const direction = getDirection(candle)
 
     if (i === 0) {
@@ -17,6 +15,7 @@ module.exports = (candles) => {
         end: {},
         direction,
         candles: [candle], 
+        height: calculatePip(candle.low, candle.high, 'EURUSD')
       })
       return 
     }
@@ -25,10 +24,7 @@ module.exports = (candles) => {
     const priorCandle = candles[i - 1]
 
     if (waveTrendChanged(wave, candle, priorCandle)) {
-      // console.log('CHANGED')
-
       const newDirection = wave.direction === 'up' ? 'down' : 'up'
-      // console.log(`new direction .. ${newDirection}`)
 
       waves.push({
         direction: newDirection,
@@ -40,19 +36,41 @@ module.exports = (candles) => {
         end: {
           date: candle.date,
           value: newDirection === 'up' ? candle.high : candle.low
-        }
+        },
+        lowPoint: candle,
+        highPoint: candle,
+        benchMark: newDirection === 'up' ? candle.low : candle.high, 
+        height: Math.abs(
+          calculatePip(
+            wave.end.value, 
+            newDirection === 'up' ? candle.high : candle.low, 
+            'EURUSD'
+          )
+        )
       })
     } else {
-      // console.log('DID NOT CHANGE')
-      // if (getWaveContinued(wave, candle, priorCandle)) {
-        wave.candles.push(candle)
-        wave.end.date = candle.date
-        wave.end.value = wave.direction === 'up' ? candle.high : candle.low 
-     
-      // }
+      wave.candles.push(candle)
+      wave.end.date = candle.date
+      wave.end.value = wave.direction === 'up' ? candle.high : candle.low 
+      wave.lowPoint = wave.direction === 'up' 
+        ? wave.candles[0] 
+        : wave.candles[wave.candles.length - 1]
+      wave.highPoint = wave.direction === 'up'
+        ? wave.candles[wave.candles.length - 1]
+        : wave.candles[0]
+      wave.benchMark = wave.direction === 'up'
+        ? wave.lowPoint.low
+        : wave.highPoint.high 
+      wave.height = Math.abs(calculatePip(
+        wave.start.value, 
+        wave.direction === 'up' 
+          ? Math.max(...wave.candles.map((x) => x.high)) 
+          // ? candle.high
+          // : candle.low
+          : Math.min(...wave.candles.map((x) => x.low)), 
+        'EURUSD'
+      ))
     }
-
-    // console.log()
   })
 
   return waves
@@ -74,35 +92,20 @@ const doubleBreakTendContinued = (wave, candle, priorCandle) => {
 }
 
 
-const getWaveContinued = (wave, candle, priorCandle) => {
-  if (wave.direction === 'up') {
-    if (higherHigh(candle, priorCandle) && higherLow(candle, priorCandle)) return true 
-  }
-
-  if (wave.direction === 'down') {
-    if (lowerLow(candle, priorCandle) && lowerHigh(candle, priorCandle)) return true 
-  }
-
-  return doubleBreakTendContinued(wave, candle, priorCandle)
-}
-
-
 const waveTrendChanged = (wave, candle, priorCandle) => {
-  // console.log('wave trend changed ??')
-
   if (wave.direction === 'up') {
-    // console.log('wave direction UP')
-    // console.log(`lower high .. ${lowerHigh(candle, priorCandle) }`)
-    // console.log(`lower low .. ${lowerLow(candle, priorCandle) }`)
     if (lowerHigh(candle, priorCandle) && lowerLow(candle,  priorCandle)) return true 
   }
 
   if (wave.direction === 'down') {
-    // console.log('wave direction DOWN')
     if (higherHigh(candle, priorCandle) && higherLow(candle, priorCandle)) return true 
   }
 
-  return waveContracted(candle, priorCandle)
+  if (waveContracted(candle, priorCandle)) {
+    if (getCandleDir(candle) !== wave.direction) return true 
+  }
+
+  return false
 }
 
 const getDirection = (candle) => candle.close > candle.open ? 'up' : 'down'
@@ -112,3 +115,7 @@ const higherHigh = (candle, priorCandle) => candle.high >= priorCandle.high
 const higherLow = (candle, priorCandle) => candle.low >= priorCandle.low
 const lowerLow = (candle, priorCandle) => candle.low <= priorCandle.low
 const lowerHigh = (candle, priorCandle) => candle.high <= priorCandle.high
+const getCandleDir = (candle) => {
+  if (candle.close >= candle.open) return 'up'
+  return 'down'
+}

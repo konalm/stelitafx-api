@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+  </head>
+  <body>
+    <h4>Bomb notifaction</h4>
+
+    <% currencyPairBombs.forEach((x) => { %>
+    <p><b> <%- x.abbrev -%> </b></p>
+    <p>bomb setup: <%- x.bombSetup -%></p>
+    <p>bomb: <%- x.bomb -%></p>
+    <p></p>
+    <% }); %>
+  </body>
+</html>

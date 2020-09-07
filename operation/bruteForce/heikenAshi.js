@@ -33,9 +33,6 @@ const algos = [
   const heikenAshiCandles = getHeikenAshiCandles(candles)
   const daysOfPeriods = daysBetweenDates(heikenAshiCandles[0].date)(new Date())
 
-  // console.log(heikenAshiCandles.length)
-  // console.log(heikenAshiCandles)
-
   algos.forEach((algo) => {
     const performance = getPerformance(heikenAshiCandles)(algo)(null)(null)
       (daysOfPeriods)

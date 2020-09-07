@@ -1,5 +1,5 @@
 module.exports = (waves) => {
-  console.log('construct trades')
+  console.log('construct trades V2')
 
   const trends = []
 

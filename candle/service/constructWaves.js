@@ -3,16 +3,17 @@ const { candleType } = require('./candleStats')
 const calculatePips = require('@/services/calculatePip')
 const minsBetweenDates = require('@/services/minsBetweenDatesV2')
 
-module.exports = (dataPoints, symbol) => {
-  console.log('construct waves service')
-  console.log(dataPoints.length)
+module.exports = (dataPoints, symbol, candles) => {
+  console.log('CONSTRUCT WAVES')
+
+  console.log(dataPoints[1])
 
   const waves = []
 
   dataPoints.forEach((dataPoint, i) => {
     const { date, value } = dataPoint 
 
-    /* end prior wave */ 
+    /* End prior wave */ 
     if (i > 0) {
       let priorWave = waves[i - 1]
       priorWave.timeline.end = date
@@ -20,6 +21,9 @@ module.exports = (dataPoints, symbol) => {
       priorWave.trend = value > priorWave.values.start ? 'up' : 'down'
       priorWave.height = getWaveHeight(priorWave.values, symbol)
       priorWave.length = getWaveLength(priorWave, symbol)
+      priorWave.candles =  candles.filter((x) => 
+        x.date > priorWave.timeline.start && x.date <= priorWave.timeline.end
+      )
     }
 
     if (i < dataPoints.length - 1) {
@@ -30,6 +34,11 @@ module.exports = (dataPoints, symbol) => {
       })
     }
   })
+
+  console.log('waves -->')
+  console.log(waves[0])
+  console.log(waves[1])
+  console.log(waves[2])
 
   return waves
 }

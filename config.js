@@ -1,23 +1,34 @@
-exports.QUOTE_CURRENCY = 'USD';
+exports.QUOTE_CURRENCY = "USD";
 
 exports.MAJOR_CURRENCIES = [
-  'EUR',
-  'GBP',
+  "EUR",
+  "GBP",
   // 'JPY',
-  'AUD',
-]
+  "AUD",
+];
 
 exports.CURRENCYPAIRS = [
-  'GBPUSD',
-  'EURUSD',
-  'AUDUSD',
-  'USDJPY',
-  'EURGBP',
-  'CHFJPY',
-  'EURCHF',
-  'GBPCAD',
+  "GBPUSD",
+  "EURUSD",
+  "AUDUSD",
+  "USDJPY",
+  "EURGBP",
+  "CHFJPY",
+  "EURCHF",
+  "GBPCAD",
   // 'ETHBTC'
-]
+];
+
+exports.BOMB_CURRENCYPAIRS = [
+  "EUR/USD",
+  "USD/JPY",
+  "AUD/USD",
+  "USD/CAD",
+  "EUR/JPY",
+  "NZD/USD",
+  "NZD/CAD",
+  "GBP/USD",
+];
 
 exports.TIME_INTERVALS = [
   1,
@@ -26,19 +37,11 @@ exports.TIME_INTERVALS = [
   5,
   15,
   // 30,
-]
+];
 
-exports.HOUR_INTERVALS = [
-  1
-]
+exports.HOUR_INTERVALS = [1];
 
-exports.GRANS = [
-  'H1',
-  'H2',
-  'H4',
-  'H6',
-  'H12'
-]
+exports.GRANS = ["H1", "H2", "H4", "H6", "H12"];
 
 exports.WMA_LENGTHS = [
   5,
@@ -65,12 +68,10 @@ exports.WMA_LENGTHS = [
   180,
   185,
   195,
-  200
-]
+  200,
+];
 
+exports.CURRENCY_RATE_SOURCES = ["Oanda FX Account", "Fixer IO"];
 
-exports.CURRENCY_RATE_SOURCES = [
-  'Oanda FX Account',
-  'Fixer IO'
-]
-
+exports.SENDER_EMAIL = "connorlloydmoore@gmail.com";
+exports.EMAIL_PASSW = "tvaupqoyhqqzwqkq";

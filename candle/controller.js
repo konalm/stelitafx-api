@@ -10,6 +10,8 @@ const getCachedCandles = require('./service/getCachedHistoricCandles')
 const harmonicPatterns = require('./service/harmonicPattern')
 const constructTrends = require('./service/constructTrends')
 const constructTrendsV2 = require('./service/constructTrendsV2')
+const constructTrendsV3 = require('./service/constructTrendsV3')
+const getCandleUpperTrends = require('./service/candleUpperTrends')
 const constructFullWaves = require('./service/constructFullWaves')
 const calcRsiInBatch = require('@/indicators/rsi/service/calcRsiInBatch')
 
@@ -63,11 +65,14 @@ exports.getTrends = async (req, res) => {
   const symbol = req.params.symbol
   const candles = await handleGetCandlesRequest(req.params, req.query)
   const heikenAshiCandles = getHeikinAshiCandles(candles)
-  const waveDataPoints = constructWaveDataPoints(heikenAshiCandles)
-  const waves = constructWaves (waveDataPoints, symbol)
-  const fullWaves = constructFullWaves(waves)
+  // const waveDataPoints = constructWaveDataPoints(heikenAshiCandles)
+  // const waves = constructWaves(waveDataPoints, symbol, heikenAshiCandles)
+  // const fullWaves = constructFullWaves(waves)
   // const trends = constructTrends(fullWaves)
-  const trends = constructTrendsV2(waves)
+  // const trends = constructTrendsV2(waves)
+  
+  const candlesWithUpperTrend = getCandleUpperTrends(heikenAshiCandles)
+  const trends = constructTrendsV3(candlesWithUpperTrend)
 
   return res.send(trends)
 }
