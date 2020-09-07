@@ -17,7 +17,9 @@ exports.openTrade = async (
   rate, 
   stats, 
   timeInterval,
-  transactionType = 'long'
+  transactionType = 'long',
+  stopLoss,
+  takeProfit
 ) => {
   console.log('OPEN TRADE FOR ' + symbol)
 
@@ -66,7 +68,7 @@ exports.openTrade = async (
 
     /* open trade on xtb for published alogorithms */ 
     try {
-      await xtbService.openTrade(uuid, abbrev, transactionType)
+      await xtbService.openTrade(uuid, abbrev, transactionType, stopLoss, takeProfit)
     } catch (e) {
       console.log(e)
       throw new Error('Failed to open trade on xtb')
@@ -342,17 +344,6 @@ exports.abstractShortTradePerformance = (trade, wmaData) => {
 
   const low = wmaData.reduce((prev, curr) => prev.rate < curr.rate ? prev : curr)
   const high = wmaData.reduce((prev, curr) => prev.rate > curr.rate ? prev : curr)
-
-  if (trade.id === 438153) {
-    console.log('ANALYSES ME :)')
-
-    console.log('high >>>>>')
-    console.log(high)
-
-    console.log('low >>>>>>')
-    console.log(low)
-  }
-
 
   return {
     low: {

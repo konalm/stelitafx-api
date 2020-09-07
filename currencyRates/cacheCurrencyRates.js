@@ -5,10 +5,24 @@ const DIR = 'cache/currencyRate'
 
 module.exports = (date, rates) => new Promise(async (resolve, reject) => {
   const min = date.getMinutes()
+  const hour = date.getHours()
+
+  console.log('cache currency rates >>')
+  console.log(`min ... ${min}`)
+  console.log(`hour ... ${hour}`)
+
   const intervalsToCacheRate = []
   config.TIME_INTERVALS.forEach((interval) => {
     if (min % interval === 0) intervalsToCacheRate.push(interval)
   })
+
+  if (min === 1) {
+    config.GRANS.forEach((gran) => {
+      const interval = parseInt(gran.substring(1, gran.length))
+      if (hour % interval === 0) 
+      intervalsToCacheRate.push(gran)
+    })
+  }
 
   const intervalRatesCachePromises = []
   intervalsToCacheRate.forEach((interval) => {

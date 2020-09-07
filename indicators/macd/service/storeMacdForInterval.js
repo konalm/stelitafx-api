@@ -4,14 +4,15 @@ const calcMacd = require('./calcMacd')
 const { storeMacd } = require('../repository')
 const storeCache = require('./storeCache')
 const getCurrencyRates = require('@/currencyRates/services/getCurrencyRates')
+const symbolToAbbrev = require('@/services/symbolToAbbrev')
 
 
 module.exports = (interval) => new Promise((resolve) => {
   const conn = db()
 
   const storeMacdForAbbrevPromises = []
-  config.MAJOR_CURRENCIES.forEach((currency) => {
-    const abbrev = `${currency}/${config.QUOTE_CURRENCY}`
+  config.CURRENCYPAIRS.forEach((currencyPair) => {
+    const abbrev = symbolToAbbrev(currencyPair)
     storeMacdForAbbrevPromises.push(storeMacdForAbbrev(interval, abbrev, conn))
   })
 
@@ -50,8 +51,6 @@ const storeMacdForAbbrev = (interval, abbrev, conn) =>
 
   /* Order rates by earliest first */
   currencyRates.sort((a, b) => new Date(a.date) - new Date(b.date))
-
-  console.log(`calc macd for ... ${abbrev}`)
 
   let macd 
   try {

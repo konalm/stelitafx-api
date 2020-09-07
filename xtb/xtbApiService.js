@@ -26,7 +26,9 @@ exports.logout = (ws) => new Promise((resolve, _) => {
 })
 
 
-exports.openTradeTransaction = (ws, symbol, price, cmd) => new Promise((resolve, reject) => {
+exports.openTradeTransaction = (ws, symbol, price, cmd, stopLoss, takeProfit) => 
+  new Promise((resolve, reject) => 
+{
   const request = `{
     "command": "tradeTransaction",
     "arguments" : {
@@ -34,8 +36,8 @@ exports.openTradeTransaction = (ws, symbol, price, cmd) => new Promise((resolve,
         "cmd": ${cmd},
         "type": 0,
         "price": ${price},
-        "sl": 0.0,
-        "tp": 0.0,
+        "sl": ${stopLoss},
+        "tp": ${takeProfit},
         "symbol": "${symbol}",
         "volume": 0.01,
         "order": 0,

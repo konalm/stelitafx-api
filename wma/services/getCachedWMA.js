@@ -9,6 +9,8 @@ module.exports = (interval, abbrev, count) => new Promise(async (resolve, reject
   try {
     cachedWMA = JSON.parse(await fs.readFileSync(path, 'utf8'))
   } catch (e) {
+    console.log(e)
+    console.trace()
     return reject('Failed to get cached WMA')
   }
   if (!cachedWMA) return resolve(false)

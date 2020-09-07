@@ -3,7 +3,9 @@ const tradeRepo = require('@/trade/repository')
 const indicators = require('../algorithms/indicators')
 const service = require('./service')
 
-
+/**
+ * 
+ */
 exports.getAlgorithmStats = async (req, res) => {
   const { id, interval } = req.params
   const sinceDate = req.query.sinceDate || ''
@@ -73,6 +75,9 @@ exports.getProto = async (req, res) => {
 }
 
 
+/**
+ * 
+ */
 exports.getProtoIntervalCurrencyData = async (req, res ) => {
   const {protoNo, interval, currency} = req.params;
   const abbrev = `${currency}/USD`

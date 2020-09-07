@@ -31,6 +31,32 @@ exports.storeWMAData = (currencyAbbrev, rate, wmaData, timeInterval, conn) =>
 });
 
 
+exports.storeWMADataWithGran = (currencyAbbrev, rate, wmaData, gran, conn) =>
+  new Promise((resolve, reject) =>
+{
+  const wmaDataJSON = JSON.stringify(wmaData);
+  
+  const query = `
+    INSERT INTO currency_wma
+    (abbrev, rate, wma_data_json, gran)
+    VALUES ?
+  `
+  const queryValues = [
+    [currencyAbbrev, rate, wmaDataJSON, gran]
+  ]
+  
+  conn.query(query, [queryValues], (e) => {
+    if (e) {
+      console.log('Failed to store wma data')
+      console.log(e)
+      return reject('Error storing currency WMA data');
+    }
+
+    resolve('Stored WMA data')
+  })
+});
+
+
 let x = 0;
 exports.getWMAs = (currencyAbbrev, interval, amount, offset = 0, currencyRateSource) =>
   new Promise((resolve, reject) =>

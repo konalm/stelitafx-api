@@ -82,12 +82,29 @@ exports.wmaCrossedOver = (prior, current, shortWma, longWma) => {
   ) 
 }
 
+<<<<<<< HEAD
 exports.wmaUnder = (current, shortWma, longWma) => {
+=======
+exports.wmaCrossedOverV2 = (prior, current, shortWma, longWma) => {
+  console.log('WMA CROSSED OVER V2')
+
+  if (!prior.wma[shortWma] || !prior.wma[longWma]) return false
+
+  return (
+    prior.wma[shortWma] <= prior.wma[longWma] && 
+    current.wma[shortWma] > current.wma[longWma]
+  ) 
+}
+
+
+exports.wmaUnder = (prior, current, shortWma, longWma) => {
+>>>>>>> f589ae0edec68d4dd4b143fa19cb7384b8509cce
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
   return current.wma[shortWma] < current.wma[longWma]
 }
 
+<<<<<<< HEAD
 
 exports.rateAboveWma = (current, wma) => {
   return current.rate > current.wma[wma]
@@ -95,6 +112,32 @@ exports.rateAboveWma = (current, wma) => {
 
 
 exports.wmaOver = (current, shortWma, longWma) => {
+=======
+exports.rateAboveWma = (current, wma) => {
+  const rate = current.hasOwnProperty('exchange_rate') 
+    ? current.exchange_rate 
+    : current.rate;
+  
+  if (current.hasOwnProperty('wma')) return rate > current.wma[wma]
+  
+
+  return current.rate > current.WMAs[wma]
+}
+
+
+exports.rateBelowWma = (current, wma) => {
+  const rate = current.hasOwnProperty('exchange_rate') 
+    ? current.exchange_rate 
+    : current.rate;
+
+  if (current.hasOwnProperty('wma')) return rate < current.wma[wma]
+
+  return rate < current.WMAs[wma]
+}
+
+
+const wmaOver = (current, shortWma, longWma) => {
+>>>>>>> f589ae0edec68d4dd4b143fa19cb7384b8509cce
   if (!current.wma[shortWma] || !current.wma[longWma]) return false
 
   return current.wma[shortWma] > current.wma[longWma]
@@ -117,12 +160,11 @@ exports.adxPlusDiAbove = (prior, current) => {
 
 exports.adxAboveThreshold = (prior, current, threshold) => current.adx.adx >= threshold
 
-
 exports.adxBelowThreshold = (prior, current, threshold) => current.adx.adx <= threshold
-
 
 exports.adxPlusDiAboveThreshold = (prior, current, threshold) => current.adx.plusDi > threshold
 
+<<<<<<< HEAD
 exports.adxMinusDiAboveThreshold = (prior, current, threshold) => {
   // console.log(current.adx)
 
@@ -132,10 +174,13 @@ exports.adxMinusDiAboveThreshold = (prior, current, threshold) => {
 exports.adxBelowDiBelowThreshold = (current, threshold) => current.adx.minusDi > threshold
 
 
+=======
+>>>>>>> f589ae0edec68d4dd4b143fa19cb7384b8509cce
 exports.adxPlusDiBelowThreshold = (prior, current, threshold) => current.adx.plusDi < threshold
 
 
 exports.macdCrossedOver = (prior, current) =>  {
+<<<<<<< HEAD
   return (prior.macd.macdLine < prior.macd.macdLag) && (current.macd.macdLine > current.macd.macdLag)
 }
 
@@ -295,3 +340,20 @@ exports.rsiBelow = (current, thresh) => {
 
   return current.rsi.rsi <= thresh
 }
+=======
+  // console.log('CONDITIONS ... MACD CROSSED OVER')
+  // console.log('prior >>')
+  // console.log(prior.macd)
+
+  // console.log('current >>')
+  // console.log(current.macd)
+
+  return (prior.macd.macdLine <= prior.macd.macdLag) 
+    && (current.macd.macdLine > current.macd.macdLag)
+}
+
+exports.macdUnder = (prior, current) => current.macd.macdLine <= current.macd.macdLag
+
+
+exports.alwaysTrueTest = (prior, current) => false
+>>>>>>> f589ae0edec68d4dd4b143fa19cb7384b8509cce

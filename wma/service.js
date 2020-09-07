@@ -81,14 +81,18 @@ exports.getWMAsForTrade = (abbrev, date, historicWMAs) =>
 /**
  *
  */
-exports.storeWMAData = (timeInterval) => new Promise((resolve, reject) =>  {
+exports.storeWMAData = (timeInterval, isGran = false) => new Promise((resolve, reject) => {
+  // console.log(`WMA Service .. store WMA data`)
+  // console.log(timeInterval)
+  // console.log(isGran)
+
   const conn = db()
   const s = new Date()
 
   storeCurrencyPromises = [];
   config.CURRENCYPAIRS.forEach((currencyPair) => {
     storeCurrencyPromises.push(
-      storeCurrencyWMAData(symbolToAbbrev(currencyPair), timeInterval, conn)
+      storeCurrencyWMAData(symbolToAbbrev(currencyPair), timeInterval, conn, isGran)
     )
   })
 
@@ -111,7 +115,7 @@ exports.storeWMAData = (timeInterval) => new Promise((resolve, reject) =>  {
 /**
  * Store all WMA lengths for currency 
  */
-const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) => 
+const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn, isGran = false) => 
   new Promise(async (resolve) =>
 {
   let rateData 
@@ -119,7 +123,8 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) =>
     rateData = await getCurrencyRates(timeInterval, currencyAbbrev, 1, true)
   } catch (e) {
     console.log(e)
-    throw new Error('Error getting currency rate');
+    // throw new Error('Error getting currency rate');
+    resolve()
   }
 
   if (!rateData.length) return resolve('Could not calculate WMA data as no rates')
@@ -142,17 +147,19 @@ const storeCurrencyWMAData = (currencyAbbrev, timeInterval, conn) =>
         WMAData.push(WMADataPoint);
       });
 
-      /* Store WMA data for interval and curreny in MYSQL */
-      try {
-        await repo.storeWMAData(
-          currencyAbbrev, 
-          rate, 
-          WMAData, 
-          timeInterval, 
-          conn
-        )
-      } catch (e) {
-        console.error('Failed to store WMA data')
+      /* Store WMA data for interval and currency in MYSQL DB */
+      if (!isGran) {
+        try {
+          await repo.storeWMAData(currencyAbbrev, rate, WMAData, timeInterval, conn)
+        } catch (e) {
+          console.error('Failed to store WMA data')
+        }
+      } else {
+        try {
+          await repo.storeWMADataWithGran(currencyAbbrev, rate, WMAData, timeInterval, conn)
+        } catch (e) {
+          console.log('Failed to store WMA data with gran')
+        }
       }
 
       /* Store WMA data fir interval and currency in cache */ 
@@ -190,7 +197,7 @@ const calcWMA = async (abbrev, WMALength, timeInterval, conn) => {
     currencyRates = await getCurrencyRates(timeInterval, abbrev, WMALength, true)
   } catch (err) {
     console.log('Failed to get currency rates')
-    throw new Error('Error Getting WMA Data points: ' + err);
+    // throw new Error('Error Getting WMA Data points: ' + err);
   }
 
   if (currencyRates.length < WMALength) return null;
